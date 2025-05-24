@@ -1,0 +1,344 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const LeadsList = ({ currentOrg }) => {
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+  
+  useEffect(() => {
+    // Simulated data loading for demo
+    const loadLeads = async () => {
+      try {
+        setLoading(true);
+        
+        // In a real app, we would fetch this data from the API
+        // const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/leads?org_id=${currentOrg.id}`);
+        
+        // Mock data for demo
+        setTimeout(() => {
+          const mockLeads = [
+            {
+              id: '1',
+              name: 'John Smith',
+              email: 'john.smith@example.com',
+              phone: '(555) 123-4567',
+              status: 'Qualified',
+              relationship_stage: 'qualification',
+              personality_type: 'analytical',
+              trust_level: 0.75,
+              conversion_probability: 0.75,
+              created_at: '2023-01-15T10:30:00Z'
+            },
+            {
+              id: '2',
+              name: 'Sarah Johnson',
+              email: 'sarah.j@example.com',
+              phone: '(555) 234-5678',
+              status: 'Nurturing',
+              relationship_stage: 'nurturing',
+              personality_type: 'expressive',
+              trust_level: 0.55,
+              conversion_probability: 0.55,
+              created_at: '2023-02-20T14:45:00Z'
+            },
+            {
+              id: '3',
+              name: 'Michael Brown',
+              email: 'michael.b@example.com',
+              phone: '(555) 345-6789',
+              status: 'Initial Contact',
+              relationship_stage: 'initial_contact',
+              personality_type: 'driver',
+              trust_level: 0.30,
+              conversion_probability: 0.30,
+              created_at: '2023-03-05T09:15:00Z'
+            },
+            {
+              id: '4',
+              name: 'Emily Davis',
+              email: 'emily.d@example.com',
+              phone: '(555) 456-7890',
+              status: 'Closing',
+              relationship_stage: 'closing',
+              personality_type: 'amiable',
+              trust_level: 0.90,
+              conversion_probability: 0.90,
+              created_at: '2023-01-10T16:20:00Z'
+            },
+            {
+              id: '5',
+              name: 'Robert Wilson',
+              email: 'robert.w@example.com',
+              phone: '(555) 567-8901',
+              status: 'Qualified',
+              relationship_stage: 'qualification',
+              personality_type: 'analytical',
+              trust_level: 0.65,
+              conversion_probability: 0.65,
+              created_at: '2023-02-28T11:10:00Z'
+            },
+            {
+              id: '6',
+              name: 'Jennifer Lee',
+              email: 'jennifer.l@example.com',
+              phone: '(555) 678-9012',
+              status: 'Nurturing',
+              relationship_stage: 'nurturing',
+              personality_type: 'expressive',
+              trust_level: 0.40,
+              conversion_probability: 0.40,
+              created_at: '2023-03-15T13:50:00Z'
+            },
+            {
+              id: '7',
+              name: 'William Taylor',
+              email: 'william.t@example.com',
+              phone: '(555) 789-0123',
+              status: 'Initial Contact',
+              relationship_stage: 'initial_contact',
+              personality_type: 'driver',
+              trust_level: 0.25,
+              conversion_probability: 0.25,
+              created_at: '2023-03-20T10:05:00Z'
+            },
+            {
+              id: '8',
+              name: 'Olivia Martin',
+              email: 'olivia.m@example.com',
+              phone: '(555) 890-1234',
+              status: 'Closing',
+              relationship_stage: 'closing',
+              personality_type: 'amiable',
+              trust_level: 0.85,
+              conversion_probability: 0.85,
+              created_at: '2023-01-25T15:30:00Z'
+            }
+          ];
+          
+          setLeads(mockLeads);
+          setLoading(false);
+        }, 1000);
+      } catch (error) {
+        console.error('Error loading leads:', error);
+        setLoading(false);
+      }
+    };
+    
+    loadLeads();
+  }, [currentOrg]);
+  
+  const filteredLeads = leads.filter(lead => {
+    if (filter === 'all') return true;
+    return lead.relationship_stage === filter;
+  });
+  
+  const renderLeadStatus = (status) => {
+    const statusStyles = {
+      'Qualified': 'bg-green-100 text-green-800',
+      'Nurturing': 'bg-yellow-100 text-yellow-800',
+      'Initial Contact': 'bg-gray-100 text-gray-800',
+      'Closing': 'bg-indigo-100 text-indigo-800'
+    };
+    
+    return (
+      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusStyles[status] || 'bg-gray-100 text-gray-800'}`}>
+        {status}
+      </span>
+    );
+  };
+  
+  const renderPersonalityBadge = (type) => {
+    const typeStyles = {
+      'analytical': 'bg-blue-100 text-blue-800',
+      'driver': 'bg-red-100 text-red-800',
+      'expressive': 'bg-purple-100 text-purple-800',
+      'amiable': 'bg-green-100 text-green-800'
+    };
+    
+    const typeLabels = {
+      'analytical': 'Analytical',
+      'driver': 'Driver',
+      'expressive': 'Expressive',
+      'amiable': 'Amiable'
+    };
+    
+    return (
+      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${typeStyles[type] || 'bg-gray-100 text-gray-800'}`}>
+        {typeLabels[type] || type}
+      </span>
+    );
+  };
+  
+  return (
+    <div>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-900">Leads</h1>
+        <div className="flex space-x-2">
+          <button className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            <svg xmlns="http://www.w3.org/2000/svg" className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Lead
+          </button>
+        </div>
+      </div>
+      
+      {/* Filters */}
+      <div className="mt-4 flex space-x-2">
+        <button
+          onClick={() => setFilter('all')}
+          className={`px-3 py-2 text-sm font-medium rounded-md ${
+            filter === 'all'
+              ? 'bg-indigo-100 text-indigo-700'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setFilter('initial_contact')}
+          className={`px-3 py-2 text-sm font-medium rounded-md ${
+            filter === 'initial_contact'
+              ? 'bg-indigo-100 text-indigo-700'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Initial Contact
+        </button>
+        <button
+          onClick={() => setFilter('qualification')}
+          className={`px-3 py-2 text-sm font-medium rounded-md ${
+            filter === 'qualification'
+              ? 'bg-indigo-100 text-indigo-700'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Qualification
+        </button>
+        <button
+          onClick={() => setFilter('nurturing')}
+          className={`px-3 py-2 text-sm font-medium rounded-md ${
+            filter === 'nurturing'
+              ? 'bg-indigo-100 text-indigo-700'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Nurturing
+        </button>
+        <button
+          onClick={() => setFilter('closing')}
+          className={`px-3 py-2 text-sm font-medium rounded-md ${
+            filter === 'closing'
+              ? 'bg-indigo-100 text-indigo-700'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Closing
+        </button>
+      </div>
+      
+      {/* Leads Table */}
+      <div className="mt-4 flex flex-col">
+        <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+          <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+            <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Lead
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Personality
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Trust Level
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Conversion
+                    </th>
+                    <th scope="col" className="relative px-6 py-3">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {loading ? (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : filteredLeads.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                        No leads found
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredLeads.map((lead) => (
+                      <tr key={lead.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-800 font-semibold">
+                              {lead.name.charAt(0)}
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">{lead.name}</div>
+                              <div className="text-sm text-gray-500">{lead.email}</div>
+                              <div className="text-sm text-gray-500">{lead.phone}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {renderLeadStatus(lead.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {renderPersonalityBadge(lead.personality_type)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div className={`h-2.5 rounded-full ${
+                                lead.trust_level >= 0.7 ? 'bg-green-500' :
+                                lead.trust_level >= 0.4 ? 'bg-yellow-500' :
+                                'bg-red-500'
+                              }`} style={{ width: `${lead.trust_level * 100}%` }}></div>
+                            </div>
+                            <span className="ml-2 text-sm text-gray-500">{Math.round(lead.trust_level * 100)}%</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div className={`h-2.5 rounded-full ${
+                                lead.conversion_probability >= 0.7 ? 'bg-green-500' :
+                                lead.conversion_probability >= 0.4 ? 'bg-yellow-500' :
+                                'bg-red-500'
+                              }`} style={{ width: `${lead.conversion_probability * 100}%` }}></div>
+                            </div>
+                            <span className="ml-2 text-sm text-gray-500">{Math.round(lead.conversion_probability * 100)}%</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <a href="#" className="text-indigo-600 hover:text-indigo-900 mr-4">View</a>
+                          <a href="#" className="text-indigo-600 hover:text-indigo-900">Contact</a>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LeadsList;

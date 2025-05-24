@@ -1,23 +1,59 @@
-import "./App.css";
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
+import './App.css';
+
+// Components
+import Dashboard from './components/Dashboard';
+import LeadsList from './components/LeadsList';
+import Conversations from './components/Conversations';
+import Settings from './components/Settings';
+import LandingPage from './components/LandingPage';
+
+// Layouts
+import AppLayout from './layouts/AppLayout';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentOrg, setCurrentOrg] = useState(null);
+  
+  // Simple mock authentication for demo
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    setCurrentOrg({
+      id: '12345',
+      name: 'ABC Realty',
+      subscription_tier: 'starter'
+    });
+  };
+  
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentOrg(null);
+  };
+  
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={
+          isAuthenticated 
+            ? <Navigate to="/dashboard" replace /> 
+            : <LandingPage onLogin={handleLogin} />
+        } />
+        
+        {/* Protected routes */}
+        <Route path="/" element={
+          isAuthenticated 
+            ? <AppLayout currentOrg={currentOrg} onLogout={handleLogout} /> 
+            : <Navigate to="/" replace />
+        }>
+          <Route path="/dashboard" element={<Dashboard currentOrg={currentOrg} />} />
+          <Route path="/leads" element={<LeadsList currentOrg={currentOrg} />} />
+          <Route path="/conversations" element={<Conversations currentOrg={currentOrg} />} />
+          <Route path="/settings" element={<Settings currentOrg={currentOrg} />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 
