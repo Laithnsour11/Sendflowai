@@ -27,6 +27,12 @@ db_name = os.environ.get('DB_NAME', 'ai_closer_db')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
+# Import GHL integration
+from ghl import GHLIntegration
+
+# Initialize GHL integration
+ghl_integration = GHLIntegration()
+
 # Create FastAPI app
 app = FastAPI(title="AI Closer API", version="1.0.0")
 
