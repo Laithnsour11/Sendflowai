@@ -1,1205 +1,260 @@
-Collecting fastapi==0.95.2 (from -r requirements.txt (line 1))
-  Using cached fastapi-0.95.2-py3-none-any.whl.metadata (24 kB)
-Collecting uvicorn==0.22.0 (from -r requirements.txt (line 2))
-  Using cached uvicorn-0.22.0-py3-none-any.whl.metadata (6.3 kB)
-Collecting motor==3.1.2 (from -r requirements.txt (line 3))
-  Using cached motor-3.1.2-py3-none-any.whl.metadata (7.3 kB)
-Collecting pymongo==4.3.3 (from -r requirements.txt (line 4))
-  Using cached pymongo-4.3.3-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (8.6 kB)
-Collecting python-dotenv==1.0.0 (from -r requirements.txt (line 5))
-  Using cached python_dotenv-1.0.0-py3-none-any.whl.metadata (21 kB)
-Collecting pydantic==1.10.8 (from -r requirements.txt (line 6))
-  Using cached pydantic-1.10.8-py3-none-any.whl.metadata (146 kB)
-Collecting httpx<0.24.0,>=0.23.0 (from -r requirements.txt (line 7))
-  Using cached httpx-0.23.3-py3-none-any.whl.metadata (7.1 kB)
-Collecting typing-extensions==4.5.0 (from -r requirements.txt (line 8))
-  Using cached typing_extensions-4.5.0-py3-none-any.whl.metadata (8.5 kB)
-Collecting uuid==1.30 (from -r requirements.txt (line 9))
-  Using cached uuid-1.30-py3-none-any.whl
-Collecting python-multipart==0.0.6 (from -r requirements.txt (line 10))
-  Using cached python_multipart-0.0.6-py3-none-any.whl.metadata (2.5 kB)
-Collecting sentence-transformers==2.2.2 (from -r requirements.txt (line 11))
+Collecting sentence-transformers==2.2.2
   Using cached sentence-transformers-2.2.2.tar.gz (85 kB)
   Preparing metadata (setup.py): started
   Preparing metadata (setup.py): finished with status 'done'
-Collecting supabase==1.0.3 (from -r requirements.txt (line 12))
+Collecting supabase==1.0.3
   Using cached supabase-1.0.3-py3-none-any.whl.metadata (8.9 kB)
-Collecting langchain==0.0.218 (from -r requirements.txt (line 13))
-  Using cached langchain-0.0.218-py3-none-any.whl.metadata (13 kB)
-Collecting langchain-openai==0.0.3 (from -r requirements.txt (line 14))
-  Using cached langchain_openai-0.0.3-py3-none-any.whl.metadata (2.5 kB)
-Collecting starlette<0.28.0,>=0.27.0 (from fastapi==0.95.2->-r requirements.txt (line 1))
-  Using cached starlette-0.27.0-py3-none-any.whl.metadata (5.8 kB)
-Requirement already satisfied: click>=7.0 in /usr/local/lib/python3.11/site-packages (from uvicorn==0.22.0->-r requirements.txt (line 2)) (8.1.8)
-Requirement already satisfied: h11>=0.8 in /usr/local/lib/python3.11/site-packages (from uvicorn==0.22.0->-r requirements.txt (line 2)) (0.16.0)
-Requirement already satisfied: dnspython<3.0.0,>=1.16.0 in /usr/local/lib/python3.11/site-packages (from pymongo==4.3.3->-r requirements.txt (line 4)) (2.7.0)
-Collecting transformers<5.0.0,>=4.6.0 (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Collecting httpx<0.24.0,>=0.23.0
+  Using cached httpx-0.23.3-py3-none-any.whl.metadata (7.1 kB)
+Collecting transformers<5.0.0,>=4.6.0 (from sentence-transformers==2.2.2)
   Using cached transformers-4.52.3-py3-none-any.whl.metadata (40 kB)
-Requirement already satisfied: tqdm in /usr/local/lib/python3.11/site-packages (from sentence-transformers==2.2.2->-r requirements.txt (line 11)) (4.67.1)
-Collecting torch>=1.6.0 (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Collecting tqdm (from sentence-transformers==2.2.2)
+  Using cached tqdm-4.67.1-py3-none-any.whl.metadata (57 kB)
+Collecting torch>=1.6.0 (from sentence-transformers==2.2.2)
   Using cached torch-2.7.0-cp311-cp311-manylinux_2_28_aarch64.whl.metadata (29 kB)
-Collecting torchvision (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Collecting torchvision (from sentence-transformers==2.2.2)
   Using cached torchvision-0.22.0-cp311-cp311-manylinux_2_28_aarch64.whl.metadata (6.1 kB)
-Requirement already satisfied: numpy in /usr/local/lib/python3.11/site-packages (from sentence-transformers==2.2.2->-r requirements.txt (line 11)) (2.2.4)
-Collecting scikit-learn (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Requirement already satisfied: numpy in /usr/local/lib/python3.11/site-packages (from sentence-transformers==2.2.2) (2.2.4)
+Collecting scikit-learn (from sentence-transformers==2.2.2)
   Using cached scikit_learn-1.6.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (18 kB)
-Collecting scipy (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Collecting scipy (from sentence-transformers==2.2.2)
   Using cached scipy-1.15.3-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (61 kB)
-Collecting nltk (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Collecting nltk (from sentence-transformers==2.2.2)
   Using cached nltk-3.9.1-py3-none-any.whl.metadata (2.9 kB)
-Collecting sentencepiece (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Collecting sentencepiece (from sentence-transformers==2.2.2)
   Using cached sentencepiece-0.2.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (7.7 kB)
-Collecting huggingface-hub>=0.4.0 (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Collecting huggingface-hub>=0.4.0 (from sentence-transformers==2.2.2)
   Using cached huggingface_hub-0.32.1-py3-none-any.whl.metadata (14 kB)
-Collecting gotrue<2.0.0,>=1.0.1 (from supabase==1.0.3->-r requirements.txt (line 12))
+Collecting gotrue<2.0.0,>=1.0.1 (from supabase==1.0.3)
   Using cached gotrue-1.3.1-py3-none-any.whl.metadata (5.9 kB)
-Collecting postgrest<0.11.0,>=0.10.6 (from supabase==1.0.3->-r requirements.txt (line 12))
+Collecting postgrest<0.11.0,>=0.10.6 (from supabase==1.0.3)
   Using cached postgrest-0.10.8-py3-none-any.whl.metadata (5.1 kB)
-Collecting python-semantic-release==7.33.2 (from supabase==1.0.3->-r requirements.txt (line 12))
+Collecting python-semantic-release==7.33.2 (from supabase==1.0.3)
   Using cached python_semantic_release-7.33.2-py3-none-any.whl.metadata (1.8 kB)
-Collecting realtime<2.0.0,>=1.0.0 (from supabase==1.0.3->-r requirements.txt (line 12))
+Collecting realtime<2.0.0,>=1.0.0 (from supabase==1.0.3)
   Using cached realtime-1.0.6-py3-none-any.whl.metadata (2.6 kB)
-Collecting storage3<0.6.0,>=0.5.2 (from supabase==1.0.3->-r requirements.txt (line 12))
+Collecting storage3<0.6.0,>=0.5.2 (from supabase==1.0.3)
   Using cached storage3-0.5.4-py3-none-any.whl.metadata (1.8 kB)
-Collecting supafunc<0.3.0,>=0.2.2 (from supabase==1.0.3->-r requirements.txt (line 12))
+Collecting supafunc<0.3.0,>=0.2.2 (from supabase==1.0.3)
   Using cached supafunc-0.2.4-py3-none-any.whl.metadata (1.1 kB)
-Collecting PyYAML>=5.4.1 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached PyYAML-6.0.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (2.1 kB)
-Collecting SQLAlchemy<3,>=1.4 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached sqlalchemy-2.0.41-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (9.6 kB)
-Collecting aiohttp<4.0.0,>=3.8.3 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached aiohttp-3.12.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (7.6 kB)
-Collecting dataclasses-json<0.6.0,>=0.5.7 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached dataclasses_json-0.5.14-py3-none-any.whl.metadata (22 kB)
-Collecting langchainplus-sdk>=0.0.17 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached langchainplus_sdk-0.0.20-py3-none-any.whl.metadata (8.7 kB)
-Collecting numexpr<3.0.0,>=2.8.4 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached numexpr-2.10.2-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl.metadata (8.1 kB)
-Collecting numpy (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
-  Using cached numpy-1.26.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (62 kB)
-Collecting openapi-schema-pydantic<2.0,>=1.2 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached openapi_schema_pydantic-1.2.4-py3-none-any.whl.metadata (8.5 kB)
-Requirement already satisfied: requests<3,>=2 in /usr/local/lib/python3.11/site-packages (from langchain==0.0.218->-r requirements.txt (line 13)) (2.32.3)
-Collecting tenacity<9.0.0,>=8.1.0 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached tenacity-8.5.0-py3-none-any.whl.metadata (1.2 kB)
-Collecting langchain-core<0.2,>=0.1.13 (from langchain-openai==0.0.3->-r requirements.txt (line 14))
-  Using cached langchain_core-0.1.53-py3-none-any.whl.metadata (5.9 kB)
-Requirement already satisfied: openai<2.0.0,>=1.6.1 in /usr/local/lib/python3.11/site-packages (from langchain-openai==0.0.3->-r requirements.txt (line 14)) (1.82.0)
-Collecting tiktoken<0.6.0,>=0.5.2 (from langchain-openai==0.0.3->-r requirements.txt (line 14))
-  Using cached tiktoken-0.5.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (6.6 kB)
-Collecting click-log<1,>=0.3 (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12))
+Requirement already satisfied: click<9,>=7 in /usr/local/lib/python3.11/site-packages (from python-semantic-release==7.33.2->supabase==1.0.3) (8.1.8)
+Collecting click-log<1,>=0.3 (from python-semantic-release==7.33.2->supabase==1.0.3)
   Using cached click_log-0.4.0-py2.py3-none-any.whl.metadata (1.2 kB)
-Requirement already satisfied: gitpython<4,>=3.0.8 in /usr/local/lib/python3.11/site-packages (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12)) (3.1.44)
-Collecting invoke<2,>=1.4.1 (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12))
+Requirement already satisfied: gitpython<4,>=3.0.8 in /usr/local/lib/python3.11/site-packages (from python-semantic-release==7.33.2->supabase==1.0.3) (3.1.44)
+Collecting invoke<2,>=1.4.1 (from python-semantic-release==7.33.2->supabase==1.0.3)
   Using cached invoke-1.7.3-py3-none-any.whl.metadata (3.3 kB)
-Collecting semver<3,>=2.10 (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12))
+Collecting semver<3,>=2.10 (from python-semantic-release==7.33.2->supabase==1.0.3)
   Using cached semver-2.13.0-py2.py3-none-any.whl.metadata (5.0 kB)
-Collecting twine<4,>=3 (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12))
+Collecting twine<4,>=3 (from python-semantic-release==7.33.2->supabase==1.0.3)
   Using cached twine-3.8.0-py3-none-any.whl.metadata (3.5 kB)
-Requirement already satisfied: wheel in /usr/local/lib/python3.11/site-packages (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12)) (0.45.1)
-Collecting python-gitlab<4,>=2 (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12))
+Requirement already satisfied: requests<3,>=2.25 in /usr/local/lib/python3.11/site-packages (from python-semantic-release==7.33.2->supabase==1.0.3) (2.32.3)
+Requirement already satisfied: wheel in /usr/local/lib/python3.11/site-packages (from python-semantic-release==7.33.2->supabase==1.0.3) (0.45.1)
+Collecting python-gitlab<4,>=2 (from python-semantic-release==7.33.2->supabase==1.0.3)
   Using cached python_gitlab-3.15.0-py3-none-any.whl.metadata (7.3 kB)
-Collecting tomlkit~=0.10 (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12))
+Collecting tomlkit~=0.10 (from python-semantic-release==7.33.2->supabase==1.0.3)
   Using cached tomlkit-0.13.2-py3-none-any.whl.metadata (2.7 kB)
-Collecting dotty-dict<2,>=1.3.0 (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12))
+Collecting dotty-dict<2,>=1.3.0 (from python-semantic-release==7.33.2->supabase==1.0.3)
   Using cached dotty_dict-1.3.1-py3-none-any.whl.metadata (5.3 kB)
-Requirement already satisfied: packaging in /usr/local/lib/python3.11/site-packages (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12)) (24.2)
-Requirement already satisfied: certifi in /usr/local/lib/python3.11/site-packages (from httpx<0.24.0,>=0.23.0->-r requirements.txt (line 7)) (2025.1.31)
-Collecting httpcore<0.17.0,>=0.15.0 (from httpx<0.24.0,>=0.23.0->-r requirements.txt (line 7))
+Requirement already satisfied: packaging in /usr/local/lib/python3.11/site-packages (from python-semantic-release==7.33.2->supabase==1.0.3) (24.2)
+Requirement already satisfied: certifi in /usr/local/lib/python3.11/site-packages (from httpx<0.24.0,>=0.23.0) (2025.1.31)
+Collecting httpcore<0.17.0,>=0.15.0 (from httpx<0.24.0,>=0.23.0)
   Using cached httpcore-0.16.3-py3-none-any.whl.metadata (16 kB)
-Collecting rfc3986<2,>=1.3 (from rfc3986[idna2008]<2,>=1.3->httpx<0.24.0,>=0.23.0->-r requirements.txt (line 7))
+Collecting rfc3986<2,>=1.3 (from rfc3986[idna2008]<2,>=1.3->httpx<0.24.0,>=0.23.0)
   Using cached rfc3986-1.5.0-py2.py3-none-any.whl.metadata (6.5 kB)
-Requirement already satisfied: sniffio in /usr/local/lib/python3.11/site-packages (from httpx<0.24.0,>=0.23.0->-r requirements.txt (line 7)) (1.3.1)
-Collecting aiohappyeyeballs>=2.5.0 (from aiohttp<4.0.0,>=3.8.3->langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached aiohappyeyeballs-2.6.1-py3-none-any.whl.metadata (5.9 kB)
-Collecting aiosignal>=1.1.2 (from aiohttp<4.0.0,>=3.8.3->langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached aiosignal-1.3.2-py2.py3-none-any.whl.metadata (3.8 kB)
-Collecting attrs>=17.3.0 (from aiohttp<4.0.0,>=3.8.3->langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached attrs-25.3.0-py3-none-any.whl.metadata (10 kB)
-Collecting frozenlist>=1.1.1 (from aiohttp<4.0.0,>=3.8.3->langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached frozenlist-1.6.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (16 kB)
-Collecting multidict<7.0,>=4.5 (from aiohttp<4.0.0,>=3.8.3->langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached multidict-6.4.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (5.3 kB)
-Collecting propcache>=0.2.0 (from aiohttp<4.0.0,>=3.8.3->langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached propcache-0.3.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (10 kB)
-Collecting yarl<2.0,>=1.17.0 (from aiohttp<4.0.0,>=3.8.3->langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached yarl-1.20.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (72 kB)
-Collecting marshmallow<4.0.0,>=3.18.0 (from dataclasses-json<0.6.0,>=0.5.7->langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached marshmallow-3.26.1-py3-none-any.whl.metadata (7.3 kB)
-Collecting typing-inspect<1,>=0.4.0 (from dataclasses-json<0.6.0,>=0.5.7->langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached typing_inspect-0.9.0-py3-none-any.whl.metadata (1.5 kB)
-Collecting h11>=0.8 (from uvicorn==0.22.0->-r requirements.txt (line 2))
-  Using cached h11-0.14.0-py3-none-any.whl.metadata (8.2 kB)
-Requirement already satisfied: anyio<5.0,>=3.0 in /usr/local/lib/python3.11/site-packages (from httpcore<0.17.0,>=0.15.0->httpx<0.24.0,>=0.23.0->-r requirements.txt (line 7)) (4.9.0)
-Collecting filelock (from huggingface-hub>=0.4.0->sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Requirement already satisfied: sniffio in /usr/local/lib/python3.11/site-packages (from httpx<0.24.0,>=0.23.0) (1.3.1)
+Requirement already satisfied: pydantic<3,>=1.10 in /usr/local/lib/python3.11/site-packages (from gotrue<2.0.0,>=1.0.1->supabase==1.0.3) (2.11.3)
+Requirement already satisfied: h11<0.15,>=0.13 in /usr/local/lib/python3.11/site-packages (from httpcore<0.17.0,>=0.15.0->httpx<0.24.0,>=0.23.0) (0.14.0)
+Requirement already satisfied: anyio<5.0,>=3.0 in /usr/local/lib/python3.11/site-packages (from httpcore<0.17.0,>=0.15.0->httpx<0.24.0,>=0.23.0) (4.9.0)
+Collecting filelock (from huggingface-hub>=0.4.0->sentence-transformers==2.2.2)
   Using cached filelock-3.18.0-py3-none-any.whl.metadata (2.9 kB)
-Collecting fsspec>=2023.5.0 (from huggingface-hub>=0.4.0->sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Collecting fsspec>=2023.5.0 (from huggingface-hub>=0.4.0->sentence-transformers==2.2.2)
   Using cached fsspec-2025.5.1-py3-none-any.whl.metadata (11 kB)
-Collecting hf-xet<2.0.0,>=1.1.2 (from huggingface-hub>=0.4.0->sentence-transformers==2.2.2->-r requirements.txt (line 11))
+Collecting pyyaml>=5.1 (from huggingface-hub>=0.4.0->sentence-transformers==2.2.2)
+  Using cached PyYAML-6.0.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (2.1 kB)
+Requirement already satisfied: typing-extensions>=3.7.4.3 in /usr/local/lib/python3.11/site-packages (from huggingface-hub>=0.4.0->sentence-transformers==2.2.2) (4.13.1)
+Collecting hf-xet<2.0.0,>=1.1.2 (from huggingface-hub>=0.4.0->sentence-transformers==2.2.2)
   Using cached hf_xet-1.1.2-cp37-abi3-manylinux_2_28_aarch64.whl.metadata (879 bytes)
-Collecting jsonpatch<2.0,>=1.33 (from langchain-core<0.2,>=0.1.13->langchain-openai==0.0.3->-r requirements.txt (line 14))
-  Using cached jsonpatch-1.33-py2.py3-none-any.whl.metadata (3.0 kB)
-Collecting langsmith<0.2.0,>=0.1.0 (from langchain-core<0.2,>=0.1.13->langchain-openai==0.0.3->-r requirements.txt (line 14))
-  Using cached langsmith-0.1.147-py3-none-any.whl.metadata (14 kB)
-Collecting packaging (from python-semantic-release==7.33.2->supabase==1.0.3->-r requirements.txt (line 12))
-  Using cached packaging-23.2-py3-none-any.whl.metadata (3.2 kB)
-Requirement already satisfied: distro<2,>=1.7.0 in /usr/local/lib/python3.11/site-packages (from openai<2.0.0,>=1.6.1->langchain-openai==0.0.3->-r requirements.txt (line 14)) (1.9.0)
-Requirement already satisfied: jiter<1,>=0.4.0 in /usr/local/lib/python3.11/site-packages (from openai<2.0.0,>=1.6.1->langchain-openai==0.0.3->-r requirements.txt (line 14)) (0.10.0)
-INFO: pip is looking at multiple versions of openai to determine which version is compatible with other requirements. This could take a while.
-Collecting openai<2.0.0,>=1.6.1 (from langchain-openai==0.0.3->-r requirements.txt (line 14))
-  Using cached openai-1.81.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.80.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.79.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.78.1-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.78.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.77.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.76.2-py3-none-any.whl.metadata (25 kB)
-INFO: pip is still looking at multiple versions of openai to determine which version is compatible with other requirements. This could take a while.
-  Using cached openai-1.76.1-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.76.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.75.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.74.1-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.74.0-py3-none-any.whl.metadata (25 kB)
-INFO: This is taking longer than usual. You might need to provide the dependency resolver with stricter constraints to reduce runtime. See https://pip.pypa.io/warnings/backtracking for guidance. If you want to abort this run, press Ctrl + C.
-  Using cached openai-1.73.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.72.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.71.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.70.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.69.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.68.2-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.68.1-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.68.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.67.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.66.5-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.66.3-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.66.2-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.66.1-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.66.0-py3-none-any.whl.metadata (25 kB)
-  Using cached openai-1.65.5-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.65.4-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.65.3-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.65.2-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.65.1-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.65.0-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.64.0-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.63.2-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.63.1-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.63.0-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.62.0-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.61.1-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.61.0-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.60.2-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.60.1-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.60.0-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.59.9-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.59.8-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.59.7-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.59.6-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.59.5-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.59.4-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.59.3-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.59.2-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.58.1-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.58.0-py3-none-any.whl.metadata (27 kB)
-  Using cached openai-1.57.4-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.57.3-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.57.2-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.57.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.57.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.56.2-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.56.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.56.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.55.3-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.55.2-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.55.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.55.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.54.5-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.54.4-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.54.3-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.54.2-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.54.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.54.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.53.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.53.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.52.2-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.52.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.52.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.51.2-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.51.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.51.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.50.2-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.50.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.50.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.49.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.48.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.47.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.47.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.46.1-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.46.0-py3-none-any.whl.metadata (24 kB)
-  Using cached openai-1.45.1-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.45.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.44.1-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.44.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.43.1-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.43.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.42.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.41.1-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.41.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.40.8-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.40.7-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.40.6-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.40.5-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.40.4-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.40.3-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.40.2-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.40.1-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.40.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.39.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.38.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.37.2-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.37.1-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.37.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.36.1-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.36.0-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.35.15-py3-none-any.whl.metadata (22 kB)
-  Using cached openai-1.35.14-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.13-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.12-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.11-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.10-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.9-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.8-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.7-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.6-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.5-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.4-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.3-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.2-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.35.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.34.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.33.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.32.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.32.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.31.2-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.31.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.31.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.30.5-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.30.4-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.30.3-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.30.2-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.30.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.30.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.29.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.28.2-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.28.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.28.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.27.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.26.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.25.2-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.25.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.25.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.24.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.24.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.23.6-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.23.5-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.23.4-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.23.3-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.23.2-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.23.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.23.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.22.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.21.2-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.21.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.21.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.20.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.19.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.18.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.17.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.17.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.16.2-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.16.1-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.16.0-py3-none-any.whl.metadata (21 kB)
-  Using cached openai-1.14.3-py3-none-any.whl.metadata (20 kB)
-  Using cached openai-1.14.2-py3-none-any.whl.metadata (19 kB)
-  Using cached openai-1.14.1-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.14.0-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.13.4-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.13.3-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.12.0-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.11.1-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.11.0-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.10.0-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.9.0-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.8.0-py3-none-any.whl.metadata (18 kB)
-  Using cached openai-1.7.2-py3-none-any.whl.metadata (17 kB)
-  Using cached openai-1.7.1-py3-none-any.whl.metadata (17 kB)
-  Using cached openai-1.7.0-py3-none-any.whl.metadata (17 kB)
-  Using cached openai-1.6.1-py3-none-any.whl.metadata (17 kB)
-Collecting numexpr<3.0.0,>=2.8.4 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached numexpr-2.10.1-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl.metadata (1.2 kB)
-  Using cached numexpr-2.10.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (7.9 kB)
-  Using cached numexpr-2.9.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (7.9 kB)
-  Using cached numexpr-2.8.8-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (7.9 kB)
-  Using cached numexpr-2.8.7-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (8.7 kB)
-  Using cached numexpr-2.8.6-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (8.0 kB)
-  Using cached numexpr-2.8.5-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (8.0 kB)
-  Using cached numexpr-2.8.4-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (8.0 kB)
-Collecting langchainplus-sdk>=0.0.17 (from langchain==0.0.218->-r requirements.txt (line 13))
-  Using cached langchainplus_sdk-0.0.19-py3-none-any.whl.metadata (8.7 kB)
-Collecting langchain-core<0.2,>=0.1.13 (from langchain-openai==0.0.3->-r requirements.txt (line 14))
-  Using cached langchain_core-0.1.52-py3-none-any.whl.metadata (5.9 kB)
-Collecting huggingface-hub>=0.4.0 (from sentence-transformers==2.2.2->-r requirements.txt (line 11))
-  Using cached huggingface_hub-0.32.0-py3-none-any.whl.metadata (14 kB)
-  Downloading huggingface_hub-0.31.4-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.31.2-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.31.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.31.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.30.2-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.30.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.30.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.29.3-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.29.2-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.29.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.29.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.28.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.28.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.27.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.27.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.26.5-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.26.3-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.26.2-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.26.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.26.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.25.2-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.25.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.25.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.24.7-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.24.6-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.24.5-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.24.4-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.24.3-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.24.2-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.24.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.24.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.23.5-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.23.4-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.23.3-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.23.2-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.23.1-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.23.0-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.22.2-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.22.1-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.22.0-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.21.4-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.21.3-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.21.2-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.21.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.21.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.20.3-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.20.2-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.20.1-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.20.0-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.19.4-py3-none-any.whl.metadata (14 kB)
-  Downloading huggingface_hub-0.19.3-py3-none-any.whl.metadata (14 kB)
-  Downloading huggingface_hub-0.19.2-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.19.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.19.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.18.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.17.3-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.17.2-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.17.1-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.17.0-py3-none-any.whl.metadata (13 kB)
-  Downloading huggingface_hub-0.16.4-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.16.3-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.16.2-py3-none-any.whl.metadata (12 kB)
-  Downloading huggingface_hub-0.15.1-py3-none-any.whl.metadata (8.0 kB)
-  Downloading huggingface_hub-0.15.0-py3-none-any.whl.metadata (8.0 kB)
-  Downloading huggingface_hub-0.14.1-py3-none-any.whl.metadata (7.6 kB)
-  Downloading huggingface_hub-0.14.0-py3-none-any.whl.metadata (7.6 kB)
-  Downloading huggingface_hub-0.13.4-py3-none-any.whl.metadata (7.5 kB)
-  Downloading huggingface_hub-0.13.3-py3-none-any.whl.metadata (7.5 kB)
-  Downloading huggingface_hub-0.13.2-py3-none-any.whl.metadata (7.5 kB)
-  Downloading huggingface_hub-0.13.1-py3-none-any.whl.metadata (7.5 kB)
-  Downloading huggingface_hub-0.13.0-py3-none-any.whl.metadata (7.5 kB)
-  Downloading huggingface_hub-0.12.1-py3-none-any.whl.metadata (7.8 kB)
-  Downloading huggingface_hub-0.12.0-py3-none-any.whl.metadata (7.8 kB)
-  Downloading huggingface_hub-0.11.1-py3-none-any.whl.metadata (7.5 kB)
-  Downloading huggingface_hub-0.11.0-py3-none-any.whl.metadata (7.5 kB)
-  Downloading huggingface_hub-0.10.1-py3-none-any.whl.metadata (6.1 kB)
-  Downloading huggingface_hub-0.10.0-py3-none-any.whl.metadata (6.1 kB)
-  Downloading huggingface_hub-0.9.1-py3-none-any.whl.metadata (5.6 kB)
-  Downloading huggingface_hub-0.9.0-py3-none-any.whl.metadata (5.6 kB)
-  Downloading huggingface_hub-0.8.1-py3-none-any.whl.metadata (4.6 kB)
-  Downloading huggingface_hub-0.7.0-py3-none-any.whl.metadata (4.5 kB)
-  Downloading huggingface_hub-0.6.0-py3-none-any.whl.metadata (4.5 kB)
-  Downloading huggingface_hub-0.5.1-py3-none-any.whl.metadata (7.1 kB)
-  Downloading huggingface_hub-0.5.0-py3-none-any.whl.metadata (7.1 kB)
-  Downloading huggingface_hub-0.4.0-py3-none-any.whl.metadata (6.3 kB)
-Collecting gotrue<2.0.0,>=1.0.1 (from supabase==1.0.3->-r requirements.txt (line 12))
-  Downloading gotrue-1.3.0-py3-none-any.whl.metadata (5.9 kB)
-ERROR: Cannot install -r requirements.txt (line 11), -r requirements.txt (line 13), -r requirements.txt (line 14), -r requirements.txt (line 6), langchain, langchain-openai, openai==1.82.0, sentence-transformers and typing-extensions==4.5.0 because these package versions have conflicting dependencies.
-
-The conflict is caused by:
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.82.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.81.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.80.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.79.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.78.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.78.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.77.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.76.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.76.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.76.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.75.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.74.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.74.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.73.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.72.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.71.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.70.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.69.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.68.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.68.1 depends on typing-extensions<5 and >=4.11
-    sentence-transformers 2.2.2 depends on numpy
-    langchain 0.0.218 depends on numpy<2 and >=1
-    langchain-openai 0.0.3 depends on numpy<2 and >=1
-    numexpr 2.8.4 depends on numpy>=1.13.3
-    openai 1.68.0 depends on numpy>=2.0.2
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.67.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.66.5 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.66.3 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.66.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.66.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.66.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.65.5 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.65.4 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.65.3 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.65.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.65.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.65.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.64.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.63.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.63.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.63.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.62.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.61.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.61.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.60.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.60.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.60.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.59.9 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.59.8 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.59.7 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.59.6 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.59.5 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.59.4 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.59.3 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.59.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.58.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.58.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.57.4 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.57.3 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.57.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.57.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.57.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.56.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.56.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.56.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.55.3 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.55.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.55.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.55.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.54.5 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.54.4 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.54.3 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.54.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.54.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.54.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.53.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.53.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.52.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.52.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.52.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.51.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.51.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.51.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.50.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.50.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.50.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.49.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.48.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.47.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.47.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.46.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.46.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.45.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.45.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.44.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.44.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.43.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.43.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.42.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.41.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.41.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.40.8 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.40.7 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.40.6 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.40.5 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.40.4 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.40.3 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.40.2 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.40.1 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.40.0 depends on typing-extensions<5 and >=4.11
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.39.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.38.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.37.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.37.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.37.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.36.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.36.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.15 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.14 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.13 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.12 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.11 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.10 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.9 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.8 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.7 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.6 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.5 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.4 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.3 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.35.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.34.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.33.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.32.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.32.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.31.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.31.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.31.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.30.5 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.30.4 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.30.3 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.30.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.30.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.30.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.29.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.28.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.28.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.28.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.27.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.26.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.25.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.25.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.25.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.24.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.24.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.23.6 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.23.5 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.23.4 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.23.3 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.23.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.23.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.23.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.22.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.21.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.21.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.21.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.20.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.19.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.18.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.17.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.17.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.16.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.16.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.16.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.14.3 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.14.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.14.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.14.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.13.4 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.13.3 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.12.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.11.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.11.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.10.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.9.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.8.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.7.2 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.7.1 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.7.0 depends on typing-extensions<5 and >=4.7
-    The user requested typing-extensions==4.5.0
-    pydantic 1.10.8 depends on typing-extensions>=4.2.0
-    huggingface-hub 0.4.0 depends on typing-extensions>=3.7.4.3
-    openai 1.6.1 depends on typing-extensions<5 and >=4.7
-
-To fix this you could try to:
-1. loosen the range of package versions you've specified
-2. remove package versions to allow pip attempt to solve the dependency conflict
-
-ERROR: ResolutionImpossible: for help visit https://pip.pypa.io/en/latest/topics/dependency-resolution/#dealing-with-dependency-conflicts
-
-[notice] A new release of pip is available: 24.0 -> 25.1.1
-[notice] To update, run: pip install --upgrade pip
+Collecting deprecation<3.0.0,>=2.1.0 (from postgrest<0.11.0,>=0.10.6->supabase==1.0.3)
+  Downloading deprecation-2.1.0-py2.py3-none-any.whl.metadata (4.6 kB)
+INFO: pip is looking at multiple versions of postgrest to determine which version is compatible with other requirements. This could take a while.
+Collecting postgrest<0.11.0,>=0.10.6 (from supabase==1.0.3)
+  Downloading postgrest-0.10.7-py3-none-any.whl.metadata (5.1 kB)
+Collecting strenum<0.5.0,>=0.4.9 (from postgrest<0.11.0,>=0.10.6->supabase==1.0.3)
+  Downloading StrEnum-0.4.15-py3-none-any.whl.metadata (5.3 kB)
+Requirement already satisfied: python-dateutil<3.0.0,>=2.8.1 in /usr/local/lib/python3.11/site-packages (from realtime<2.0.0,>=1.0.0->supabase==1.0.3) (2.9.0.post0)
+Collecting websockets<13,>=11 (from realtime<2.0.0,>=1.0.0->supabase==1.0.3)
+  Downloading websockets-12.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (6.6 kB)
+Requirement already satisfied: idna in /usr/local/lib/python3.11/site-packages (from rfc3986[idna2008]<2,>=1.3->httpx<0.24.0,>=0.23.0) (3.10)
+INFO: pip is looking at multiple versions of storage3 to determine which version is compatible with other requirements. This could take a while.
+Collecting storage3<0.6.0,>=0.5.2 (from supabase==1.0.3)
+  Downloading storage3-0.5.3-py3-none-any.whl.metadata (1.8 kB)
+INFO: pip is looking at multiple versions of supafunc to determine which version is compatible with other requirements. This could take a while.
+Collecting supafunc<0.3.0,>=0.2.2 (from supabase==1.0.3)
+  Downloading supafunc-0.2.3-py3-none-any.whl.metadata (522 bytes)
+  Downloading supafunc-0.2.2-py3-none-any.whl.metadata (521 bytes)
+Collecting sympy>=1.13.3 (from torch>=1.6.0->sentence-transformers==2.2.2)
+  Downloading sympy-1.14.0-py3-none-any.whl.metadata (12 kB)
+Collecting networkx (from torch>=1.6.0->sentence-transformers==2.2.2)
+  Downloading networkx-3.4.2-py3-none-any.whl.metadata (6.3 kB)
+Collecting jinja2 (from torch>=1.6.0->sentence-transformers==2.2.2)
+  Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+Collecting regex!=2019.12.17 (from transformers<5.0.0,>=4.6.0->sentence-transformers==2.2.2)
+  Downloading regex-2024.11.6-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (40 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.5/40.5 kB 3.1 MB/s eta 0:00:00
+Collecting tokenizers<0.22,>=0.21 (from transformers<5.0.0,>=4.6.0->sentence-transformers==2.2.2)
+  Downloading tokenizers-0.21.1-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (6.8 kB)
+Collecting safetensors>=0.4.3 (from transformers<5.0.0,>=4.6.0->sentence-transformers==2.2.2)
+  Downloading safetensors-0.5.3-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (3.8 kB)
+Collecting joblib (from nltk->sentence-transformers==2.2.2)
+  Downloading joblib-1.5.1-py3-none-any.whl.metadata (5.6 kB)
+Collecting threadpoolctl>=3.1.0 (from scikit-learn->sentence-transformers==2.2.2)
+  Downloading threadpoolctl-3.6.0-py3-none-any.whl.metadata (13 kB)
+Collecting pillow!=8.3.*,>=5.3.0 (from torchvision->sentence-transformers==2.2.2)
+  Downloading pillow-11.2.1-cp311-cp311-manylinux_2_28_aarch64.whl.metadata (8.9 kB)
+Requirement already satisfied: gitdb<5,>=4.0.1 in /usr/local/lib/python3.11/site-packages (from gitpython<4,>=3.0.8->python-semantic-release==7.33.2->supabase==1.0.3) (4.0.12)
+Requirement already satisfied: annotated-types>=0.6.0 in /usr/local/lib/python3.11/site-packages (from pydantic<3,>=1.10->gotrue<2.0.0,>=1.0.1->supabase==1.0.3) (0.7.0)
+Requirement already satisfied: pydantic-core==2.33.1 in /usr/local/lib/python3.11/site-packages (from pydantic<3,>=1.10->gotrue<2.0.0,>=1.0.1->supabase==1.0.3) (2.33.1)
+Requirement already satisfied: typing-inspection>=0.4.0 in /usr/local/lib/python3.11/site-packages (from pydantic<3,>=1.10->gotrue<2.0.0,>=1.0.1->supabase==1.0.3) (0.4.0)
+Requirement already satisfied: six>=1.5 in /usr/local/lib/python3.11/site-packages (from python-dateutil<3.0.0,>=2.8.1->realtime<2.0.0,>=1.0.0->supabase==1.0.3) (1.17.0)
+Collecting requests-toolbelt>=0.10.1 (from python-gitlab<4,>=2->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.11/site-packages (from requests<3,>=2.25->python-semantic-release==7.33.2->supabase==1.0.3) (3.4.1)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.11/site-packages (from requests<3,>=2.25->python-semantic-release==7.33.2->supabase==1.0.3) (2.3.0)
+Collecting mpmath<1.4,>=1.1.0 (from sympy>=1.13.3->torch>=1.6.0->sentence-transformers==2.2.2)
+  Downloading mpmath-1.3.0-py3-none-any.whl.metadata (8.6 kB)
+Collecting pkginfo>=1.8.1 (from twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading pkginfo-1.12.1.2-py3-none-any.whl.metadata (13 kB)
+Collecting readme-renderer>=21.0 (from twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading readme_renderer-44.0-py3-none-any.whl.metadata (2.8 kB)
+Collecting importlib-metadata>=3.6 (from twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading importlib_metadata-8.7.0-py3-none-any.whl.metadata (4.8 kB)
+Collecting keyring>=15.1 (from twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading keyring-25.6.0-py3-none-any.whl.metadata (20 kB)
+Collecting colorama>=0.4.3 (from twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+Collecting MarkupSafe>=2.0 (from jinja2->torch>=1.6.0->sentence-transformers==2.2.2)
+  Downloading MarkupSafe-3.0.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (4.0 kB)
+Requirement already satisfied: smmap<6,>=3.0.1 in /usr/local/lib/python3.11/site-packages (from gitdb<5,>=4.0.1->gitpython<4,>=3.0.8->python-semantic-release==7.33.2->supabase==1.0.3) (5.0.2)
+Collecting zipp>=3.20 (from importlib-metadata>=3.6->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading zipp-3.22.0-py3-none-any.whl.metadata (3.6 kB)
+Collecting SecretStorage>=3.2 (from keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading SecretStorage-3.3.3-py3-none-any.whl.metadata (4.0 kB)
+Collecting jeepney>=0.4.2 (from keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading jeepney-0.9.0-py3-none-any.whl.metadata (1.2 kB)
+Collecting jaraco.classes (from keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading jaraco.classes-3.4.0-py3-none-any.whl.metadata (2.6 kB)
+Collecting jaraco.functools (from keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading jaraco.functools-4.1.0-py3-none-any.whl.metadata (2.9 kB)
+Collecting jaraco.context (from keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading jaraco.context-6.0.1-py3-none-any.whl.metadata (4.1 kB)
+Collecting nh3>=0.2.14 (from readme-renderer>=21.0->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading nh3-0.2.21-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl.metadata (2.0 kB)
+Collecting docutils>=0.21.2 (from readme-renderer>=21.0->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading docutils-0.21.2-py3-none-any.whl.metadata (2.8 kB)
+Requirement already satisfied: Pygments>=2.5.1 in /usr/local/lib/python3.11/site-packages (from readme-renderer>=21.0->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3) (2.19.1)
+Requirement already satisfied: cryptography>=2.0 in /usr/local/lib/python3.11/site-packages (from SecretStorage>=3.2->keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3) (44.0.2)
+Collecting more-itertools (from jaraco.classes->keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading more_itertools-10.7.0-py3-none-any.whl.metadata (37 kB)
+Collecting backports.tarfile (from jaraco.context->keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3)
+  Downloading backports.tarfile-1.2.0-py3-none-any.whl.metadata (2.0 kB)
+Requirement already satisfied: cffi>=1.12 in /usr/local/lib/python3.11/site-packages (from cryptography>=2.0->SecretStorage>=3.2->keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3) (1.17.1)
+Requirement already satisfied: pycparser in /usr/local/lib/python3.11/site-packages (from cffi>=1.12->cryptography>=2.0->SecretStorage>=3.2->keyring>=15.1->twine<4,>=3->python-semantic-release==7.33.2->supabase==1.0.3) (2.22)
+Downloading supabase-1.0.3-py3-none-any.whl (11 kB)
+Downloading python_semantic_release-7.33.2-py3-none-any.whl (55 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 55.1/55.1 kB 6.4 MB/s eta 0:00:00
+Downloading httpx-0.23.3-py3-none-any.whl (71 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 71.5/71.5 kB 8.8 MB/s eta 0:00:00
+Downloading gotrue-1.3.1-py3-none-any.whl (42 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.3/42.3 kB 4.5 MB/s eta 0:00:00
+Downloading httpcore-0.16.3-py3-none-any.whl (69 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.6/69.6 kB 9.1 MB/s eta 0:00:00
+Downloading huggingface_hub-0.32.1-py3-none-any.whl (509 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 509.4/509.4 kB 19.0 MB/s eta 0:00:00
+Downloading postgrest-0.10.7-py3-none-any.whl (18 kB)
+Downloading realtime-1.0.6-py3-none-any.whl (9.0 kB)
+Downloading rfc3986-1.5.0-py2.py3-none-any.whl (31 kB)
+Downloading storage3-0.5.3-py3-none-any.whl (14 kB)
+Downloading supafunc-0.2.2-py3-none-any.whl (2.8 kB)
+Downloading torch-2.7.0-cp311-cp311-manylinux_2_28_aarch64.whl (99.2 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 99.2/99.2 MB 17.0 MB/s eta 0:00:00
+Using cached tqdm-4.67.1-py3-none-any.whl (78 kB)
+Downloading transformers-4.52.3-py3-none-any.whl (10.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.5/10.5 MB 106.7 MB/s eta 0:00:00
+Downloading nltk-3.9.1-py3-none-any.whl (1.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.5/1.5 MB 67.5 MB/s eta 0:00:00
+Downloading scikit_learn-1.6.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (12.6 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.6/12.6 MB 55.6 MB/s eta 0:00:00
+Downloading scipy-1.15.3-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (35.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.5/35.5 MB 36.3 MB/s eta 0:00:00
+Downloading sentencepiece-0.2.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (1.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 75.6 MB/s eta 0:00:00
+Downloading torchvision-0.22.0-cp311-cp311-manylinux_2_28_aarch64.whl (2.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.5/2.5 MB 90.8 MB/s eta 0:00:00
+Downloading click_log-0.4.0-py2.py3-none-any.whl (4.3 kB)
+Downloading deprecation-2.1.0-py2.py3-none-any.whl (11 kB)
+Downloading dotty_dict-1.3.1-py3-none-any.whl (7.0 kB)
+Downloading fsspec-2025.5.1-py3-none-any.whl (199 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 199.1/199.1 kB 17.1 MB/s eta 0:00:00
+Downloading hf_xet-1.1.2-cp37-abi3-manylinux_2_28_aarch64.whl (5.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.4/5.4 MB 105.8 MB/s eta 0:00:00
+Downloading invoke-1.7.3-py3-none-any.whl (216 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 216.4/216.4 kB 14.0 MB/s eta 0:00:00
+Downloading joblib-1.5.1-py3-none-any.whl (307 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 307.7/307.7 kB 28.6 MB/s eta 0:00:00
+Downloading pillow-11.2.1-cp311-cp311-manylinux_2_28_aarch64.whl (4.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.5/4.5 MB 103.6 MB/s eta 0:00:00
+Downloading python_gitlab-3.15.0-py3-none-any.whl (135 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 135.9/135.9 kB 17.8 MB/s eta 0:00:00
+Downloading PyYAML-6.0.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (736 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 736.8/736.8 kB 19.6 MB/s eta 0:00:00
+Downloading regex-2024.11.6-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (792 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 792.1/792.1 kB 59.8 MB/s eta 0:00:00
+Downloading safetensors-0.5.3-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (459 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 459.5/459.5 kB 12.3 MB/s eta 0:00:00
+Downloading semver-2.13.0-py2.py3-none-any.whl (12 kB)
+Downloading StrEnum-0.4.15-py3-none-any.whl (8.9 kB)
+Downloading sympy-1.14.0-py3-none-any.whl (6.3 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.3/6.3 MB 108.4 MB/s eta 0:00:00
+Downloading threadpoolctl-3.6.0-py3-none-any.whl (18 kB)
+Downloading tokenizers-0.21.1-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (2.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.9/2.9 MB 93.3 MB/s eta 0:00:00
+Downloading tomlkit-0.13.2-py3-none-any.whl (37 kB)
+Downloading twine-3.8.0-py3-none-any.whl (36 kB)
+Downloading websockets-12.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (131 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 131.5/131.5 kB 17.5 MB/s eta 0:00:00
+Downloading filelock-3.18.0-py3-none-any.whl (16 kB)
+Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 18.7 MB/s eta 0:00:00
+Downloading networkx-3.4.2-py3-none-any.whl (1.7 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 77.4 MB/s eta 0:00:00
+Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Downloading importlib_metadata-8.7.0-py3-none-any.whl (27 kB)
+Downloading keyring-25.6.0-py3-none-any.whl (39 kB)
+Downloading MarkupSafe-3.0.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (23 kB)
+Downloading mpmath-1.3.0-py3-none-any.whl (536 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 536.2/536.2 kB 52.1 MB/s eta 0:00:00
+Downloading pkginfo-1.12.1.2-py3-none-any.whl (32 kB)
+Downloading readme_renderer-44.0-py3-none-any.whl (13 kB)
+Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 54.5/54.5 kB 6.5 MB/s eta 0:00:00
+Downloading docutils-0.21.2-py3-none-any.whl (587 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 587.4/587.4 kB 50.5 MB/s eta 0:00:00
+Downloading jeepney-0.9.0-py3-none-any.whl (49 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 49.0/49.0 kB 6.0 MB/s eta 0:00:00
+Downloading nh3-0.2.21-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl (758 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 758.3/758.3 kB 49.8 MB/s eta 0:00:00
+Downloading SecretStorage-3.3.3-py3-none-any.whl (15 kB)
+Downloading zipp-3.22.0-py3-none-any.whl (9.8 kB)
+Downloading jaraco.classes-3.4.0-py3-none-any.whl (6.8 kB)
+Downloading jaraco.context-6.0.1-py3-none-any.whl (6.8 kB)
+Downloading jaraco.functools-4.1.0-py3-none-any.whl (10 kB)
+Downloading backports.tarfile-1.2.0-py3-none-any.whl (30 kB)
+Downloading more_itertools-10.7.0-py3-none-any.whl (65 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 65.3/65.3 kB 8.2 MB/s eta 0:00:00
+Building wheels for collected packages: sentence-transformers
+  Building wheel for sentence-transformers (setup.py): started
+  Building wheel for sentence-transformers (setup.py): finished with status 'done'
+  Created wheel for sentence-transformers: filename=sentence_transformers-2.2.2-py3-none-any.whl size=125923 sha256=80c6d1aef826f1c900de66a6941fd70f4a3e41e089061106755a6765247d9d52
+  Stored in directory: /root/.cache/pip/wheels/ff/27/bf/ffba8b318b02d7f691a57084ee154e26ed24d012b0c7805881
+Successfully built sentence-transformers
+Installing collected packages: strenum, sentencepiece, rfc3986, mpmath, invoke, zipp, websockets, tqdm, tomlkit, threadpoolctl, sympy, semver, scipy, safetensors, regex, pyyaml, pkginfo, pillow, nh3, networkx, more-itertools, MarkupSafe, joblib, jeepney, hf-xet, fsspec, filelock, dotty-dict, docutils, deprecation, colorama, click-log, backports.tarfile, scikit-learn, requests-toolbelt, realtime, readme-renderer, nltk, jinja2, jaraco.functools, jaraco.context, jaraco.classes, importlib-metadata, huggingface-hub, httpcore, torch, tokenizers, SecretStorage, python-gitlab, httpx, transformers, torchvision, supafunc, storage3, postgrest, keyring, gotrue, twine, sentence-transformers, python-semantic-release, supabase
