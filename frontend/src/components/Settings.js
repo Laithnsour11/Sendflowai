@@ -40,11 +40,13 @@ const Settings = ({ currentOrg }) => {
           setApiKeys({
             ghl_api_key: '••••••••1234',
             openai_api_key: '••••••••5678',
-            anthropic_api_key: '',
-            openrouter_api_key: '',
             vapi_api_key: '',
-            mem0_api_key: '',
-            sendblue_api_key: ''
+            mem0_api_key: 'm0-TTwLd8awIP6aFAixLPn1lgkIUR2DJlDTzApPil8E',
+            openrouter_api_key: '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',
+            sendblue_api_key: '',
+            sendblue_api_secret: '',
+            supabase_url: '',
+            supabase_key: 'sbp_6ea3d96a8efc1a50026610a12c4728d5b9793434'
           });
           
           setAiSettings({
