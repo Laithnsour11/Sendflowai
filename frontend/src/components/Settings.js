@@ -166,19 +166,53 @@ const Settings = ({ currentOrg }) => {
               <h3 className="text-md font-medium text-indigo-600">Core Integrations</h3>
             </div>
             
-            {/* Go High Level API Key */}
+            {/* Go High Level OAuth Credentials */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
-                Go High Level API Key
-                <p className="mt-1 text-xs text-gray-400">Required for GHL integration</p>
+                Go High Level Client ID
+                <p className="mt-1 text-xs text-gray-400">Required for GHL OAuth integration</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="text"
+                  name="ghl_client_id"
+                  value={apiKeys.ghl_client_id}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your GHL Client ID"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Go High Level Client Secret
+                <p className="mt-1 text-xs text-gray-400">Required for GHL OAuth integration</p>
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <input
                   type="password"
-                  name="ghl_api_key"
-                  value={apiKeys.ghl_api_key}
+                  name="ghl_client_secret"
+                  value={apiKeys.ghl_client_secret}
                   onChange={handleApiKeyChange}
-                  placeholder="Enter your GHL API key"
+                  placeholder="Enter your GHL Client Secret"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Go High Level Shared Secret
+                <p className="mt-1 text-xs text-gray-400">Required for GHL webhook verification</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="ghl_shared_secret"
+                  value={apiKeys.ghl_shared_secret}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your GHL Shared Secret"
                   className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 />
               </dd>
