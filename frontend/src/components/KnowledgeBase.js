@@ -48,7 +48,7 @@ const KnowledgeBase = ({ currentOrg }) => {
               id: '2',
               title: 'First-Time Buyer FAQ',
               document_type: 'faq',
-              content: 'Common questions from first-time homebuyers: 1. What is a down payment? 2. How much do I need for a down payment? 3. What's the difference between pre-qualification and pre-approval?',
+              content: 'Common questions from first-time homebuyers: 1. What is a down payment? 2. How much do I need for a down payment? 3. What is the difference between pre-qualification and pre-approval?',
               metadata: { updated_by: 'Sarah Johnson', effectiveness: 0.85 },
               created_at: '2023-02-05T14:45:00Z'
             },
