@@ -2,422 +2,466 @@ import os
 import json
 import logging
 import httpx
-from typing import Dict, Any, List, Optional, Union
-from abc import ABC, abstractmethod
+import time
+from typing import List, Dict, Any, Optional, Union
 from fastapi import HTTPException
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-class LLMProvider(ABC):
-    """Abstract base class for LLM providers"""
+class LLMService:
+    """
+    Abstracted LLM service that supports multiple providers:
+    - OpenAI
+    - Anthropic
+    - OpenRouter (for accessing various models)
+    """
     
-    @abstractmethod
-    async def generate_text(self, prompt: str, system_message: str, 
-                          temperature: float = 0.7, max_tokens: int = 1000, 
-                          functions: Optional[List[Dict[str, Any]]] = None,
-                          user_id: Optional[str] = None) -> Dict[str, Any]:
+    def __init__(self):
+        self.openai_api_key = os.environ.get('OPENAI_API_KEY')
+        self.anthropic_api_key = os.environ.get('ANTHROPIC_API_KEY')
+        self.openrouter_api_key = os.environ.get('OPENROUTER_API_KEY')
+        
+        # Default configuration
+        self.default_provider = "openrouter"
+        self.default_model = "openai/gpt-4o"
+        self.default_temperature = 0.7
+        self.default_max_tokens = 1000
+    
+    def set_api_key(self, provider: str, api_key: str):
+        """Set API key for a specific provider"""
+        if provider == "openai":
+            self.openai_api_key = api_key
+        elif provider == "anthropic":
+            self.anthropic_api_key = api_key
+        elif provider == "openrouter":
+            self.openrouter_api_key = api_key
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
+    
+    async def get_available_models(self, provider: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get available models from the specified provider"""
+        if provider == "openai":
+            return await self._get_openai_models()
+        elif provider == "anthropic":
+            return await self._get_anthropic_models()
+        elif provider == "openrouter" or provider is None:
+            return await self._get_openrouter_models()
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
+    
+    async def _get_openai_models(self) -> List[Dict[str, Any]]:
+        """Get available OpenAI models"""
+        if not self.openai_api_key:
+            return [
+                {"id": "gpt-4o", "name": "GPT-4o", "context_window": 128000, "provider": "openai"},
+                {"id": "gpt-4-turbo", "name": "GPT-4 Turbo", "context_window": 128000, "provider": "openai"},
+                {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "context_window": 16000, "provider": "openai"}
+            ]
+        
+        url = "https://api.openai.com/v1/models"
+        headers = {
+            "Authorization": f"Bearer {self.openai_api_key}"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers)
+                response.raise_for_status()
+                
+                models = response.json().get("data", [])
+                
+                # Filter for chat models
+                chat_models = [
+                    {
+                        "id": model["id"],
+                        "name": model["id"],
+                        "context_window": self._get_context_window(model["id"]),
+                        "provider": "openai"
+                    }
+                    for model in models
+                    if model["id"].startswith("gpt-")
+                ]
+                
+                return chat_models
+        except Exception as e:
+            logger.error(f"Error fetching OpenAI models: {e}")
+            return [
+                {"id": "gpt-4o", "name": "GPT-4o", "context_window": 128000, "provider": "openai"},
+                {"id": "gpt-4-turbo", "name": "GPT-4 Turbo", "context_window": 128000, "provider": "openai"},
+                {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "context_window": 16000, "provider": "openai"}
+            ]
+    
+    async def _get_anthropic_models(self) -> List[Dict[str, Any]]:
+        """Get available Anthropic models"""
+        return [
+            {"id": "claude-3-opus", "name": "Claude 3 Opus", "context_window": 200000, "provider": "anthropic"},
+            {"id": "claude-3-sonnet", "name": "Claude 3 Sonnet", "context_window": 200000, "provider": "anthropic"},
+            {"id": "claude-3-haiku", "name": "Claude 3 Haiku", "context_window": 200000, "provider": "anthropic"}
+        ]
+    
+    async def _get_openrouter_models(self) -> List[Dict[str, Any]]:
+        """Get available OpenRouter models"""
+        if not self.openrouter_api_key:
+            return [
+                {"id": "openai/gpt-4o", "name": "OpenAI GPT-4o", "context_window": 128000, "provider": "openrouter"},
+                {"id": "anthropic/claude-3-opus", "name": "Anthropic Claude 3 Opus", "context_window": 200000, "provider": "openrouter"},
+                {"id": "anthropic/claude-3-sonnet", "name": "Anthropic Claude 3 Sonnet", "context_window": 200000, "provider": "openrouter"},
+                {"id": "anthropic/claude-3-haiku", "name": "Anthropic Claude 3 Haiku", "context_window": 200000, "provider": "openrouter"},
+                {"id": "meta-llama/llama-3-70b-instruct", "name": "Meta Llama 3 70B", "context_window": 8000, "provider": "openrouter"},
+                {"id": "google/gemini-pro", "name": "Google Gemini Pro", "context_window": 32000, "provider": "openrouter"}
+            ]
+        
+        url = "https://openrouter.ai/api/v1/models"
+        headers = {
+            "Authorization": f"Bearer {self.openrouter_api_key}",
+            "HTTP-Referer": "https://ai-closer.com",  # Replace with your actual domain
+            "X-Title": "AI Closer Bot"
+        }
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers)
+                response.raise_for_status()
+                
+                models = response.json().get("data", [])
+                
+                openrouter_models = [
+                    {
+                        "id": model["id"],
+                        "name": model.get("name", model["id"]),
+                        "context_window": model.get("context_length", 4096),
+                        "provider": "openrouter"
+                    }
+                    for model in models
+                ]
+                
+                return openrouter_models
+        except Exception as e:
+            logger.error(f"Error fetching OpenRouter models: {e}")
+            return [
+                {"id": "openai/gpt-4o", "name": "OpenAI GPT-4o", "context_window": 128000, "provider": "openrouter"},
+                {"id": "anthropic/claude-3-opus", "name": "Anthropic Claude 3 Opus", "context_window": 200000, "provider": "openrouter"},
+                {"id": "anthropic/claude-3-sonnet", "name": "Anthropic Claude 3 Sonnet", "context_window": 200000, "provider": "openrouter"},
+                {"id": "meta-llama/llama-3-70b-instruct", "name": "Meta Llama 3 70B", "context_window": 8000, "provider": "openrouter"},
+                {"id": "google/gemini-pro", "name": "Google Gemini Pro", "context_window": 32000, "provider": "openrouter"}
+            ]
+    
+    def _get_context_window(self, model_id: str) -> int:
+        """Get context window size for a specific model"""
+        context_windows = {
+            "gpt-4o": 128000,
+            "gpt-4-turbo": 128000,
+            "gpt-4": 8192,
+            "gpt-3.5-turbo": 16000,
+            "claude-3-opus": 200000,
+            "claude-3-sonnet": 200000,
+            "claude-3-haiku": 200000
+        }
+        
+        for model_prefix, window in context_windows.items():
+            if model_id.startswith(model_prefix):
+                return window
+        
+        return 4096  # Default value
+    
+    async def generate_completion(self, 
+                                 messages: List[Dict[str, str]],
+                                 model: Optional[str] = None,
+                                 provider: Optional[str] = None,
+                                 temperature: Optional[float] = None,
+                                 max_tokens: Optional[int] = None,
+                                 functions: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """
-        Generate text from the LLM
+        Generate a completion using the specified provider and model
         
         Args:
-            prompt: The user prompt
-            system_message: The system message/instructions
-            temperature: Controls randomness (0.0 to 1.0)
+            messages: List of messages in the conversation
+            model: Model to use
+            provider: Provider to use (openai, anthropic, openrouter)
+            temperature: Temperature parameter (0.0 to 1.0)
             max_tokens: Maximum tokens to generate
-            functions: Optional list of function definitions
-            user_id: Optional user ID for tracking
+            functions: Optional function definitions for function calling
             
         Returns:
-            Dict containing the generated text and metadata
+            Dict containing the generated completion
         """
-        pass
-    
-    @abstractmethod
-    async def get_available_models(self) -> List[Dict[str, Any]]:
-        """
-        Get list of available models from this provider
+        provider = provider or self.default_provider
+        model = model or self.default_model
+        temperature = temperature if temperature is not None else self.default_temperature
+        max_tokens = max_tokens or self.default_max_tokens
         
-        Returns:
-            List of available models with metadata
-        """
-        pass
-
-class OpenAIProvider(LLMProvider):
-    """OpenAI API provider implementation"""
+        if provider == "openai":
+            return await self._generate_openai_completion(messages, model, temperature, max_tokens, functions)
+        elif provider == "anthropic":
+            return await self._generate_anthropic_completion(messages, model, temperature, max_tokens)
+        elif provider == "openrouter":
+            return await self._generate_openrouter_completion(messages, model, temperature, max_tokens, functions)
+        else:
+            raise ValueError(f"Unsupported provider: {provider}")
     
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.environ.get('OPENAI_API_KEY')
-        self.api_url = "https://api.openai.com/v1"
-    
-    def set_api_key(self, api_key: str):
-        """Set OpenAI API key"""
-        self.api_key = api_key
-    
-    async def generate_text(self, prompt: str, system_message: str, 
-                          temperature: float = 0.7, max_tokens: int = 1000, 
-                          functions: Optional[List[Dict[str, Any]]] = None,
-                          user_id: Optional[str] = None) -> Dict[str, Any]:
-        """Generate text using OpenAI API"""
-        if not self.api_key:
-            logger.warning("OpenAI API key not set")
+    async def _generate_openai_completion(self,
+                                        messages: List[Dict[str, str]],
+                                        model: str,
+                                        temperature: float,
+                                        max_tokens: int,
+                                        functions: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+        """Generate a completion using OpenAI"""
+        if not self.openai_api_key:
             raise HTTPException(status_code=400, detail="OpenAI API key not configured")
         
+        url = "https://api.openai.com/v1/chat/completions"
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {self.openai_api_key}",
             "Content-Type": "application/json"
         }
         
-        messages = [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": prompt}
-        ]
-        
-        data = {
-            "model": "gpt-4o",
+        payload = {
+            "model": model,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens
         }
         
         if functions:
-            data["functions"] = functions
-        
-        if user_id:
-            data["user"] = user_id
+            payload["functions"] = functions
+            payload["function_call"] = "auto"
         
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self.api_url}/chat/completions",
-                    headers=headers,
-                    json=data,
-                    timeout=60.0
-                )
+                response = await client.post(url, headers=headers, json=payload)
                 response.raise_for_status()
+                
                 result = response.json()
                 
-                return {
-                    "text": result["choices"][0]["message"]["content"],
-                    "model": result["model"],
-                    "provider": "openai",
-                    "finish_reason": result["choices"][0]["finish_reason"],
+                # Extract completion
+                completion = {
+                    "id": result.get("id"),
+                    "model": result.get("model"),
+                    "content": result.get("choices", [{}])[0].get("message", {}).get("content"),
+                    "finish_reason": result.get("choices", [{}])[0].get("finish_reason"),
                     "usage": result.get("usage", {}),
-                    "created": datetime.now().isoformat()
+                    "provider": "openai"
                 }
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error occurred: {e}")
-            raise HTTPException(status_code=e.response.status_code, detail=f"OpenAI API error: {e.response.text}")
-        except Exception as e:
-            logger.error(f"Error generating text from OpenAI: {e}")
-            raise HTTPException(status_code=500, detail=f"Error communicating with OpenAI: {str(e)}")
-    
-    async def get_available_models(self) -> List[Dict[str, Any]]:
-        """Get available models from OpenAI"""
-        if not self.api_key:
-            logger.warning("OpenAI API key not set")
-            raise HTTPException(status_code=400, detail="OpenAI API key not configured")
-        
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"{self.api_url}/models",
-                    headers=headers
-                )
-                response.raise_for_status()
-                result = response.json()
                 
-                # Filter for relevant models
-                chat_models = [
-                    {"id": model["id"], "name": model["id"], "provider": "openai", "created": model.get("created")}
-                    for model in result["data"]
-                    if "gpt" in model["id"]
-                ]
+                # Handle function calls
+                if result.get("choices", [{}])[0].get("message", {}).get("function_call"):
+                    completion["function_call"] = result.get("choices", [{}])[0].get("message", {}).get("function_call")
                 
-                return chat_models
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error occurred: {e}")
-            raise HTTPException(status_code=e.response.status_code, detail=f"OpenAI API error: {e.response.text}")
+                return completion
         except Exception as e:
-            logger.error(f"Error getting models from OpenAI: {e}")
-            raise HTTPException(status_code=500, detail=f"Error communicating with OpenAI: {str(e)}")
-
-class AnthropicProvider(LLMProvider):
-    """Anthropic API provider implementation"""
+            logger.error(f"Error generating OpenAI completion: {e}")
+            raise HTTPException(status_code=500, detail=f"Error generating completion: {str(e)}")
     
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.environ.get('ANTHROPIC_API_KEY')
-        self.api_url = "https://api.anthropic.com/v1"
-    
-    def set_api_key(self, api_key: str):
-        """Set Anthropic API key"""
-        self.api_key = api_key
-    
-    async def generate_text(self, prompt: str, system_message: str, 
-                          temperature: float = 0.7, max_tokens: int = 1000, 
-                          functions: Optional[List[Dict[str, Any]]] = None,
-                          user_id: Optional[str] = None) -> Dict[str, Any]:
-        """Generate text using Anthropic API"""
-        if not self.api_key:
-            logger.warning("Anthropic API key not set")
+    async def _generate_anthropic_completion(self,
+                                           messages: List[Dict[str, str]],
+                                           model: str,
+                                           temperature: float,
+                                           max_tokens: int) -> Dict[str, Any]:
+        """Generate a completion using Anthropic"""
+        if not self.anthropic_api_key:
             raise HTTPException(status_code=400, detail="Anthropic API key not configured")
         
+        url = "https://api.anthropic.com/v1/messages"
         headers = {
-            "x-api-key": self.api_key,
+            "x-api-key": self.anthropic_api_key,
             "anthropic-version": "2023-06-01",
-            "Content-Type": "application/json"
+            "content-type": "application/json"
         }
         
-        data = {
-            "model": "claude-3-opus-20240229",
+        # Convert from OpenAI format to Anthropic format
+        anthropic_messages = []
+        system_prompt = None
+        
+        for message in messages:
+            if message["role"] == "system":
+                system_prompt = message["content"]
+            else:
+                anthropic_messages.append({
+                    "role": "assistant" if message["role"] == "assistant" else "user",
+                    "content": message["content"]
+                })
+        
+        payload = {
+            "model": model,
+            "messages": anthropic_messages,
             "max_tokens": max_tokens,
-            "temperature": temperature,
-            "system": system_message,
-            "messages": [
-                {"role": "user", "content": prompt}
-            ]
+            "temperature": temperature
         }
         
-        if user_id:
-            data["metadata"] = {"user_id": user_id}
+        if system_prompt:
+            payload["system"] = system_prompt
         
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self.api_url}/messages",
-                    headers=headers,
-                    json=data,
-                    timeout=60.0
-                )
+                response = await client.post(url, headers=headers, json=payload)
                 response.raise_for_status()
+                
                 result = response.json()
                 
-                return {
-                    "text": result["content"][0]["text"],
-                    "model": result["model"],
-                    "provider": "anthropic",
-                    "finish_reason": result.get("stop_reason", ""),
+                # Extract completion
+                completion = {
+                    "id": result.get("id"),
+                    "model": result.get("model"),
+                    "content": result.get("content", [{}])[0].get("text", ""),
+                    "finish_reason": result.get("stop_reason"),
                     "usage": {
                         "input_tokens": result.get("usage", {}).get("input_tokens", 0),
                         "output_tokens": result.get("usage", {}).get("output_tokens", 0)
                     },
-                    "created": datetime.now().isoformat()
+                    "provider": "anthropic"
                 }
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error occurred: {e}")
-            raise HTTPException(status_code=e.response.status_code, detail=f"Anthropic API error: {e.response.text}")
+                
+                return completion
         except Exception as e:
-            logger.error(f"Error generating text from Anthropic: {e}")
-            raise HTTPException(status_code=500, detail=f"Error communicating with Anthropic: {str(e)}")
+            logger.error(f"Error generating Anthropic completion: {e}")
+            raise HTTPException(status_code=500, detail=f"Error generating completion: {str(e)}")
     
-    async def get_available_models(self) -> List[Dict[str, Any]]:
-        """Get available models from Anthropic"""
-        # Anthropic doesn't have a models endpoint yet, so we return hardcoded values
-        models = [
-            {"id": "claude-3-opus-20240229", "name": "Claude 3 Opus", "provider": "anthropic", "created": None},
-            {"id": "claude-3-sonnet-20240229", "name": "Claude 3 Sonnet", "provider": "anthropic", "created": None},
-            {"id": "claude-3-haiku-20240307", "name": "Claude 3 Haiku", "provider": "anthropic", "created": None}
-        ]
-        return models
-
-class OpenRouterProvider(LLMProvider):
-    """OpenRouter API provider implementation"""
-    
-    def __init__(self, api_key: Optional[str] = None):
-        self.api_key = api_key or os.environ.get('OPENROUTER_API_KEY')
-        self.api_url = "https://openrouter.ai/api/v1"
-    
-    def set_api_key(self, api_key: str):
-        """Set OpenRouter API key"""
-        self.api_key = api_key
-    
-    async def generate_text(self, prompt: str, system_message: str, 
-                          temperature: float = 0.7, max_tokens: int = 1000, 
-                          functions: Optional[List[Dict[str, Any]]] = None,
-                          user_id: Optional[str] = None,
-                          model_id: str = "openai/gpt-4o") -> Dict[str, Any]:
-        """Generate text using OpenRouter API"""
-        if not self.api_key:
-            logger.warning("OpenRouter API key not set")
+    async def _generate_openrouter_completion(self,
+                                            messages: List[Dict[str, str]],
+                                            model: str,
+                                            temperature: float,
+                                            max_tokens: int,
+                                            functions: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+        """Generate a completion using OpenRouter"""
+        if not self.openrouter_api_key:
             raise HTTPException(status_code=400, detail="OpenRouter API key not configured")
         
+        url = "https://openrouter.ai/api/v1/chat/completions"
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.openrouter_api_key}",
             "HTTP-Referer": "https://ai-closer.com",  # Replace with your actual domain
-            "X-Title": "AI Closer"  # Replace with your actual app name
+            "X-Title": "AI Closer Bot",
+            "Content-Type": "application/json"
         }
         
-        messages = [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": prompt}
-        ]
-        
-        data = {
-            "model": model_id,
+        payload = {
+            "model": model,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens
         }
         
         if functions:
-            data["functions"] = functions
-        
-        if user_id:
-            data["user"] = user_id
+            payload["functions"] = functions
+            payload["function_call"] = "auto"
         
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self.api_url}/chat/completions",
-                    headers=headers,
-                    json=data,
-                    timeout=60.0
-                )
+                response = await client.post(url, headers=headers, json=payload)
                 response.raise_for_status()
+                
                 result = response.json()
                 
-                return {
-                    "text": result["choices"][0]["message"]["content"],
-                    "model": result["model"],
-                    "provider": "openrouter",
-                    "finish_reason": result["choices"][0]["finish_reason"],
+                # Extract completion
+                completion = {
+                    "id": result.get("id"),
+                    "model": result.get("model"),
+                    "content": result.get("choices", [{}])[0].get("message", {}).get("content"),
+                    "finish_reason": result.get("choices", [{}])[0].get("finish_reason"),
                     "usage": result.get("usage", {}),
-                    "created": datetime.now().isoformat()
+                    "provider": "openrouter",
+                    "latency": result.get("proxy_latency", 0)
                 }
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error occurred: {e}")
-            raise HTTPException(status_code=e.response.status_code, detail=f"OpenRouter API error: {e.response.text}")
-        except Exception as e:
-            logger.error(f"Error generating text from OpenRouter: {e}")
-            raise HTTPException(status_code=500, detail=f"Error communicating with OpenRouter: {str(e)}")
-    
-    async def get_available_models(self) -> List[Dict[str, Any]]:
-        """Get available models from OpenRouter"""
-        if not self.api_key:
-            logger.warning("OpenRouter API key not set")
-            raise HTTPException(status_code=400, detail="OpenRouter API key not configured")
-        
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"{self.api_url}/models",
-                    headers=headers
-                )
-                response.raise_for_status()
-                result = response.json()
                 
-                # Format models for consistency
-                formatted_models = []
-                for model in result["data"]:
-                    formatted_models.append({
-                        "id": model["id"],
-                        "name": model.get("name", model["id"]),
-                        "provider": "openrouter",
-                        "context_length": model.get("context_length"),
-                        "pricing": {
-                            "prompt": model.get("pricing", {}).get("prompt"),
-                            "completion": model.get("pricing", {}).get("completion")
-                        },
-                        "created": None  # OpenRouter doesn't provide creation dates
-                    })
+                # Handle function calls
+                if result.get("choices", [{}])[0].get("message", {}).get("function_call"):
+                    completion["function_call"] = result.get("choices", [{}])[0].get("message", {}).get("function_call")
                 
-                return formatted_models
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error occurred: {e}")
-            raise HTTPException(status_code=e.response.status_code, detail=f"OpenRouter API error: {e.response.text}")
+                return completion
         except Exception as e:
-            logger.error(f"Error getting models from OpenRouter: {e}")
-            raise HTTPException(status_code=500, detail=f"Error communicating with OpenRouter: {str(e)}")
-
-class LLMService:
-    """Service for interacting with various LLM providers"""
+            logger.error(f"Error generating OpenRouter completion: {e}")
+            raise HTTPException(status_code=500, detail=f"Error generating completion: {str(e)}")
     
-    def __init__(self):
-        self.providers = {
-            "openai": OpenAIProvider(),
-            "anthropic": AnthropicProvider(),
-            "openrouter": OpenRouterProvider()
-        }
-    
-    def set_api_key(self, provider: str, api_key: str):
-        """Set API key for a specific provider"""
-        if provider in self.providers:
-            self.providers[provider].set_api_key(api_key)
-        else:
-            raise ValueError(f"Unknown provider: {provider}")
-    
-    async def generate_text(self, provider: str, prompt: str, system_message: str, 
-                          temperature: float = 0.7, max_tokens: int = 1000,
-                          functions: Optional[List[Dict[str, Any]]] = None,
-                          user_id: Optional[str] = None,
-                          model_id: Optional[str] = None) -> Dict[str, Any]:
+    async def generate_text_with_cadence(self,
+                                      messages: List[Dict[str, str]],
+                                      model: Optional[str] = None,
+                                      provider: Optional[str] = None,
+                                      temperature: Optional[float] = None,
+                                      max_tokens: Optional[int] = None) -> Dict[str, Any]:
         """
-        Generate text from a specific provider
+        Generate text with natural cadence for messaging
         
         Args:
-            provider: The provider to use (openai, anthropic, openrouter)
-            prompt: The user prompt
-            system_message: The system message/instructions
-            temperature: Controls randomness (0.0 to 1.0)
+            messages: List of messages in the conversation
+            model: Model to use
+            provider: Provider to use
+            temperature: Temperature parameter
             max_tokens: Maximum tokens to generate
-            functions: Optional list of function definitions
-            user_id: Optional user ID for tracking
-            model_id: Optional model ID (required for OpenRouter)
             
         Returns:
-            Dict containing the generated text and metadata
+            Dict containing the generated text with cadence information
         """
-        if provider not in self.providers:
-            raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
+        # Add system instruction for cadence
+        system_instruction = """
+        You are generating a response that will be sent as a text message. Instead of sending one long message, 
+        break your response into multiple smaller messages where natural pauses would occur in conversation.
         
-        provider_instance = self.providers[provider]
+        Format your response as JSON with the following structure:
+        {
+            "messages": [
+                {"text": "First part of the message", "delay": 0},
+                {"text": "Second part after a short pause", "delay": 1.5},
+                {"text": "Third part after another pause", "delay": 2}
+            ]
+        }
         
-        if provider == "openrouter" and not model_id:
-            raise HTTPException(status_code=400, detail="model_id is required for OpenRouter")
-        
-        # Generate text from the selected provider
-        if provider == "openrouter":
-            return await provider_instance.generate_text(
-                prompt=prompt,
-                system_message=system_message,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                functions=functions,
-                user_id=user_id,
-                model_id=model_id
-            )
-        else:
-            return await provider_instance.generate_text(
-                prompt=prompt,
-                system_message=system_message,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                functions=functions,
-                user_id=user_id
-            )
-    
-    async def get_available_models(self, provider: str) -> List[Dict[str, Any]]:
+        Delays are in seconds and represent how long to wait after the previous message before sending this one.
+        The first message should always have a delay of 0.
         """
-        Get available models from a specific provider
         
-        Args:
-            provider: The provider to use (openai, anthropic, openrouter)
+        # Create messages with cadence instruction
+        cadence_messages = [
+            {"role": "system", "content": system_instruction}
+        ]
+        
+        # Add user context and history
+        cadence_messages.extend(messages)
+        
+        # Add final instruction to ensure proper formatting
+        cadence_messages.append({
+            "role": "user",
+            "content": "Remember to format your response as JSON with messages and delays as specified."
+        })
+        
+        # Generate completion
+        result = await self.generate_completion(
+            messages=cadence_messages,
+            model=model,
+            provider=provider,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+        
+        # Parse the response
+        try:
+            content = result.get("content", "")
             
-        Returns:
-            List of available models with metadata
-        """
-        if provider not in self.providers:
-            raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
-        
-        return await self.providers[provider].get_available_models()
+            # Extract JSON from the response if needed
+            if "```json" in content:
+                json_str = content.split("```json")[1].split("```")[0].strip()
+            elif "```" in content:
+                json_str = content.split("```")[1].split("```")[0].strip()
+            else:
+                json_str = content
+            
+            # Parse JSON
+            cadence_data = json.loads(json_str)
+            
+            return {
+                "id": result.get("id"),
+                "model": result.get("model"),
+                "messages": cadence_data.get("messages", []),
+                "usage": result.get("usage", {}),
+                "provider": result.get("provider")
+            }
+        except Exception as e:
+            logger.error(f"Error parsing cadence response: {e}")
+            
+            # Fallback: treat the entire response as a single message
+            return {
+                "id": result.get("id"),
+                "model": result.get("model"),
+                "messages": [{"text": result.get("content", ""), "delay": 0}],
+                "usage": result.get("usage", {}),
+                "provider": result.get("provider")
+            }
