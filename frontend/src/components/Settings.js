@@ -40,7 +40,9 @@ const Settings = ({ currentOrg }) => {
         // Mock data for demo
         setTimeout(() => {
           setApiKeys({
-            ghl_api_key: '••••••••1234',
+            ghl_client_id: '681a8d486b267326cb42a4db-mb5qftwj',
+            ghl_client_secret: '••••••••b62',
+            ghl_shared_secret: '••••••••fa9',
             openai_api_key: '••••••••5678',
             vapi_api_key: '',
             mem0_api_key: 'm0-TTwLd8awIP6aFAixLPn1lgkIUR2DJlDTzApPil8E',
