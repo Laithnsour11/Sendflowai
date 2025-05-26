@@ -5,12 +5,25 @@ const AgentTraining = ({ currentOrg }) => {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const [availableModels, setAvailableModels] = useState({
+    openai: [],
+    anthropic: [],
+    openrouter: []
+  });
+  const [loadingModels, setLoadingModels] = useState(false);
   const [formData, setFormData] = useState({
     agent_type: 'initial_contact',
     name: '',
     description: '',
     system_prompt: '',
-    configuration: {}
+    llm_provider: 'openai',
+    model_id: 'gpt-4o',
+    configuration: {
+      temperature: 0.7,
+      top_p: 0.9,
+      presence_penalty: 0.3,
+      frequency_penalty: 0.3
+    }
   });
   const [isEditing, setIsEditing] = useState(false);
   const [previewResponse, setPreviewResponse] = useState('');
@@ -24,6 +37,38 @@ const AgentTraining = ({ currentOrg }) => {
     { value: 'closer', label: 'Closing Agent' },
     { value: 'appointment_setter', label: 'Appointment Agent' }
   ];
+  
+  const llmProviders = [
+    { value: 'openai', label: 'OpenAI' },
+    { value: 'anthropic', label: 'Anthropic' },
+    { value: 'openrouter', label: 'OpenRouter' }
+  ];
+  
+  // Mock models for demonstration
+  const mockModels = {
+    openai: [
+      { id: 'gpt-4o', name: 'GPT-4o' },
+      { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' }
+    ],
+    anthropic: [
+      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+      { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet' },
+      { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku' }
+    ],
+    openrouter: [
+      { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'OpenAI' },
+      { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus', provider: 'Anthropic' },
+      { id: 'anthropic/claude-3-sonnet', name: 'Claude 3 Sonnet', provider: 'Anthropic' },
+      { id: 'anthropic/claude-3-haiku', name: 'Claude 3 Haiku', provider: 'Anthropic' },
+      { id: 'meta-llama/llama-3-70b-instruct', name: 'Llama 3 70B', provider: 'Meta' },
+      { id: 'meta-llama/llama-3-8b-instruct', name: 'Llama 3 8B', provider: 'Meta' },
+      { id: 'google/gemini-1.5-pro', name: 'Gemini 1.5 Pro', provider: 'Google' },
+      { id: 'google/gemini-1.5-flash', name: 'Gemini 1.5 Flash', provider: 'Google' },
+      { id: 'mistralai/mistral-large', name: 'Mistral Large', provider: 'Mistral AI' },
+      { id: 'mistralai/mistral-medium', name: 'Mistral Medium', provider: 'Mistral AI' }
+    ]
+  };
   
   useEffect(() => {
     // Simulated data loading for demo
@@ -43,6 +88,8 @@ const AgentTraining = ({ currentOrg }) => {
               name: 'Friendly Greeter',
               description: 'Warm and friendly initial contact agent that focuses on building rapport quickly.',
               system_prompt: 'You are a friendly real estate agent making first contact with a lead. Your goal is to build rapport, make them feel comfortable, and learn about their basic needs. Be warm, professional, and engaging. Ask open-ended questions to encourage conversation.',
+              llm_provider: 'openai',
+              model_id: 'gpt-4o',
               configuration: {
                 temperature: 0.7,
                 top_p: 0.9,
@@ -59,6 +106,8 @@ const AgentTraining = ({ currentOrg }) => {
               name: 'Detailed Qualifier',
               description: 'Thorough qualification agent that excels at discovering client needs and preferences.',
               system_prompt: 'You are a real estate qualification specialist. Your goal is to gather detailed information about the client property needs, budget, timeline, and preferences. Be thorough but conversational. Focus on collecting actionable information that will help match them with the right properties.',
+              llm_provider: 'anthropic',
+              model_id: 'claude-3-sonnet-20240229',
               configuration: {
                 temperature: 0.5,
                 top_p: 0.85,
@@ -75,6 +124,8 @@ const AgentTraining = ({ currentOrg }) => {
               name: 'Price Objection Specialist',
               description: 'Specialist in handling price-related objections and concerns.',
               system_prompt: 'You are a real estate agent specialized in addressing price objections. When clients express concerns about property prices, acknowledge their concern, explain value proposition clearly, provide market context, and discuss financing options that might make properties more affordable. Be empathetic but confident.',
+              llm_provider: 'openai',
+              model_id: 'gpt-4o',
               configuration: {
                 temperature: 0.6,
                 top_p: 0.9,
@@ -91,6 +142,8 @@ const AgentTraining = ({ currentOrg }) => {
               name: 'Confident Closer',
               description: 'Direct and confident agent that excels at guiding leads to make decisions.',
               system_prompt: 'You are a real estate closing specialist. Your job is to help clients make confident decisions about purchasing property. Be clear, direct, and confident. Use assumptive language, create appropriate urgency, and guide prospects toward concrete next steps. Address final objections succinctly and focus on the value proposition.',
+              llm_provider: 'openrouter',
+              model_id: 'meta-llama/llama-3-70b-instruct',
               configuration: {
                 temperature: 0.6,
                 top_p: 0.8,
@@ -105,6 +158,9 @@ const AgentTraining = ({ currentOrg }) => {
           
           setAgents(mockAgents);
           setLoading(false);
+          
+          // Set mock available models
+          setAvailableModels(mockModels);
         }, 1000);
       } catch (error) {
         console.error('Error loading agents:', error);
@@ -115,6 +171,37 @@ const AgentTraining = ({ currentOrg }) => {
     loadAgents();
   }, [currentOrg]);
   
+  // Load models when provider changes
+  useEffect(() => {
+    const loadModels = async () => {
+      // In a real app, we would fetch models from the API when provider changes
+      // if (formData.llm_provider) {
+      //   setLoadingModels(true);
+      //   try {
+      //     const response = await axios.get(
+      //       `${process.env.REACT_APP_BACKEND_URL}/api/llm/models/${formData.llm_provider}?org_id=${currentOrg.id}`
+      //     );
+      //     setAvailableModels(prev => ({ ...prev, [formData.llm_provider]: response.data }));
+      //   } catch (error) {
+      //     console.error('Error loading models:', error);
+      //   } finally {
+      //     setLoadingModels(false);
+      //   }
+      // }
+      
+      // For demo, we'll use the mock data
+      setLoadingModels(true);
+      setTimeout(() => {
+        setLoadingModels(false);
+        // Models are already set in the initial load
+      }, 500);
+    };
+    
+    if (formData.llm_provider) {
+      loadModels();
+    }
+  }, [formData.llm_provider, currentOrg]);
+  
   const handleSelectAgent = (agent) => {
     setSelectedAgent(agent);
     setFormData({
@@ -122,6 +209,8 @@ const AgentTraining = ({ currentOrg }) => {
       name: agent.name,
       description: agent.description,
       system_prompt: agent.system_prompt,
+      llm_provider: agent.llm_provider || 'openai',
+      model_id: agent.model_id || 'gpt-4o',
       configuration: agent.configuration
     });
     setIsEditing(true);
@@ -134,6 +223,8 @@ const AgentTraining = ({ currentOrg }) => {
       name: '',
       description: '',
       system_prompt: '',
+      llm_provider: 'openai',
+      model_id: 'gpt-4o',
       configuration: {
         temperature: 0.7,
         top_p: 0.9,
@@ -150,6 +241,16 @@ const AgentTraining = ({ currentOrg }) => {
       ...formData,
       [name]: value
     });
+    
+    // When provider changes, update model selection to first available model
+    if (name === 'llm_provider') {
+      const firstModel = mockModels[value]?.[0]?.id || '';
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        model_id: firstModel
+      }));
+    }
   };
   
   const handleConfigChange = (e) => {
@@ -206,9 +307,13 @@ const AgentTraining = ({ currentOrg }) => {
     
     try {
       // In a real app, we would call the API to generate a preview
-      // const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/agents/preview`, {
+      // const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/llm/generate`, {
       //   org_id: currentOrg.id,
-      //   ...formData
+      //   provider: formData.llm_provider,
+      //   model_id: formData.model_id,
+      //   prompt: "Tell me about your real estate services.",
+      //   system_message: formData.system_prompt,
+      //   temperature: formData.configuration.temperature
       // });
       
       // Mock preview generation
@@ -232,6 +337,13 @@ const AgentTraining = ({ currentOrg }) => {
             previewText = "I'd be happy to help you with your real estate needs. Could you tell me more about what you're looking for?";
         }
         
+        // Add some model-specific flavor
+        if (formData.llm_provider === 'anthropic') {
+          previewText += "\n\nI've analyzed recent market trends in your area and can provide detailed information on comparable properties if that would be helpful.";
+        } else if (formData.llm_provider === 'openrouter' && formData.model_id.includes('llama')) {
+          previewText += "\n\nAs someone who knows this market inside and out, I can also connect you with excellent mortgage brokers who can help secure the best possible rate.";
+        }
+        
         setPreviewResponse(previewText);
         setIsGeneratingPreview(false);
       }, 2000);
@@ -240,6 +352,9 @@ const AgentTraining = ({ currentOrg }) => {
       setIsGeneratingPreview(false);
     }
   };
+  
+  // Get current available models based on selected provider
+  const currentModels = formData.llm_provider ? availableModels[formData.llm_provider] || [] : [];
   
   return (
     <div>
@@ -311,6 +426,51 @@ const AgentTraining = ({ currentOrg }) => {
                     className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Brief description of the agent's purpose and characteristics"
                   />
+                </div>
+                
+                {/* LLM Provider */}
+                <div className="sm:col-span-3">
+                  <label htmlFor="llm_provider" className="block text-sm font-medium text-gray-700">LLM Provider</label>
+                  <select
+                    id="llm_provider"
+                    name="llm_provider"
+                    value={formData.llm_provider}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    {llmProviders.map(provider => (
+                      <option key={provider.value} value={provider.value}>{provider.label}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Model Selection */}
+                <div className="sm:col-span-3">
+                  <label htmlFor="model_id" className="block text-sm font-medium text-gray-700">
+                    Model
+                    {loadingModels && <span className="ml-2 text-xs text-gray-500">(Loading...)</span>}
+                  </label>
+                  <select
+                    id="model_id"
+                    name="model_id"
+                    value={formData.model_id}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    disabled={loadingModels}
+                  >
+                    {currentModels.map(model => (
+                      <option key={model.id} value={model.id}>
+                        {formData.llm_provider === 'openrouter' 
+                          ? `${model.name} (${model.provider})` 
+                          : model.name}
+                      </option>
+                    ))}
+                  </select>
+                  {formData.llm_provider === 'openrouter' && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      Note: Using OpenRouter requires an OpenRouter API key in Settings.
+                    </p>
+                  )}
                 </div>
                 
                 <div className="sm:col-span-6">
@@ -420,6 +580,7 @@ const AgentTraining = ({ currentOrg }) => {
                   onClick={() => {
                     setIsEditing(false);
                     setSelectedAgent(null);
+                    setPreviewResponse('');
                   }}
                   className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
                 >
@@ -439,7 +600,7 @@ const AgentTraining = ({ currentOrg }) => {
                 <div className="mt-6 p-4 bg-gray-50 rounded-md">
                   <h3 className="text-sm font-medium text-gray-700">Preview Response</h3>
                   <div className="mt-2 p-3 bg-white rounded border border-gray-200">
-                    <p className="text-sm text-gray-800">{previewResponse}</p>
+                    <p className="text-sm text-gray-800 whitespace-pre-line">{previewResponse}</p>
                   </div>
                   <p className="mt-1 text-xs text-gray-500">This is a simulated response based on your agent configuration.</p>
                 </div>
@@ -511,6 +672,19 @@ const AgentTraining = ({ currentOrg }) => {
                     
                     <div className="mt-3">
                       <p className="text-sm text-gray-500">{agent.description}</p>
+                    </div>
+                    
+                    <div className="mt-3">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800 mr-2">
+                        {agent.llm_provider === 'openai' ? 'OpenAI' : 
+                         agent.llm_provider === 'anthropic' ? 'Anthropic' : 
+                         agent.llm_provider === 'openrouter' ? 'OpenRouter' : 
+                         agent.llm_provider}
+                      </span>
+                      
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-purple-100 text-purple-800">
+                        {agent.model_id.split('/').pop()}
+                      </span>
                     </div>
                     
                     <div className="mt-3 flex justify-between items-center">
