@@ -58,7 +58,7 @@ const AgentTraining = ({ currentOrg }) => {
               agent_type: 'qualifier',
               name: 'Detailed Qualifier',
               description: 'Thorough qualification agent that excels at discovering client needs and preferences.',
-              system_prompt: 'You are a real estate qualification specialist. Your goal is to gather detailed information about the client\'s property needs, budget, timeline, and preferences. Be thorough but conversational. Focus on collecting actionable information that will help match them with the right properties.',
+              system_prompt: 'You are a real estate qualification specialist. Your goal is to gather detailed information about the client property needs, budget, timeline, and preferences. Be thorough but conversational. Focus on collecting actionable information that will help match them with the right properties.',
               configuration: {
                 temperature: 0.5,
                 top_p: 0.85,
