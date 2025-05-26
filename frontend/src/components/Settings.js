@@ -158,151 +158,178 @@ const Settings = ({ currentOrg }) => {
         
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
           <dl className="sm:divide-y sm:divide-gray-200">
-            {/* Language Model API Keys Section */}
             <div className="py-4 sm:py-5 sm:px-6">
-              <h3 className="text-md font-medium text-gray-900">Language Model API Keys</h3>
-              <p className="mt-1 text-sm text-gray-500">Required for AI conversational capabilities</p>
-              
-              {/* OpenAI API Key */}
-              <div className="mt-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">
-                  OpenAI API Key
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    type="password"
-                    name="openai_api_key"
-                    value={apiKeys.openai_api_key}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your OpenAI API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                </dd>
-              </div>
-              
-              {/* Anthropic API Key */}
-              <div className="mt-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">
-                  Anthropic API Key
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    type="password"
-                    name="anthropic_api_key"
-                    value={apiKeys.anthropic_api_key}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your Anthropic API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                </dd>
-              </div>
-              
-              {/* OpenRouter API Key */}
-              <div className="mt-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">
-                  OpenRouter API Key
-                  <p className="mt-1 text-xs text-gray-400">Enables access to multiple AI models</p>
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    type="password"
-                    name="openrouter_api_key"
-                    value={apiKeys.openrouter_api_key}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your OpenRouter API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                  <p className="mt-1 text-xs text-indigo-600 hover:text-indigo-500">
-                    <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">
-                      Get an OpenRouter API key →
-                    </a>
-                  </p>
-                </dd>
-              </div>
+              <h3 className="text-md font-medium text-indigo-600">Core Integrations</h3>
             </div>
             
-            {/* Communication API Keys Section */}
-            <div className="py-4 sm:py-5 sm:px-6">
-              <h3 className="text-md font-medium text-gray-900">Communication API Keys</h3>
-              <p className="mt-1 text-sm text-gray-500">Required for voice and SMS capabilities</p>
-              
-              {/* Vapi API Key */}
-              <div className="mt-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">
-                  Vapi.ai API Key
-                  <p className="mt-1 text-xs text-gray-400">Required for voice capabilities</p>
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    type="password"
-                    name="vapi_api_key"
-                    value={apiKeys.vapi_api_key}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your Vapi.ai API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                </dd>
-              </div>
-              
-              {/* SendBlue API Key */}
-              <div className="mt-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">
-                  SendBlue API Key
-                  <p className="mt-1 text-xs text-gray-400">Required for SMS capabilities</p>
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    type="password"
-                    name="sendblue_api_key"
-                    value={apiKeys.sendblue_api_key}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your SendBlue API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                </dd>
-              </div>
+            {/* Go High Level API Key */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Go High Level API Key
+                <p className="mt-1 text-xs text-gray-400">Required for GHL integration</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="ghl_api_key"
+                  value={apiKeys.ghl_api_key}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your GHL API key"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
             </div>
             
-            {/* Other API Keys */}
             <div className="py-4 sm:py-5 sm:px-6">
-              <h3 className="text-md font-medium text-gray-900">Integration & Memory API Keys</h3>
-              <p className="mt-1 text-sm text-gray-500">Required for CRM integration and memory capabilities</p>
-              
-              {/* Go High Level API Key */}
-              <div className="mt-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">
-                  Go High Level API Key
-                  <p className="mt-1 text-xs text-gray-400">Required for GHL integration</p>
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    type="password"
-                    name="ghl_api_key"
-                    value={apiKeys.ghl_api_key}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your GHL API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                </dd>
-              </div>
-              
-              {/* Mem0 API Key */}
-              <div className="mt-4 sm:grid sm:grid-cols-3 sm:gap-4">
-                <dt className="text-sm font-medium text-gray-500">
-                  Mem0 API Key
-                  <p className="mt-1 text-xs text-gray-400">Required for memory capabilities</p>
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                  <input
-                    type="password"
-                    name="mem0_api_key"
-                    value={apiKeys.mem0_api_key}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your Mem0 API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                </dd>
-              </div>
+              <h3 className="text-md font-medium text-indigo-600">AI & Memory Integrations</h3>
+            </div>
+            
+            {/* OpenAI API Key */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                OpenAI API Key
+                <p className="mt-1 text-xs text-gray-400">Required for embeddings and knowledge base capabilities</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="openai_api_key"
+                  value={apiKeys.openai_api_key}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your OpenAI API key"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            {/* OpenRouter API Key */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                OpenRouter API Key
+                <p className="mt-1 text-xs text-gray-400">Required for multi-model AI capabilities</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="openrouter_api_key"
+                  value={apiKeys.openrouter_api_key}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your OpenRouter API key"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            {/* Mem0 API Key */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Mem0 API Key
+                <p className="mt-1 text-xs text-gray-400">Required for persistent memory capabilities</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="mem0_api_key"
+                  value={apiKeys.mem0_api_key}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your Mem0 API key"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            {/* Supabase URL */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Supabase URL
+                <p className="mt-1 text-xs text-gray-400">Required for knowledge base storage</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="text"
+                  name="supabase_url"
+                  value={apiKeys.supabase_url}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your Supabase URL"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            {/* Supabase Key */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Supabase Key
+                <p className="mt-1 text-xs text-gray-400">Required for knowledge base storage</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="supabase_key"
+                  value={apiKeys.supabase_key}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your Supabase Key"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            <div className="py-4 sm:py-5 sm:px-6">
+              <h3 className="text-md font-medium text-indigo-600">Communication Integrations</h3>
+            </div>
+            
+            {/* Vapi API Key */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Vapi.ai API Key
+                <p className="mt-1 text-xs text-gray-400">Required for voice capabilities</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="vapi_api_key"
+                  value={apiKeys.vapi_api_key}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your Vapi.ai API key"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            {/* SendBlue API Key */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                SendBlue API Key
+                <p className="mt-1 text-xs text-gray-400">Required for SMS capabilities</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="sendblue_api_key"
+                  value={apiKeys.sendblue_api_key}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your SendBlue API key"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            {/* SendBlue API Secret */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                SendBlue API Secret
+                <p className="mt-1 text-xs text-gray-400">Required for SMS capabilities</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="sendblue_api_secret"
+                  value={apiKeys.sendblue_api_secret}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your SendBlue API secret"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
             </div>
           </dl>
         </div>
