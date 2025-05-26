@@ -8,6 +8,8 @@ import LeadsList from './components/LeadsList';
 import Conversations from './components/Conversations';
 import Settings from './components/Settings';
 import LandingPage from './components/LandingPage';
+import KnowledgeBase from './components/KnowledgeBase';
+import AgentTraining from './components/AgentTraining';
 
 // Layouts
 import AppLayout from './layouts/AppLayout';
@@ -50,6 +52,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard currentOrg={currentOrg} />} />
           <Route path="/leads" element={<LeadsList currentOrg={currentOrg} />} />
           <Route path="/conversations" element={<Conversations currentOrg={currentOrg} />} />
+          <Route path="/knowledge" element={<KnowledgeBase currentOrg={currentOrg} />} />
+          <Route path="/agent-training" element={<AgentTraining currentOrg={currentOrg} />} />
           <Route path="/settings" element={<Settings currentOrg={currentOrg} />} />
         </Route>
       </Routes>
