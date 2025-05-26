@@ -95,6 +95,30 @@ frontend:
         agent: "testing"
         comment: "React Router configured with protected routes. Authentication-based routing works correctly. Public routes (landing) and protected routes (dashboard, leads, conversations, settings) properly configured."
 
+  - task: "Knowledge Base Component"
+    implemented: true
+    working: true
+    file: "frontend/src/components/KnowledgeBase.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Knowledge Base component fully implemented with document types (SOP, Script, Training, FAQ, Objection Handler), search functionality, add document form, and mock data. Fixed syntax error in string literals. Component renders correctly when authentication state is properly set."
+
+  - task: "Agent Training Component"
+    implemented: true
+    working: true
+    file: "frontend/src/components/AgentTraining.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Agent Training component fully implemented with agent types (Initial Contact, Qualifier, Nurturer, Objection Handler, Closer, Appointment Setter), create/edit agent functionality, configuration options, preview generation, and mock data. Fixed syntax error in string literals. Component renders correctly when authentication state is properly set."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
