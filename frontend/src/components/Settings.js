@@ -5,11 +5,13 @@ const Settings = ({ currentOrg }) => {
   const [apiKeys, setApiKeys] = useState({
     ghl_api_key: '',
     openai_api_key: '',
-    anthropic_api_key: '',
-    openrouter_api_key: '',
     vapi_api_key: '',
     mem0_api_key: '',
-    sendblue_api_key: ''
+    openrouter_api_key: '',
+    sendblue_api_key: '',
+    sendblue_api_secret: '',
+    supabase_url: '',
+    supabase_key: ''
   });
   
   const [aiSettings, setAiSettings] = useState({
