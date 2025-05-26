@@ -27,15 +27,17 @@ db_name = os.environ.get('DB_NAME', 'ai_closer_db')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
-# Import our new components
+# Import our components
 from knowledge_base import KnowledgeBaseManager
 from memory_system import MemorySystem
 from multi_agent import AgentOrchestrator, AgentType
+from llm_service import LLMService
 
 # Initialize services
 knowledge_manager = KnowledgeBaseManager()
 memory_system = MemorySystem()
 agent_orchestrator = AgentOrchestrator()
+llm_service = LLMService()
 
 # Create FastAPI app
 app = FastAPI(title="AI Closer API", version="1.0.0")
@@ -112,6 +114,13 @@ async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
     
     if "openai_api_key" in keys_data:
         agent_orchestrator.set_api_key(keys_data["openai_api_key"])
+        llm_service.set_api_key("openai", keys_data["openai_api_key"])
+    
+    if "anthropic_api_key" in keys_data:
+        llm_service.set_api_key("anthropic", keys_data["anthropic_api_key"])
+    
+    if "openrouter_api_key" in keys_data:
+        llm_service.set_api_key("openrouter", keys_data["openrouter_api_key"])
     
     result = await db.api_keys.update_one(
         {"org_id": org_id},
@@ -303,7 +312,9 @@ async def create_agent_training(
     name: str = Body(...),
     description: str = Body(None),
     system_prompt: str = Body(...),
-    configuration: Dict[str, Any] = Body({})
+    configuration: Dict[str, Any] = Body({}),
+    llm_provider: str = Body("openai"),
+    model_id: Optional[str] = Body(None)
 ):
     """Create or update agent training configuration"""
     training_data = {
@@ -314,6 +325,8 @@ async def create_agent_training(
         "description": description,
         "system_prompt": system_prompt,
         "configuration": configuration,
+        "llm_provider": llm_provider,
+        "model_id": model_id,
         "version": 1,
         "is_active": True,
         "created_at": datetime.now(),
@@ -336,6 +349,73 @@ async def list_agent_training(org_id: str, agent_type: Optional[str] = None):
         config["id"] = str(config["_id"])
     
     return training_configs
+
+# LLM Service endpoints
+@app.post("/api/llm/generate")
+async def generate_text(
+    org_id: str,
+    provider: str = Body(...),
+    prompt: str = Body(...),
+    system_message: str = Body(...),
+    temperature: float = Body(0.7),
+    max_tokens: int = Body(1000),
+    functions: Optional[List[Dict[str, Any]]] = Body(None),
+    model_id: Optional[str] = Body(None)
+):
+    """Generate text using a specific LLM provider"""
+    # Get API keys for the organization
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys:
+        raise HTTPException(status_code=404, detail="Organization API keys not found")
+    
+    # Set API keys for the requested provider
+    if provider == "openai" and "openai_api_key" in api_keys:
+        llm_service.set_api_key("openai", api_keys["openai_api_key"])
+    elif provider == "anthropic" and "anthropic_api_key" in api_keys:
+        llm_service.set_api_key("anthropic", api_keys["anthropic_api_key"])
+    elif provider == "openrouter" and "openrouter_api_key" in api_keys:
+        llm_service.set_api_key("openrouter", api_keys["openrouter_api_key"])
+    else:
+        raise HTTPException(status_code=400, detail=f"API key for {provider} not configured")
+    
+    # Generate text
+    result = await llm_service.generate_text(
+        provider=provider,
+        prompt=prompt,
+        system_message=system_message,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        functions=functions,
+        user_id=org_id,
+        model_id=model_id
+    )
+    
+    return result
+
+@app.get("/api/llm/models/{provider}")
+async def get_available_models(
+    org_id: str,
+    provider: str
+):
+    """Get available models from a specific LLM provider"""
+    # Get API keys for the organization
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys:
+        raise HTTPException(status_code=404, detail="Organization API keys not found")
+    
+    # Set API keys for the requested provider
+    if provider == "openai" and "openai_api_key" in api_keys:
+        llm_service.set_api_key("openai", api_keys["openai_api_key"])
+    elif provider == "anthropic" and "anthropic_api_key" in api_keys:
+        llm_service.set_api_key("anthropic", api_keys["anthropic_api_key"])
+    elif provider == "openrouter" and "openrouter_api_key" in api_keys:
+        llm_service.set_api_key("openrouter", api_keys["openrouter_api_key"])
+    else:
+        raise HTTPException(status_code=400, detail=f"API key for {provider} not configured")
+    
+    # Get available models
+    models = await llm_service.get_available_models(provider)
+    return models
 
 # Shutdown event to close database connection
 @app.on_event("shutdown")
