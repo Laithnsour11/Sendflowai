@@ -5,6 +5,7 @@ from typing import List, Dict, Any, Optional
 import logging
 import os
 import json
+import uuid
 from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
