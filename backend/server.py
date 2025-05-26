@@ -27,12 +27,12 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 # Import our services
-from mem0 import Mem0Integration
-from openrouter_llm import OpenRouterClient
-from langchain_agents import AgentOrchestrator, ConversationManager
-from vapi_integration import VapiIntegration
-from sendblue_integration import SendBlueIntegration
-from supabase_kb import SupabaseClient, KnowledgeBaseManager
+from backend.mem0 import Mem0Integration
+from backend.openrouter_llm import OpenRouterClient
+from backend.langchain_agents import AgentOrchestrator, ConversationManager
+from backend.vapi_integration import VapiIntegration
+from backend.sendblue_integration import SendBlueIntegration
+from backend.supabase_kb import SupabaseClient, KnowledgeBaseManager
 
 # Initialize services
 supabase_client = SupabaseClient()
