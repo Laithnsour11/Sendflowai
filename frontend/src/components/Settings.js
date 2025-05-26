@@ -83,12 +83,40 @@ const Settings = ({ currentOrg }) => {
     setAiSettings(prev => ({ ...prev, [name]: value }));
   };
   
-  // Save settings
-  const handleSaveSettings = async () => {
+  // Connect to GHL
+  const handleConnectGHL = async () => {
     try {
       setSaving(true);
       setSaveSuccess(false);
       setSaveError(null);
+      
+      // First save the API keys
+      await handleSaveSettings(false);
+      
+      // Then get the OAuth URL
+      // In a real app, we would get this from the API
+      // const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/ghl/oauth-url?org_id=${currentOrg.id}`);
+      // window.location.href = response.data.oauth_url;
+      
+      // For demo purposes, just show a success message
+      alert("In a production environment, this would redirect to Go High Level for OAuth authorization. The OAuth flow is implemented in the backend.");
+      
+      setSaving(false);
+    } catch (error) {
+      console.error('Error connecting GHL:', error);
+      setSaveError('Failed to connect GHL account. Please try again.');
+      setSaving(false);
+    }
+  };
+  
+  // Save settings
+  const handleSaveSettings = async (showSuccess = true) => {
+    try {
+      if (showSuccess) {
+        setSaving(true);
+        setSaveSuccess(false);
+        setSaveError(null);
+      }
       
       // In a real app, we would send this data to the API
       // const response = await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/settings/api-keys/${currentOrg.id}`, apiKeys);
@@ -96,17 +124,24 @@ const Settings = ({ currentOrg }) => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      setSaveSuccess(true);
-      setSaving(false);
+      if (showSuccess) {
+        setSaveSuccess(true);
+        setSaving(false);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSaveSuccess(false);
+        }, 3000);
+      }
       
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSaveSuccess(false);
-      }, 3000);
+      return true;
     } catch (error) {
       console.error('Error saving settings:', error);
-      setSaveError('Failed to save settings. Please try again.');
-      setSaving(false);
+      if (showSuccess) {
+        setSaveError('Failed to save settings. Please try again.');
+        setSaving(false);
+      }
+      return false;
     }
   };
   
