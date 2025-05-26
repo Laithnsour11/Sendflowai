@@ -150,46 +150,109 @@ async def process_message(
 @app.get("/api/settings/api-keys/{org_id}")
 async def get_organization_api_keys(org_id: str):
     api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys:
+        return {}
     
     # Mask sensitive data
     masked_keys = {}
-    if api_keys:
-        for key_name, key_value in api_keys.items():
-            if key_name.endswith("_api_key") or key_name.endswith("_api_secret"):
-                # Show only last 4 characters
-                masked_keys[key_name] = "••••••••" + key_value[-4:] if len(key_value) > 4 else "••••"
-            else:
-                masked_keys[key_name] = key_value
+    for key_name, key_value in api_keys.items():
+        if (key_name.endswith("_api_key") or key_name.endswith("_secret") or key_name.endswith("_client_secret")) and key_value:
+            # Show only last 4 characters
+            masked_keys[key_name] = "••••••••" + key_value[-4:] if len(key_value) > 4 else "••••"
+        else:
+            masked_keys[key_name] = key_value
     
     return masked_keys
 
 @app.put("/api/settings/api-keys/{org_id}")
 async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
-    # Filter out None values
-    update_data = {k: v for k, v in keys_data.items() if v is not None}
-    update_data["org_id"] = org_id
-    update_data["updated_at"] = datetime.now()
+    keys_data["org_id"] = org_id
+    keys_data["updated_at"] = datetime.now()
     
-    # Update in database
+    # Update GHL integration with new credentials if provided
+    if "ghl_client_id" in keys_data and "ghl_client_secret" in keys_data and "ghl_shared_secret" in keys_data:
+        ghl_integration.set_credentials(
+            client_id=keys_data["ghl_client_id"],
+            client_secret=keys_data["ghl_client_secret"],
+            shared_secret=keys_data["ghl_shared_secret"]
+        )
+    
     result = await db.api_keys.update_one(
         {"org_id": org_id},
-        {"$set": update_data},
+        {"$set": keys_data},
         upsert=True
     )
     
-    # Get updated keys
     api_keys = await db.api_keys.find_one({"org_id": org_id})
     
     # Mask sensitive data in response
     masked_result = {}
     for key_name, key_value in api_keys.items():
-        if key_name.endswith("_api_key") or key_name.endswith("_api_secret"):
+        if (key_name.endswith("_api_key") or key_name.endswith("_secret") or key_name.endswith("_client_secret")) and key_value:
             # Show only last 4 characters
             masked_result[key_name] = "••••••••" + key_value[-4:] if len(key_value) > 4 else "••••"
         else:
             masked_result[key_name] = key_value
     
     return masked_result
+
+# GHL OAuth endpoints
+@app.get("/api/ghl/oauth-url")
+async def get_ghl_oauth_url(org_id: str):
+    # Get the GHL credentials
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "ghl_client_id" not in api_keys:
+        raise HTTPException(status_code=400, detail="GHL Client ID not configured")
+    
+    # Set up GHL integration
+    ghl_integration.set_credentials(
+        client_id=api_keys["ghl_client_id"],
+        client_secret=api_keys.get("ghl_client_secret", ""),
+        shared_secret=api_keys.get("ghl_shared_secret", "")
+    )
+    
+    # Generate OAuth URL
+    redirect_uri = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/ghl-callback"
+    oauth_url = await ghl_integration.get_oauth_url(redirect_uri)
+    
+    return {"oauth_url": oauth_url}
+
+@app.post("/api/ghl/oauth-callback")
+async def ghl_oauth_callback(org_id: str, code: str):
+    # Get the GHL credentials
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "ghl_client_id" not in api_keys or "ghl_client_secret" not in api_keys:
+        raise HTTPException(status_code=400, detail="GHL OAuth credentials not configured")
+    
+    # Set up GHL integration
+    ghl_integration.set_credentials(
+        client_id=api_keys["ghl_client_id"],
+        client_secret=api_keys["ghl_client_secret"],
+        shared_secret=api_keys.get("ghl_shared_secret", "")
+    )
+    
+    # Exchange code for token
+    redirect_uri = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/ghl-callback"
+    try:
+        token_data = await ghl_integration.exchange_code_for_token(code, redirect_uri)
+        
+        # Store tokens in database
+        await db.api_keys.update_one(
+            {"org_id": org_id},
+            {"$set": {
+                "ghl_access_token": token_data["access_token"],
+                "ghl_refresh_token": token_data["refresh_token"],
+                "ghl_token_expires_at": int(time.time()) + token_data["expires_in"],
+                "ghl_location_id": token_data.get("locationId", ""),
+                "ghl_company_id": token_data.get("companyId", ""),
+                "updated_at": datetime.now()
+            }}
+        )
+        
+        return {"success": True, "message": "GHL account connected successfully"}
+    except Exception as e:
+        logger.error(f"Error exchanging GHL OAuth code: {e}")
+        raise HTTPException(status_code=500, detail=f"Error connecting GHL account: {str(e)}")
 
 # Placeholder endpoints for the full implementation
 @app.get("/api/memory/lead/{lead_id}")
