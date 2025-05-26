@@ -27,17 +27,19 @@ db_name = os.environ.get('DB_NAME', 'ai_closer_db')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
-# Import our components
-from knowledge_base import KnowledgeBaseManager
-from memory_system import MemorySystem
-from multi_agent import AgentOrchestrator, AgentType
+# Import our services
+from persistent_memory import PersistentMemoryManager
 from llm_service import LLMService
+from agent_orchestrator import AgentOrchestrator
+from communication_service import CommunicationService
+from knowledge_base import KnowledgeBaseManager
 
 # Initialize services
-knowledge_manager = KnowledgeBaseManager()
-memory_system = MemorySystem()
-agent_orchestrator = AgentOrchestrator()
+memory_manager = PersistentMemoryManager()
 llm_service = LLMService()
+agent_orchestrator = AgentOrchestrator(llm_service=llm_service, memory_manager=memory_manager)
+knowledge_manager = KnowledgeBaseManager()
+communication_service = CommunicationService(agent_orchestrator=agent_orchestrator, memory_manager=memory_manager)
 
 # Create FastAPI app
 app = FastAPI(title="AI Closer API", version="1.0.0")
@@ -110,10 +112,9 @@ async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
         knowledge_manager.set_api_keys(keys_data["supabase_url"], keys_data["supabase_key"])
     
     if "mem0_api_key" in keys_data:
-        memory_system.set_api_key(keys_data["mem0_api_key"])
+        memory_manager.set_api_key(keys_data["mem0_api_key"])
     
     if "openai_api_key" in keys_data:
-        agent_orchestrator.set_api_key(keys_data["openai_api_key"])
         llm_service.set_api_key("openai", keys_data["openai_api_key"])
     
     if "anthropic_api_key" in keys_data:
@@ -121,6 +122,12 @@ async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
     
     if "openrouter_api_key" in keys_data:
         llm_service.set_api_key("openrouter", keys_data["openrouter_api_key"])
+    
+    if "vapi_api_key" in keys_data:
+        communication_service.set_vapi_api_key(keys_data["vapi_api_key"])
+    
+    if "sendblue_api_key" in keys_data:
+        communication_service.set_sendblue_api_key(keys_data["sendblue_api_key"])
     
     result = await db.api_keys.update_one(
         {"org_id": org_id},
@@ -141,11 +148,224 @@ async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
     
     return masked_result
 
+# LLM Service endpoints
+@app.get("/api/llm/models")
+async def get_available_models(provider: Optional[str] = None):
+    """Get available models for a provider"""
+    models = await llm_service.get_available_models(provider)
+    return models
+
+@app.post("/api/llm/completion")
+async def generate_completion(
+    messages: List[Dict[str, str]] = Body(...),
+    model: Optional[str] = Body(None),
+    provider: Optional[str] = Body(None),
+    temperature: Optional[float] = Body(None),
+    max_tokens: Optional[int] = Body(None),
+    functions: Optional[List[Dict[str, Any]]] = Body(None)
+):
+    """Generate a completion using the LLM service"""
+    completion = await llm_service.generate_completion(
+        messages=messages,
+        model=model,
+        provider=provider,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        functions=functions
+    )
+    return completion
+
+@app.post("/api/llm/completion-with-cadence")
+async def generate_completion_with_cadence(
+    messages: List[Dict[str, str]] = Body(...),
+    model: Optional[str] = Body(None),
+    provider: Optional[str] = Body(None),
+    temperature: Optional[float] = Body(None),
+    max_tokens: Optional[int] = Body(None)
+):
+    """Generate a completion with natural text cadence"""
+    completion = await llm_service.generate_text_with_cadence(
+        messages=messages,
+        model=model,
+        provider=provider,
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
+    return completion
+
+# Memory System endpoints
+@app.post("/api/memory/store")
+async def store_memory(
+    lead_id: str = Body(...),
+    memory_type: str = Body(...),
+    memory_content: Dict[str, Any] = Body(...),
+    confidence_level: Optional[float] = Body(0.9)
+):
+    """Store a memory for a lead"""
+    result = await memory_manager.store_memory(
+        lead_id=lead_id,
+        memory_type=memory_type,
+        memory_content=memory_content,
+        confidence=confidence_level
+    )
+    return result
+
+@app.get("/api/memory/retrieve")
+async def retrieve_memories(
+    lead_id: str,
+    memory_type: Optional[str] = None,
+    query: Optional[str] = None,
+    limit: int = 10
+):
+    """Retrieve memories for a lead"""
+    memories = await memory_manager.retrieve_memories(
+        lead_id=lead_id,
+        memory_type=memory_type,
+        query=query,
+        limit=limit
+    )
+    return memories
+
+@app.get("/api/memory/context/{lead_id}")
+async def get_lead_context(lead_id: str):
+    """Get synthesized lead context from memories"""
+    context = await memory_manager.synthesize_lead_context(lead_id)
+    return context
+
+# Agent System endpoints
+@app.post("/api/agents/select")
+async def select_agent(context: Dict[str, Any] = Body(...)):
+    """Select the most appropriate agent based on context"""
+    agent = await agent_orchestrator.select_agent(context)
+    return agent
+
+@app.get("/api/agents/config/{agent_type}")
+async def get_agent_config(agent_type: str, org_id: str):
+    """Get configuration for a specific agent type"""
+    config = await agent_orchestrator.get_specialized_agent_config(agent_type, org_id)
+    return config
+
+@app.post("/api/agents/generate-response")
+async def generate_agent_response(
+    agent_type: str = Body(...),
+    message: str = Body(...),
+    lead_context: Dict[str, Any] = Body(...),
+    conversation_history: List[Dict[str, Any]] = Body([]),
+    org_id: str = Body(...),
+    use_text_cadence: bool = Body(False)
+):
+    """Generate a response using a specialized agent"""
+    response = await agent_orchestrator.generate_agent_response(
+        agent_type=agent_type,
+        message=message,
+        lead_context=lead_context,
+        conversation_history=conversation_history,
+        org_id=org_id,
+        use_text_cadence=use_text_cadence
+    )
+    return response
+
+@app.post("/api/conversation/process")
+async def process_conversation(
+    message: str = Body(...),
+    lead_id: str = Body(...),
+    org_id: str = Body(...),
+    conversation_history: Optional[List[Dict[str, Any]]] = Body([]),
+    previous_agent: Optional[str] = Body(None),
+    channel: str = Body("chat")
+):
+    """Process a conversation message through the agent orchestrator"""
+    result = await agent_orchestrator.orchestrate_conversation(
+        message=message,
+        lead_id=lead_id,
+        org_id=org_id,
+        conversation_history=conversation_history,
+        previous_agent=previous_agent,
+        channel=channel
+    )
+    
+    # Store conversation in database
+    convo_data = {
+        "_id": str(uuid.uuid4()),
+        "lead_id": lead_id,
+        "org_id": org_id,
+        "message": message,
+        "response": result["response"],
+        "agent_used": result["agent_used"]["type"],
+        "channel": channel,
+        "created_at": datetime.now().isoformat()
+    }
+    
+    await db.conversations.insert_one(convo_data)
+    
+    return result
+
+# Communication Service endpoints
+@app.post("/api/communication/sms/send")
+async def send_sms(
+    phone_number: str = Body(...),
+    message: str = Body(...),
+    lead_id: str = Body(...),
+    org_id: str = Body(...)
+):
+    """Send an SMS message"""
+    result = await communication_service.send_sms(
+        phone_number=phone_number,
+        message=message,
+        lead_id=lead_id,
+        org_id=org_id
+    )
+    return result
+
+@app.post("/api/communication/sms/send-with-cadence")
+async def send_sms_with_cadence(
+    phone_number: str = Body(...),
+    messages: List[Dict[str, Any]] = Body(...),
+    lead_id: str = Body(...),
+    org_id: str = Body(...)
+):
+    """Send SMS messages with natural cadence"""
+    result = await communication_service.send_sms_with_cadence(
+        phone_number=phone_number,
+        messages=messages,
+        lead_id=lead_id,
+        org_id=org_id
+    )
+    return result
+
+@app.post("/api/communication/sms/webhook")
+async def process_sms_webhook(webhook_data: Dict[str, Any] = Body(...)):
+    """Process webhook from SendBlue"""
+    result = await communication_service.process_sms_webhook(webhook_data)
+    return result
+
+@app.post("/api/communication/voice/call")
+async def initiate_voice_call(
+    phone_number: str = Body(...),
+    lead_id: str = Body(...),
+    org_id: str = Body(...),
+    agent_type: Optional[str] = Body(None)
+):
+    """Initiate a voice call"""
+    result = await communication_service.initiate_voice_call(
+        phone_number=phone_number,
+        lead_id=lead_id,
+        org_id=org_id,
+        agent_type=agent_type
+    )
+    return result
+
+@app.post("/api/communication/voice/webhook")
+async def process_vapi_webhook(webhook_data: Dict[str, Any] = Body(...)):
+    """Process webhook from Vapi.ai"""
+    result = await communication_service.process_vapi_webhook(webhook_data)
+    return result
+
 # Knowledge Base endpoints
 @app.post("/api/knowledge/documents")
 async def add_document(
-    org_id: str,
-    title: str,
+    org_id: str = Body(...),
+    title: str = Body(...),
     content: str = Body(...),
     document_type: str = Body(...),
     metadata: Optional[Dict[str, Any]] = Body({})
@@ -206,7 +426,7 @@ async def delete_document(document_id: str):
 
 @app.post("/api/knowledge/search")
 async def search_knowledge_base(
-    org_id: str,
+    org_id: str = Body(...),
     query: str = Body(...),
     document_type: Optional[str] = Body(None),
     limit: int = Body(5)
@@ -219,203 +439,6 @@ async def search_knowledge_base(
         limit=limit
     )
     return results
-
-# Memory System endpoints
-@app.post("/api/memory")
-async def store_memory(
-    lead_id: str,
-    memory_type: str = Body(...),
-    memory_content: Dict[str, Any] = Body(...),
-    confidence_level: Optional[float] = Body(0.9)
-):
-    """Store a memory for a lead"""
-    result = await memory_system.store_memory(
-        lead_id=lead_id,
-        memory_type=memory_type,
-        memory_content=memory_content,
-        confidence_level=confidence_level
-    )
-    return result
-
-@app.get("/api/memory")
-async def get_memories(
-    lead_id: str,
-    memory_type: Optional[str] = None,
-    query: Optional[str] = None,
-    limit: int = 5
-):
-    """Get memories for a lead"""
-    memories = await memory_system.retrieve_memories(
-        lead_id=lead_id,
-        memory_type=memory_type,
-        query=query,
-        limit=limit
-    )
-    return memories
-
-@app.get("/api/memory/context/{lead_id}")
-async def get_lead_context(lead_id: str):
-    """Get synthesized lead context from memories"""
-    context = await memory_system.synthesize_lead_context(lead_id)
-    return context
-
-# Multi-agent System endpoints
-@app.post("/api/agents/select")
-async def select_agent(context: Dict[str, Any]):
-    """Select the most appropriate agent based on context"""
-    agent = await agent_orchestrator.select_agent(context)
-    return agent
-
-@app.post("/api/conversation/process")
-async def process_conversation(
-    message: str = Body(...),
-    lead_id: str = Body(...),
-    lead_context: Dict[str, Any] = Body(...),
-    conversation_history: Optional[List[Dict[str, Any]]] = Body(None),
-    channel: str = Body("chat")
-):
-    """Process a conversation message"""
-    result = await agent_orchestrator.orchestrate_conversation(
-        message=message,
-        lead_context=lead_context,
-        conversation_history=conversation_history,
-        channel=channel
-    )
-    
-    # Store conversation in database
-    convo_data = result["conversation"]
-    await db.conversations.insert_one(convo_data)
-    
-    # Store memory
-    await memory_system.store_memory(
-        lead_id=lead_id,
-        memory_type="contextual",
-        memory_content={
-            "message": message,
-            "response": result["response"]["response"],
-            "analysis": result["response"].get("analysis", {})
-        }
-    )
-    
-    return result
-
-@app.get("/api/agents/types")
-async def get_agent_types():
-    """Get all available agent types"""
-    return [agent_type.value for agent_type in AgentType]
-
-# Agent Training endpoints
-@app.post("/api/agents/training")
-async def create_agent_training(
-    org_id: str,
-    agent_type: str = Body(...),
-    name: str = Body(...),
-    description: str = Body(None),
-    system_prompt: str = Body(...),
-    configuration: Dict[str, Any] = Body({}),
-    llm_provider: str = Body("openai"),
-    model_id: Optional[str] = Body(None)
-):
-    """Create or update agent training configuration"""
-    training_data = {
-        "id": str(uuid.uuid4()),
-        "org_id": org_id,
-        "agent_type": agent_type,
-        "name": name,
-        "description": description,
-        "system_prompt": system_prompt,
-        "configuration": configuration,
-        "llm_provider": llm_provider,
-        "model_id": model_id,
-        "version": 1,
-        "is_active": True,
-        "created_at": datetime.now(),
-        "updated_at": datetime.now()
-    }
-    
-    result = await db.agent_training.insert_one(training_data)
-    training_data["_id"] = str(training_data["_id"])
-    return training_data
-
-@app.get("/api/agents/training")
-async def list_agent_training(org_id: str, agent_type: Optional[str] = None):
-    """List agent training configurations"""
-    query = {"org_id": org_id}
-    if agent_type:
-        query["agent_type"] = agent_type
-    
-    training_configs = await db.agent_training.find(query).to_list(length=100)
-    for config in training_configs:
-        config["id"] = str(config["_id"])
-    
-    return training_configs
-
-# LLM Service endpoints
-@app.post("/api/llm/generate")
-async def generate_text(
-    org_id: str,
-    provider: str = Body(...),
-    prompt: str = Body(...),
-    system_message: str = Body(...),
-    temperature: float = Body(0.7),
-    max_tokens: int = Body(1000),
-    functions: Optional[List[Dict[str, Any]]] = Body(None),
-    model_id: Optional[str] = Body(None)
-):
-    """Generate text using a specific LLM provider"""
-    # Get API keys for the organization
-    api_keys = await db.api_keys.find_one({"org_id": org_id})
-    if not api_keys:
-        raise HTTPException(status_code=404, detail="Organization API keys not found")
-    
-    # Set API keys for the requested provider
-    if provider == "openai" and "openai_api_key" in api_keys:
-        llm_service.set_api_key("openai", api_keys["openai_api_key"])
-    elif provider == "anthropic" and "anthropic_api_key" in api_keys:
-        llm_service.set_api_key("anthropic", api_keys["anthropic_api_key"])
-    elif provider == "openrouter" and "openrouter_api_key" in api_keys:
-        llm_service.set_api_key("openrouter", api_keys["openrouter_api_key"])
-    else:
-        raise HTTPException(status_code=400, detail=f"API key for {provider} not configured")
-    
-    # Generate text
-    result = await llm_service.generate_text(
-        provider=provider,
-        prompt=prompt,
-        system_message=system_message,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        functions=functions,
-        user_id=org_id,
-        model_id=model_id
-    )
-    
-    return result
-
-@app.get("/api/llm/models/{provider}")
-async def get_available_models(
-    org_id: str,
-    provider: str
-):
-    """Get available models from a specific LLM provider"""
-    # Get API keys for the organization
-    api_keys = await db.api_keys.find_one({"org_id": org_id})
-    if not api_keys:
-        raise HTTPException(status_code=404, detail="Organization API keys not found")
-    
-    # Set API keys for the requested provider
-    if provider == "openai" and "openai_api_key" in api_keys:
-        llm_service.set_api_key("openai", api_keys["openai_api_key"])
-    elif provider == "anthropic" and "anthropic_api_key" in api_keys:
-        llm_service.set_api_key("anthropic", api_keys["anthropic_api_key"])
-    elif provider == "openrouter" and "openrouter_api_key" in api_keys:
-        llm_service.set_api_key("openrouter", api_keys["openrouter_api_key"])
-    else:
-        raise HTTPException(status_code=400, detail=f"API key for {provider} not configured")
-    
-    # Get available models
-    models = await llm_service.get_available_models(provider)
-    return models
 
 # Shutdown event to close database connection
 @app.on_event("shutdown")
