@@ -29,6 +29,19 @@ db_name = os.environ.get('DB_NAME', 'ai_closer_db')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
+# Helper function to convert ObjectId to str
+def convert_objectid_to_str(obj):
+    if isinstance(obj, dict):
+        return {k: convert_objectid_to_str(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_objectid_to_str(item) for item in obj]
+    elif isinstance(obj, ObjectId):
+        return str(obj)
+    elif hasattr(obj, '__dict__'):
+        return convert_objectid_to_str(obj.__dict__)
+    else:
+        return obj
+
 # Import integrations
 from backend.ghl import GHLIntegration
 from backend.vapi import VapiIntegration
