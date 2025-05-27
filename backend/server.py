@@ -14,8 +14,15 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Local imports
-from memory_manager import MemoryManager
-from api_endpoints import router as api_router
+try:
+    from memory_manager import MemoryManager
+    from api_endpoints import router as api_router
+    memory_manager = MemoryManager()
+    use_memory_manager = True
+except ImportError:
+    print("Memory manager import failed, will use default implementation")
+    use_memory_manager = False
+
 import database as db
 
 # Load environment variables
