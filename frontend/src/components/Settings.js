@@ -414,7 +414,7 @@ const Settings = ({ currentOrg }) => {
                       placeholder="Enter your Mem0 API key"
                       className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                     />
-                    {renderMem0ValidationStatus()}
+                    {renderValidationStatus('mem0_api_key')}
                   </div>
                   <div className="ml-3 flex items-center">
                     <button
