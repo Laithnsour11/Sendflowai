@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Query, Body, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 from typing import List, Dict, Any, Optional
 from bson import ObjectId
