@@ -84,8 +84,8 @@ const Settings = ({ currentOrg }) => {
     setApiKeys(prev => ({ ...prev, [name]: value }));
     
     // Reset validation status when the key changes
-    if (name === 'mem0_api_key') {
-      setValidationStatus(prev => ({ ...prev, mem0_api_key: null }));
+    if (validationStatus.hasOwnProperty(name)) {
+      setValidationStatus(prev => ({ ...prev, [name]: null }));
     }
   };
   
