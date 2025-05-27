@@ -954,6 +954,131 @@ async def search_knowledge_base(
     
     return search_results
 
+# GHL OAuth endpoints
+@app.post("/api/ghl/initiate-oauth")
+async def initiate_ghl_oauth(
+    request_data: Dict[str, Any] = Body(...)
+):
+    """
+    Initiate the OAuth flow for Go High Level.
+    
+    This creates an authorization URL that the user will be redirected to in order
+    to grant access to the GHL account.
+    """
+    org_id = request_data.get("org_id")
+    redirect_uri = request_data.get("redirect_uri")
+    
+    if not org_id or not redirect_uri:
+        raise HTTPException(status_code=400, detail="Missing org_id or redirect_uri")
+    
+    # Get the organization's API keys
+    api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
+    if not api_keys or not all(key in api_keys and api_keys[key] for key in ["ghl_client_id", "ghl_client_secret"]):
+        raise HTTPException(status_code=400, detail="GHL API credentials not configured")
+    
+    # Initialize GHL integration
+    from ghl import GHLIntegration
+    ghl_integration = GHLIntegration(
+        client_id=api_keys.get("ghl_client_id"),
+        client_secret=api_keys.get("ghl_client_secret"),
+        shared_secret=api_keys.get("ghl_shared_secret")
+    )
+    
+    # Store the redirect URI in the organization record
+    await db.organizations_collection.update_one(
+        {"_id": ObjectId(org_id)},
+        {"$set": {"ghl_oauth_redirect_uri": redirect_uri}}
+    )
+    
+    try:
+        # Generate the authorization URL
+        auth_url = ghl_integration.get_authorization_url(
+            redirect_uri=redirect_uri,
+            state=org_id  # Use org_id as the state parameter for verification
+        )
+        
+        return {"authorization_url": auth_url}
+        
+    except Exception as e:
+        logger.error(f"Error generating GHL authorization URL: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating GHL authorization URL: {str(e)}")
+
+@app.get("/api/ghl/oauth-callback")
+async def ghl_oauth_callback(
+    code: str,
+    state: str,
+    locationId: Optional[str] = None
+):
+    """
+    Handle the OAuth callback from Go High Level.
+    
+    This endpoint is called by GHL after the user grants access.
+    """
+    # The state parameter should contain the org_id
+    org_id = state
+    
+    # Get the organization
+    org = await db.organizations_collection.find_one({"_id": ObjectId(org_id)})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+    
+    # Get the redirect URI stored during initiate-oauth
+    redirect_uri = org.get("ghl_oauth_redirect_uri")
+    if not redirect_uri:
+        raise HTTPException(status_code=400, detail="No redirect URI found for this organization")
+    
+    # Get the organization's API keys
+    api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
+    if not api_keys or not all(key in api_keys and api_keys[key] for key in ["ghl_client_id", "ghl_client_secret"]):
+        raise HTTPException(status_code=400, detail="GHL API credentials not configured")
+    
+    # Initialize GHL integration
+    from ghl import GHLIntegration
+    ghl_integration = GHLIntegration(
+        client_id=api_keys.get("ghl_client_id"),
+        client_secret=api_keys.get("ghl_client_secret"),
+        shared_secret=api_keys.get("ghl_shared_secret")
+    )
+    
+    try:
+        # Exchange the code for tokens
+        tokens = await ghl_integration.exchange_code_for_tokens(
+            code=code,
+            redirect_uri=redirect_uri
+        )
+        
+        # Store the tokens and location ID in the organization record
+        update_data = {
+            "ghl_access_token": tokens["access_token"],
+            "ghl_refresh_token": tokens["refresh_token"],
+            "ghl_connected": True,
+            "ghl_connected_at": datetime.now().isoformat()
+        }
+        
+        if locationId:
+            update_data["ghl_location_id"] = locationId
+        
+        await db.organizations_collection.update_one(
+            {"_id": ObjectId(org_id)},
+            {"$set": update_data}
+        )
+        
+        # Set the tokens in the GHL integration
+        ghl_integration.set_tokens(
+            access_token=tokens["access_token"],
+            refresh_token=tokens["refresh_token"],
+            location_id=locationId
+        )
+        
+        # Redirect back to the application
+        redirect_url = f"{redirect_uri.split('/ghl-callback')[0]}/settings?ghl_connected=true"
+        return RedirectResponse(url=redirect_url)
+        
+    except Exception as e:
+        logger.error(f"Error exchanging GHL code for tokens: {e}")
+        redirect_url = f"{redirect_uri.split('/ghl-callback')[0]}/settings?ghl_error=true"
+        return RedirectResponse(url=redirect_url)
+
 # Shutdown event to close database connection
 @app.on_event("shutdown")
 async def shutdown_db_client():
