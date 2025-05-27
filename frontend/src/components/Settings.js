@@ -3,7 +3,9 @@ import axios from 'axios';
 
 const Settings = ({ currentOrg }) => {
   const [apiKeys, setApiKeys] = useState({
-    ghl_api_key: '',
+    ghl_client_id: '',
+    ghl_client_secret: '',
+    ghl_shared_secret: '',
     openai_api_key: '',
     vapi_api_key: '',
     mem0_api_key: '',
