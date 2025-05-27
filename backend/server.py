@@ -502,6 +502,333 @@ async def get_agent_knowledge(agent_type: str, org_id: str):
         }
     }
 
+@app.post("/api/ghl/webhook")
+async def ghl_webhook(payload: Dict[str, Any], org_id: str, signature: str = Header(None, alias="X-GoHighLevel-Signature"), event_type: str = Header(None, alias="X-Event-Type")):
+    logger.info(f"Received GHL webhook: {event_type}")
+    
+    # Get the organization's GHL credentials
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "ghl_shared_secret" not in api_keys:
+        logger.warning(f"Organization {org_id} is not properly configured for GHL webhooks")
+        raise HTTPException(status_code=400, detail="GHL webhook configuration incomplete")
+    
+    # Set up GHL integration
+    ghl_integration.set_credentials(
+        client_id=api_keys.get("ghl_client_id", ""),
+        client_secret=api_keys.get("ghl_client_secret", ""),
+        shared_secret=api_keys["ghl_shared_secret"]
+    )
+    
+    # Verify webhook signature
+    payload_str = json.dumps(payload)
+    if signature and not ghl_integration.verify_webhook_signature(signature, payload_str):
+        logger.warning(f"Invalid webhook signature for organization {org_id}")
+        raise HTTPException(status_code=403, detail="Invalid webhook signature")
+    
+    # Handle different event types
+    if event_type == "contact.created" or event_type == "contact.updated":
+        # Process contact creation/update
+        await process_contact_webhook(org_id, payload, event_type)
+    elif event_type == "opportunity.created" or event_type == "opportunity.updated":
+        # Process opportunity creation/update
+        await process_opportunity_webhook(org_id, payload, event_type)
+    elif event_type == "note.created":
+        # Process note creation
+        await process_note_webhook(org_id, payload, event_type)
+    elif event_type == "task.created" or event_type == "task.updated" or event_type == "task.completed":
+        # Process task creation/update/completion
+        await process_task_webhook(org_id, payload, event_type)
+    elif event_type == "appointment.created" or event_type == "appointment.updated":
+        # Process appointment creation/update
+        await process_appointment_webhook(org_id, payload, event_type)
+    
+    # Return a success response
+    return {"status": "success", "message": f"Processed {event_type} webhook", "org_id": org_id}
+
+async def process_contact_webhook(org_id: str, payload: Dict[str, Any], event_type: str):
+    """Process contact webhook events"""
+    contact_data = payload.get("contact", {})
+    ghl_contact_id = contact_data.get("id")
+    
+    if not ghl_contact_id:
+        logger.warning("Contact ID missing from webhook payload")
+        return
+    
+    # Check if lead already exists in our system
+    existing_lead = await db.get_lead_by_ghl_id(ghl_contact_id)
+    
+    if existing_lead:
+        # Update existing lead
+        update_data = {
+            "updated_at": datetime.now()
+        }
+        
+        # Map GHL fields to lead profile fields
+        if "name" in contact_data:
+            update_data["name"] = contact_data["name"]
+        
+        if "email" in contact_data:
+            update_data["email"] = contact_data["email"]
+        
+        if "phone" in contact_data:
+            update_data["phone"] = contact_data["phone"]
+        
+        # Extract custom fields that may contain AI insights
+        if "customField" in contact_data:
+            custom_fields = contact_data["customField"]
+            
+            # Map specific custom fields to our lead profile fields
+            ai_field_mapping = {
+                "AI Personality Type": "personality_type",
+                "AI Trust Level": "trust_level",
+                "AI Conversion Score": "conversion_probability",
+                "AI Relationship Stage": "relationship_stage",
+                "AI Next Best Action": "next_best_action"
+            }
+            
+            for ghl_field, our_field in ai_field_mapping.items():
+                if ghl_field in custom_fields:
+                    value = custom_fields[ghl_field]
+                    
+                    # Convert percentage values to decimals
+                    if ghl_field in ["AI Trust Level", "AI Conversion Score"]:
+                        try:
+                            value = float(value) / 100.0
+                        except (ValueError, TypeError):
+                            pass
+                    
+                    update_data[our_field] = value
+            
+            # Extract property preferences
+            property_preferences = {}
+            budget_analysis = {}
+            
+            for field_name, field_value in custom_fields.items():
+                # Property preferences
+                if field_name.startswith("Property "):
+                    key = field_name.replace("Property ", "").lower().replace(" ", "_")
+                    property_preferences[key] = field_value
+                
+                # Budget information
+                elif field_name == "Budget Minimum":
+                    try:
+                        budget_analysis["min"] = float(field_value)
+                    except (ValueError, TypeError):
+                        pass
+                elif field_name == "Budget Maximum":
+                    try:
+                        budget_analysis["max"] = float(field_value)
+                    except (ValueError, TypeError):
+                        pass
+            
+            if property_preferences:
+                update_data["property_preferences"] = property_preferences
+            
+            if budget_analysis:
+                update_data["budget_analysis"] = budget_analysis
+        
+        # Extract tags
+        if "tags" in contact_data:
+            update_data["tags"] = contact_data["tags"]
+        
+        # Update lead in our database
+        await db.update_lead(existing_lead["_id"], update_data)
+        
+        logger.info(f"Updated lead {existing_lead['_id']} from GHL contact {ghl_contact_id}")
+    else:
+        # Create new lead
+        lead_data = {
+            "_id": str(uuid.uuid4()),
+            "org_id": org_id,
+            "ghl_contact_id": ghl_contact_id,
+            "created_at": datetime.now(),
+            "updated_at": datetime.now(),
+            "relationship_stage": "initial_contact",  # Default stage for new leads
+            "trust_level": 0.5,  # Default trust level
+            "conversion_probability": 0.0  # Default conversion probability
+        }
+        
+        # Map basic contact fields
+        for field in ["name", "email", "phone"]:
+            if field in contact_data:
+                lead_data[field] = contact_data[field]
+        
+        # Create lead in our database
+        await db.create_lead(lead_data)
+        
+        logger.info(f"Created new lead for GHL contact {ghl_contact_id}")
+
+async def process_opportunity_webhook(org_id: str, payload: Dict[str, Any], event_type: str):
+    """Process opportunity webhook events"""
+    opportunity_data = payload.get("opportunity", {})
+    
+    # Check if the opportunity is associated with a contact
+    contact_id = opportunity_data.get("contactId")
+    if not contact_id:
+        logger.warning("Contact ID missing from opportunity webhook payload")
+        return
+    
+    # Find the lead in our system
+    lead = await db.get_lead_by_ghl_id(contact_id)
+    if not lead:
+        logger.warning(f"Lead not found for GHL contact {contact_id}")
+        return
+    
+    # Update lead's relationship stage based on opportunity stage
+    pipeline_stage = opportunity_data.get("pipelineStageId")
+    
+    # Store the opportunity in the lead's data
+    opportunities = lead.get("opportunities", [])
+    
+    # Check if this opportunity already exists
+    existing_opp_index = next((i for i, opp in enumerate(opportunities) if opp.get("id") == opportunity_data.get("id")), None)
+    
+    if existing_opp_index is not None:
+        # Update existing opportunity
+        opportunities[existing_opp_index] = opportunity_data
+    else:
+        # Add new opportunity
+        opportunities.append(opportunity_data)
+    
+    # Update lead with opportunity data
+    update_data = {
+        "opportunities": opportunities,
+        "updated_at": datetime.now()
+    }
+    
+    # If pipeline stage changed, potentially update relationship stage
+    if pipeline_stage:
+        # Here we would map pipeline stages to relationship stages
+        # This is just a placeholder for the real mapping logic
+        stage_mapping = {
+            # Map GHL pipeline stage IDs to our relationship stages
+            # These would be specific to the organization's GHL setup
+            # "stage1": "initial_contact",
+            # "stage2": "qualification",
+            # "stage3": "nurturing",
+            # "stage4": "closing"
+        }
+        
+        if pipeline_stage in stage_mapping:
+            update_data["relationship_stage"] = stage_mapping[pipeline_stage]
+    
+    await db.update_lead(lead["_id"], update_data)
+    logger.info(f"Updated lead {lead['_id']} with opportunity data")
+
+async def process_note_webhook(org_id: str, payload: Dict[str, Any], event_type: str):
+    """Process note webhook events"""
+    note_data = payload.get("note", {})
+    
+    # Check if the note is associated with a contact
+    contact_id = note_data.get("contactId")
+    if not contact_id:
+        logger.warning("Contact ID missing from note webhook payload")
+        return
+    
+    # Find the lead in our system
+    lead = await db.get_lead_by_ghl_id(contact_id)
+    if not lead:
+        logger.warning(f"Lead not found for GHL contact {contact_id}")
+        return
+    
+    # Store the note in the lead's data
+    notes = lead.get("notes", [])
+    notes.append({
+        "id": note_data.get("id"),
+        "body": note_data.get("body"),
+        "created_at": note_data.get("createdAt") or datetime.now().isoformat(),
+        "user_id": note_data.get("userId")
+    })
+    
+    # Update lead with note data
+    update_data = {
+        "notes": notes,
+        "updated_at": datetime.now()
+    }
+    
+    await db.update_lead(lead["_id"], update_data)
+    logger.info(f"Updated lead {lead['_id']} with note data")
+
+async def process_task_webhook(org_id: str, payload: Dict[str, Any], event_type: str):
+    """Process task webhook events"""
+    task_data = payload.get("task", {})
+    
+    # Check if the task is associated with a contact
+    contact_id = task_data.get("contactId")
+    if not contact_id:
+        logger.warning("Contact ID missing from task webhook payload")
+        return
+    
+    # Find the lead in our system
+    lead = await db.get_lead_by_ghl_id(contact_id)
+    if not lead:
+        logger.warning(f"Lead not found for GHL contact {contact_id}")
+        return
+    
+    # Store the task in the lead's data
+    tasks = lead.get("tasks", [])
+    
+    # Check if this task already exists
+    existing_task_index = next((i for i, task in enumerate(tasks) if task.get("id") == task_data.get("id")), None)
+    
+    if existing_task_index is not None:
+        # Update existing task
+        tasks[existing_task_index] = task_data
+    else:
+        # Add new task
+        tasks.append(task_data)
+    
+    # Update lead with task data
+    update_data = {
+        "tasks": tasks,
+        "updated_at": datetime.now()
+    }
+    
+    await db.update_lead(lead["_id"], update_data)
+    logger.info(f"Updated lead {lead['_id']} with task data")
+
+async def process_appointment_webhook(org_id: str, payload: Dict[str, Any], event_type: str):
+    """Process appointment webhook events"""
+    appointment_data = payload.get("appointment", {})
+    
+    # Check if the appointment is associated with a contact
+    contact_id = appointment_data.get("contactId")
+    if not contact_id:
+        logger.warning("Contact ID missing from appointment webhook payload")
+        return
+    
+    # Find the lead in our system
+    lead = await db.get_lead_by_ghl_id(contact_id)
+    if not lead:
+        logger.warning(f"Lead not found for GHL contact {contact_id}")
+        return
+    
+    # Store the appointment in the lead's data
+    appointments = lead.get("appointments", [])
+    
+    # Check if this appointment already exists
+    existing_appt_index = next((i for i, appt in enumerate(appointments) if appt.get("id") == appointment_data.get("id")), None)
+    
+    if existing_appt_index is not None:
+        # Update existing appointment
+        appointments[existing_appt_index] = appointment_data
+    else:
+        # Add new appointment
+        appointments.append(appointment_data)
+    
+    # Update lead with appointment data
+    update_data = {
+        "appointments": appointments,
+        "updated_at": datetime.now()
+    }
+    
+    # If this is a confirmed appointment, potentially update relationship stage
+    if appointment_data.get("status") == "confirmed":
+        update_data["relationship_stage"] = "closing"  # Move to closing stage when appointment is confirmed
+    
+    await db.update_lead(lead["_id"], update_data)
+    logger.info(f"Updated lead {lead['_id']} with appointment data")
+
 # Shutdown event to close database connection
 @app.on_event("shutdown")
 async def shutdown_db_client():
