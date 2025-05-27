@@ -254,6 +254,192 @@ async def ghl_oauth_callback(org_id: str, code: str):
         logger.error(f"Error exchanging GHL OAuth code: {e}")
         raise HTTPException(status_code=500, detail=f"Error connecting GHL account: {str(e)}")
 
+# Enhanced GHL integration endpoints
+@app.get("/api/ghl/contacts")
+async def get_ghl_contacts(org_id: str, page: int = 1, limit: int = 100):
+    """Get contacts from GHL with pagination"""
+    await setup_ghl_integration(org_id)
+    
+    query_params = {
+        "page": page,
+        "limit": limit
+    }
+    
+    contacts = await ghl_integration.get_contacts(query_params=query_params)
+    return {"contacts": contacts}
+
+@app.get("/api/ghl/contacts/{contact_id}")
+async def get_ghl_contact(org_id: str, contact_id: str):
+    """Get a specific contact from GHL"""
+    await setup_ghl_integration(org_id)
+    
+    contact = await ghl_integration.get_contact(contact_id)
+    return {"contact": contact}
+
+@app.post("/api/ghl/contacts")
+async def create_ghl_contact(org_id: str, contact_data: Dict[str, Any]):
+    """Create a new contact in GHL"""
+    await setup_ghl_integration(org_id)
+    
+    contact = await ghl_integration.create_contact(contact_data)
+    return {"contact": contact}
+
+@app.put("/api/ghl/contacts/{contact_id}")
+async def update_ghl_contact(org_id: str, contact_id: str, contact_data: Dict[str, Any]):
+    """Update a contact in GHL"""
+    await setup_ghl_integration(org_id)
+    
+    contact = await ghl_integration.update_contact(contact_id, contact_data)
+    return {"contact": contact}
+
+@app.get("/api/ghl/contacts/{contact_id}/notes")
+async def get_ghl_contact_notes(org_id: str, contact_id: str, limit: int = 50):
+    """Get notes for a specific contact"""
+    await setup_ghl_integration(org_id)
+    
+    notes = await ghl_integration.get_contact_notes(contact_id, limit=limit)
+    return {"notes": notes}
+
+@app.post("/api/ghl/contacts/{contact_id}/notes")
+async def add_ghl_contact_note(org_id: str, contact_id: str, note: str = Body(...), user_id: Optional[str] = None):
+    """Add a note to a contact"""
+    await setup_ghl_integration(org_id)
+    
+    result = await ghl_integration.add_note_to_contact(contact_id, note, user_id)
+    return result
+
+@app.get("/api/ghl/custom-fields")
+async def get_ghl_custom_fields(org_id: str):
+    """Get custom fields from GHL"""
+    await setup_ghl_integration(org_id)
+    
+    custom_fields = await ghl_integration.get_custom_fields()
+    return {"custom_fields": custom_fields}
+
+@app.post("/api/ghl/custom-fields")
+async def create_ghl_custom_field(org_id: str, field_data: Dict[str, Any]):
+    """Create a custom field in GHL"""
+    await setup_ghl_integration(org_id)
+    
+    custom_field = await ghl_integration.create_custom_field(field_data)
+    return {"custom_field": custom_field}
+
+@app.get("/api/ghl/pipelines")
+async def get_ghl_pipelines(org_id: str):
+    """Get all pipelines"""
+    await setup_ghl_integration(org_id)
+    
+    pipelines = await ghl_integration.get_pipelines()
+    return {"pipelines": pipelines}
+
+@app.get("/api/ghl/opportunities")
+async def get_ghl_opportunities(org_id: str, contact_id: Optional[str] = None):
+    """Get opportunities, optionally filtered by contact ID"""
+    await setup_ghl_integration(org_id)
+    
+    opportunities = await ghl_integration.get_opportunities(contact_id=contact_id)
+    return {"opportunities": opportunities}
+
+@app.post("/api/ghl/opportunities")
+async def create_ghl_opportunity(org_id: str, opportunity_data: Dict[str, Any]):
+    """Create a new opportunity"""
+    await setup_ghl_integration(org_id)
+    
+    opportunity = await ghl_integration.create_opportunity(opportunity_data)
+    return {"opportunity": opportunity}
+
+@app.put("/api/ghl/opportunities/{opportunity_id}")
+async def update_ghl_opportunity(org_id: str, opportunity_id: str, opportunity_data: Dict[str, Any]):
+    """Update an opportunity"""
+    await setup_ghl_integration(org_id)
+    
+    opportunity = await ghl_integration.update_opportunity(opportunity_id, opportunity_data)
+    return {"opportunity": opportunity}
+
+@app.put("/api/ghl/opportunities/{opportunity_id}/stage/{stage_id}")
+async def move_ghl_opportunity_stage(org_id: str, opportunity_id: str, stage_id: str):
+    """Move an opportunity to a different stage"""
+    await setup_ghl_integration(org_id)
+    
+    opportunity = await ghl_integration.move_opportunity_stage(opportunity_id, stage_id)
+    return {"opportunity": opportunity}
+
+@app.get("/api/ghl/tasks")
+async def get_ghl_tasks(org_id: str, contact_id: Optional[str] = None):
+    """Get tasks, optionally filtered by contact ID"""
+    await setup_ghl_integration(org_id)
+    
+    tasks = await ghl_integration.get_tasks(contact_id=contact_id)
+    return {"tasks": tasks}
+
+@app.post("/api/ghl/tasks")
+async def create_ghl_task(org_id: str, task_data: Dict[str, Any]):
+    """Create a new task"""
+    await setup_ghl_integration(org_id)
+    
+    task = await ghl_integration.create_task(task_data)
+    return {"task": task}
+
+@app.post("/api/ghl/contacts/{contact_id}/follow-up")
+async def create_ghl_follow_up_task(org_id: str, contact_id: str, task_data: Dict[str, Any]):
+    """Create a follow-up task for a human agent"""
+    await setup_ghl_integration(org_id)
+    
+    task = await ghl_integration.create_follow_up_task(contact_id, task_data)
+    return {"task": task}
+
+@app.get("/api/ghl/contacts/{contact_id}/comprehensive")
+async def get_ghl_comprehensive_lead_data(org_id: str, contact_id: str):
+    """Get comprehensive data about a lead"""
+    await setup_ghl_integration(org_id)
+    
+    data = await ghl_integration.get_comprehensive_lead_data(contact_id)
+    return data
+
+@app.post("/api/ghl/contacts/{contact_id}/ai-insights")
+async def update_ghl_ai_insights(org_id: str, contact_id: str, ai_insights: Dict[str, Any]):
+    """Update AI-specific insights in GHL custom fields"""
+    await setup_ghl_integration(org_id)
+    
+    result = await ghl_integration.update_ai_insights(contact_id, ai_insights)
+    return result
+
+@app.post("/api/ghl/contacts/{contact_id}/ai-interaction")
+async def add_ghl_ai_interaction_note(org_id: str, contact_id: str, interaction_data: Dict[str, Any]):
+    """Add a structured note about an AI interaction"""
+    await setup_ghl_integration(org_id)
+    
+    result = await ghl_integration.add_ai_interaction_note(contact_id, interaction_data)
+    return result
+
+# Helper function to set up GHL integration
+async def setup_ghl_integration(org_id: str):
+    """Set up GHL integration with the organization's credentials"""
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys:
+        raise HTTPException(status_code=400, detail="GHL credentials not found")
+    
+    # Set credentials
+    ghl_integration.set_credentials(
+        client_id=api_keys.get("ghl_client_id", ""),
+        client_secret=api_keys.get("ghl_client_secret", ""),
+        shared_secret=api_keys.get("ghl_shared_secret", "")
+    )
+    
+    # Set tokens if they exist
+    if "ghl_access_token" in api_keys and "ghl_refresh_token" in api_keys:
+        expires_in = api_keys.get("ghl_token_expires_at", 0) - int(time.time())
+        if expires_in < 0:
+            expires_in = 0
+        
+        ghl_integration.set_tokens(
+            access_token=api_keys["ghl_access_token"],
+            refresh_token=api_keys["ghl_refresh_token"],
+            expires_in=expires_in,
+            location_id=api_keys.get("ghl_location_id"),
+            company_id=api_keys.get("ghl_company_id")
+        )
+
 # Placeholder endpoints for the full implementation
 @app.get("/api/memory/lead/{lead_id}")
 async def get_lead_memory(lead_id: str):
