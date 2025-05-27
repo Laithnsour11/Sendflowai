@@ -3,18 +3,23 @@ import axios from 'axios';
 
 const Settings = ({ currentOrg }) => {
   const [apiKeys, setApiKeys] = useState({
-    ghl_client_id: '',
-    ghl_client_secret: '',
-    ghl_shared_secret: '',
+    ghl_api_key: '',
     openai_api_key: '',
-    vapi_public_key: '',
-    vapi_private_key: '',
+    vapi_api_key: '',
     mem0_api_key: '',
-    openrouter_api_key: '',
     sendblue_api_key: '',
-    sendblue_api_secret: '',
-    supabase_url: '',
-    supabase_key: ''
+    openrouter_api_key: ''
+  });
+  
+  const [validationStatus, setValidationStatus] = useState({
+    mem0_api_key: null
+  });
+  
+  const [aiSettings, setAiSettings] = useState({
+    model: 'gpt-4o',
+    temperature: 0.7,
+    voice_provider: 'elevenlabs',
+    voice_id: 'voice1'
   });
   
   const [integrationStatus, setIntegrationStatus] = useState({
@@ -26,62 +31,40 @@ const Settings = ({ currentOrg }) => {
     openrouter: { connected: false, status: 'Not configured' }
   });
   
-  const [aiSettings, setAiSettings] = useState({
-    model: 'gpt-4o',
-    temperature: 0.7,
-    voice_provider: 'elevenlabs',
-    voice_id: 'voice1'
-  });
-  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState(null);
   
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  
   // Load settings
   useEffect(() => {
     const loadSettings = async () => {
+      if (!currentOrg || !currentOrg.id) return;
+      
       try {
         setLoading(true);
         
-        // In a real app, we would fetch this data from the API
-        // const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/settings/api-keys/${currentOrg.id}`);
+        // Load API keys
+        const keysResponse = await axios.get(
+          `${backendUrl}/api/settings/api-keys/${currentOrg.id}`
+        );
         
-        // Mock data for demo
-        setTimeout(() => {
-          setApiKeys({
-            ghl_client_id: '681a8d486b267326cb42a4db-mb5qftwj',
-            ghl_client_secret: '••••••••b62',
-            ghl_shared_secret: '••••••••fa9',
-            openai_api_key: '••••••••5678',
-            vapi_public_key: 'd14070eb-c48a-45d5-9a53-6115b8c4d517',
-            vapi_private_key: '••••••••7b1',
-            mem0_api_key: 'm0-TTwLd8awIP6aFAixLPn1lgkIUR2DJlDTzApPil8E',
-            openrouter_api_key: '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',
-            sendblue_api_key: '',
-            sendblue_api_secret: '',
-            supabase_url: '',
-            supabase_key: 'sbp_6ea3d96a8efc1a50026610a12c4728d5b9793434'
-          });
-          
-          setIntegrationStatus({
-            ghl: { connected: true, status: 'Connected' },
-            vapi: { connected: true, status: 'Connected' },
-            mem0: { connected: true, status: 'Connected' },
-            sendblue: { connected: false, status: 'Not configured' },
-            openai: { connected: true, status: 'Connected' },
-            openrouter: { connected: true, status: 'Connected' }
-          });
-          
-          setAiSettings({
-            model: 'gpt-4o',
-            temperature: 0.7,
-            voice_provider: 'elevenlabs',
-            voice_id: 'voice1'
-          });
-          
-          setLoading(false);
-        }, 1000);
+        if (keysResponse.data) {
+          setApiKeys(keysResponse.data);
+        }
+        
+        // Load integration status
+        const statusResponse = await axios.get(
+          `${backendUrl}/api/settings/integration-status/${currentOrg.id}`
+        );
+        
+        if (statusResponse.data) {
+          setIntegrationStatus(statusResponse.data);
+        }
+        
+        setLoading(false);
       } catch (error) {
         console.error('Error loading settings:', error);
         setLoading(false);
@@ -89,12 +72,46 @@ const Settings = ({ currentOrg }) => {
     };
     
     loadSettings();
-  }, [currentOrg]);
+  }, [currentOrg, backendUrl]);
   
   // Handle API key changes
   const handleApiKeyChange = (e) => {
     const { name, value } = e.target;
     setApiKeys(prev => ({ ...prev, [name]: value }));
+    
+    // Reset validation status when the key changes
+    if (name === 'mem0_api_key') {
+      setValidationStatus(prev => ({ ...prev, mem0_api_key: null }));
+    }
+  };
+  
+  // Validate Mem0 API key
+  const validateMem0ApiKey = async () => {
+    if (!apiKeys.mem0_api_key) {
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        mem0_api_key: { valid: false, message: 'API key is required' } 
+      }));
+      return;
+    }
+    
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/settings/validate-mem0-key`,
+        { api_key: apiKeys.mem0_api_key }
+      );
+      
+      setValidationStatus(prev => ({ ...prev, mem0_api_key: response.data }));
+    } catch (error) {
+      console.error('Error validating Mem0 API key:', error);
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        mem0_api_key: { 
+          valid: false, 
+          message: error.response?.data?.detail || 'Error validating API key' 
+        } 
+      }));
+    }
   };
   
   // Handle AI settings changes
@@ -103,77 +120,33 @@ const Settings = ({ currentOrg }) => {
     setAiSettings(prev => ({ ...prev, [name]: value }));
   };
   
-  // Connect to GHL
-  const handleConnectGHL = async () => {
+  // Save settings
+  const handleSaveSettings = async () => {
+    if (!currentOrg || !currentOrg.id) return;
+    
     try {
       setSaving(true);
       setSaveSuccess(false);
       setSaveError(null);
       
-      // First save the API keys
-      await handleSaveSettings(false);
+      // Save API keys
+      const response = await axios.put(
+        `${backendUrl}/api/settings/api-keys/${currentOrg.id}`,
+        apiKeys
+      );
       
-      // Then get the OAuth URL
-      // In a real app, we would get this from the API
-      // const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/ghl/oauth-url?org_id=${currentOrg.id}`);
-      // window.location.href = response.data.oauth_url;
+      if (response.data) {
+        setApiKeys(response.data);
+      }
       
-      // For demo purposes, just show a success message
-      alert("In a production environment, this would redirect to Go High Level for OAuth authorization. The OAuth flow is implemented in the backend.");
+      // Refresh integration status
+      const statusResponse = await axios.get(
+        `${backendUrl}/api/settings/integration-status/${currentOrg.id}`
+      );
       
-      setSaving(false);
-    } catch (error) {
-      console.error('Error connecting GHL:', error);
-      setSaveError('Failed to connect GHL account. Please try again.');
-      setSaving(false);
-    }
-  };
-  
-  // Create AI custom fields in GHL
-  const handleCreateAICustomFields = async () => {
-    try {
-      setSaving(true);
-      setSaveSuccess(false);
-      setSaveError(null);
-      
-      // First save the API keys
-      await handleSaveSettings(false);
-      
-      // In a real app, we would call the API to create the custom fields
-      // const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/ghl/create-ai-custom-fields?org_id=${currentOrg.id}`);
-      
-      // Define the AI custom fields to create
-      const aiCustomFields = [
-        {
-          name: "AI Personality Type",
-          fieldType: "DROPDOWN",
-          options: ["Analytical", "Driver", "Expressive", "Amiable"]
-        },
-        {
-          name: "AI Trust Level",
-          fieldType: "NUMBER",
-          minValue: 0,
-          maxValue: 100
-        },
-        {
-          name: "AI Conversion Score",
-          fieldType: "NUMBER",
-          minValue: 0,
-          maxValue: 100
-        },
-        {
-          name: "AI Relationship Stage",
-          fieldType: "DROPDOWN",
-          options: ["Initial Contact", "Qualification", "Nurturing", "Closing"]
-        },
-        {
-          name: "AI Next Best Action",
-          fieldType: "TEXT"
-        }
-      ];
-      
-      // For demo purposes, just show a success message
-      alert(`In a production environment, this would create the following AI custom fields in GHL:\n\n${aiCustomFields.map(field => `- ${field.name} (${field.fieldType})`).join('\n')}`);
+      if (statusResponse.data) {
+        setIntegrationStatus(statusResponse.data);
+      }
       
       setSaveSuccess(true);
       setSaving(false);
@@ -183,45 +156,49 @@ const Settings = ({ currentOrg }) => {
         setSaveSuccess(false);
       }, 3000);
     } catch (error) {
-      console.error('Error creating AI custom fields:', error);
-      setSaveError('Failed to create AI custom fields. Please try again.');
+      console.error('Error saving settings:', error);
+      setSaveError('Failed to save settings. Please try again.');
       setSaving(false);
     }
   };
   
-  // Save settings
-  const handleSaveSettings = async (showSuccess = true) => {
-    try {
-      if (showSuccess) {
-        setSaving(true);
-        setSaveSuccess(false);
-        setSaveError(null);
-      }
-      
-      // In a real app, we would send this data to the API
-      // const response = await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/settings/api-keys/${currentOrg.id}`, apiKeys);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (showSuccess) {
-        setSaveSuccess(true);
-        setSaving(false);
-        
-        // Clear success message after 3 seconds
-        setTimeout(() => {
-          setSaveSuccess(false);
-        }, 3000);
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      if (showSuccess) {
-        setSaveError('Failed to save settings. Please try again.');
-        setSaving(false);
-      }
-      return false;
+  // Render connection status badge
+  const renderConnectionStatus = (status) => {
+    if (!status) return null;
+    
+    if (status.connected) {
+      return (
+        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+          {status.status || 'Connected'}
+        </span>
+      );
+    } else {
+      return (
+        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+          {status.status || 'Not Connected'}
+        </span>
+      );
+    }
+  };
+  
+  // Render Mem0 validation status
+  const renderMem0ValidationStatus = () => {
+    const status = validationStatus.mem0_api_key;
+    
+    if (!status) return null;
+    
+    if (status.valid) {
+      return (
+        <div className="mt-1 text-sm text-green-600">
+          ✓ {status.message || 'API key is valid'}
+        </div>
+      );
+    } else {
+      return (
+        <div className="mt-1 text-sm text-red-600">
+          ✗ {status.message || 'Invalid API key'}
+        </div>
+      );
     }
   };
   
@@ -277,120 +254,26 @@ const Settings = ({ currentOrg }) => {
         
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
           <dl className="sm:divide-y sm:divide-gray-200">
-            <div className="py-4 sm:py-5 sm:px-6">
-              <h3 className="text-md font-medium text-indigo-600">Core Integrations</h3>
-            </div>
-            
-            {/* Go High Level OAuth Credentials */}
+            {/* Go High Level API Key */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
-                Go High Level Client ID
-                <p className="mt-1 text-xs text-gray-400">Required for GHL OAuth integration</p>
-                {integrationStatus.ghl && (
-                  <p className={`mt-1 text-xs ${
-                    integrationStatus.ghl.connected ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {integrationStatus.ghl.status}
-                  </p>
-                )}
+                Go High Level API Key
+                <p className="mt-1 text-xs text-gray-400">Required for GHL integration</p>
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="text"
-                  name="ghl_client_id"
-                  value={apiKeys.ghl_client_id}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your GHL Client ID"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
-              </dd>
-            </div>
-            
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">
-                Go High Level Client Secret
-                <p className="mt-1 text-xs text-gray-400">Required for GHL OAuth integration</p>
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="ghl_client_secret"
-                  value={apiKeys.ghl_client_secret}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your GHL Client Secret"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
-              </dd>
-            </div>
-            
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">
-                Go High Level Shared Secret
-                <p className="mt-1 text-xs text-gray-400">Required for GHL webhook verification</p>
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="ghl_shared_secret"
-                  value={apiKeys.ghl_shared_secret}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your GHL Shared Secret"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
-              </dd>
-            </div>
-            
-            <div className="py-4 sm:py-5 sm:px-6">
-              <h3 className="text-md font-medium text-indigo-600">AI & Memory Integrations</h3>
-            </div>
-            
-            {/* OpenAI API Key */}
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">
-                OpenAI API Key
-                <p className="mt-1 text-xs text-gray-400">Required for embeddings and knowledge base capabilities</p>
-                {integrationStatus.openai && (
-                  <p className={`mt-1 text-xs ${
-                    integrationStatus.openai.connected ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {integrationStatus.openai.status}
-                  </p>
-                )}
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="openai_api_key"
-                  value={apiKeys.openai_api_key}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your OpenAI API key"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
-              </dd>
-            </div>
-            
-            {/* OpenRouter API Key */}
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">
-                OpenRouter API Key
-                <p className="mt-1 text-xs text-gray-400">Required for multi-model AI capabilities</p>
-                {integrationStatus.openrouter && (
-                  <p className={`mt-1 text-xs ${
-                    integrationStatus.openrouter.connected ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {integrationStatus.openrouter.status}
-                  </p>
-                )}
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="openrouter_api_key"
-                  value={apiKeys.openrouter_api_key}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your OpenRouter API key"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
+                <div className="flex items-center">
+                  <input
+                    type="password"
+                    name="ghl_api_key"
+                    value={apiKeys.ghl_api_key || ''}
+                    onChange={handleApiKeyChange}
+                    placeholder="Enter your GHL API key"
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                  <div className="ml-3">
+                    {renderConnectionStatus(integrationStatus.ghl)}
+                  </div>
+                </div>
               </dd>
             </div>
             
@@ -398,107 +281,57 @@ const Settings = ({ currentOrg }) => {
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
                 Mem0 API Key
-                <p className="mt-1 text-xs text-gray-400">Required for persistent memory capabilities</p>
-                {integrationStatus.mem0 && (
-                  <p className={`mt-1 text-xs ${
-                    integrationStatus.mem0.connected ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {integrationStatus.mem0.status}
-                  </p>
-                )}
+                <p className="mt-1 text-xs text-gray-400">Required for memory capabilities</p>
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="mem0_api_key"
-                  value={apiKeys.mem0_api_key}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your Mem0 API key"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
+                <div className="flex items-center">
+                  <div className="flex-grow">
+                    <input
+                      type="password"
+                      name="mem0_api_key"
+                      value={apiKeys.mem0_api_key || ''}
+                      onChange={handleApiKeyChange}
+                      placeholder="Enter your Mem0 API key"
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                    {renderMem0ValidationStatus()}
+                  </div>
+                  <div className="ml-3 flex items-center">
+                    <button
+                      onClick={validateMem0ApiKey}
+                      type="button"
+                      className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Validate
+                    </button>
+                    <div className="ml-2">
+                      {renderConnectionStatus(integrationStatus.mem0)}
+                    </div>
+                  </div>
+                </div>
               </dd>
             </div>
             
-            {/* Supabase URL */}
+            {/* Vapi API Key */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
-                Supabase URL
-                <p className="mt-1 text-xs text-gray-400">Required for knowledge base storage</p>
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="text"
-                  name="supabase_url"
-                  value={apiKeys.supabase_url}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your Supabase URL"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
-              </dd>
-            </div>
-            
-            {/* Supabase Key */}
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">
-                Supabase Key
-                <p className="mt-1 text-xs text-gray-400">Required for knowledge base storage</p>
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="supabase_key"
-                  value={apiKeys.supabase_key}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your Supabase Key"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
-              </dd>
-            </div>
-            
-            <div className="py-4 sm:py-5 sm:px-6">
-              <h3 className="text-md font-medium text-indigo-600">Communication Integrations</h3>
-            </div>
-            
-            {/* Vapi Public Key */}
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">
-                Vapi.ai Public Key
-                <p className="mt-1 text-xs text-gray-400">Required for voice capabilities</p>
-                {integrationStatus.vapi && (
-                  <p className={`mt-1 text-xs ${
-                    integrationStatus.vapi.connected ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {integrationStatus.vapi.status}
-                  </p>
-                )}
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="text"
-                  name="vapi_public_key"
-                  value={apiKeys.vapi_public_key}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your Vapi.ai Public Key"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
-              </dd>
-            </div>
-            
-            {/* Vapi Private Key */}
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">
-                Vapi.ai Private Key
+                Vapi.ai API Key
                 <p className="mt-1 text-xs text-gray-400">Required for voice capabilities</p>
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="vapi_private_key"
-                  value={apiKeys.vapi_private_key}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your Vapi.ai Private Key"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
+                <div className="flex items-center">
+                  <input
+                    type="password"
+                    name="vapi_api_key"
+                    value={apiKeys.vapi_api_key || ''}
+                    onChange={handleApiKeyChange}
+                    placeholder="Enter your Vapi.ai API key"
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                  <div className="ml-3">
+                    {renderConnectionStatus(integrationStatus.vapi)}
+                  </div>
+                </div>
               </dd>
             </div>
             
@@ -507,50 +340,69 @@ const Settings = ({ currentOrg }) => {
               <dt className="text-sm font-medium text-gray-500">
                 SendBlue API Key
                 <p className="mt-1 text-xs text-gray-400">Required for SMS capabilities</p>
-                {integrationStatus.sendblue && (
-                  <p className={`mt-1 text-xs ${
-                    integrationStatus.sendblue.connected ? 'text-green-500' : 'text-red-500'
-                  }`}>
-                    {integrationStatus.sendblue.status}
-                  </p>
-                )}
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="sendblue_api_key"
-                  value={apiKeys.sendblue_api_key}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your SendBlue API key"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
+                <div className="flex items-center">
+                  <input
+                    type="password"
+                    name="sendblue_api_key"
+                    value={apiKeys.sendblue_api_key || ''}
+                    onChange={handleApiKeyChange}
+                    placeholder="Enter your SendBlue API key"
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                  <div className="ml-3">
+                    {renderConnectionStatus(integrationStatus.sendblue)}
+                  </div>
+                </div>
               </dd>
             </div>
             
-            {/* SendBlue API Secret */}
+            {/* OpenAI API Key */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
-                SendBlue API Secret
-                <p className="mt-1 text-xs text-gray-400">Required for SMS capabilities</p>
+                OpenAI API Key
+                <p className="mt-1 text-xs text-gray-400">Required for AI capabilities</p>
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="sendblue_api_secret"
-                  value={apiKeys.sendblue_api_secret}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your SendBlue API Secret"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  <a href="https://sendblue.co/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
-                    Don't have SendBlue? Sign up here
-                  </a>
-                </p>
+                <div className="flex items-center">
+                  <input
+                    type="password"
+                    name="openai_api_key"
+                    value={apiKeys.openai_api_key || ''}
+                    onChange={handleApiKeyChange}
+                    placeholder="Enter your OpenAI API key"
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                  <div className="ml-3">
+                    {renderConnectionStatus(integrationStatus.openai)}
+                  </div>
+                </div>
               </dd>
             </div>
             
-
+            {/* OpenRouter API Key */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                OpenRouter API Key
+                <p className="mt-1 text-xs text-gray-400">For multi-model AI capabilities</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <div className="flex items-center">
+                  <input
+                    type="password"
+                    name="openrouter_api_key"
+                    value={apiKeys.openrouter_api_key || ''}
+                    onChange={handleApiKeyChange}
+                    placeholder="Enter your OpenRouter API key"
+                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                  />
+                  <div className="ml-3">
+                    {renderConnectionStatus(integrationStatus.openrouter)}
+                  </div>
+                </div>
+              </dd>
+            </div>
           </dl>
         </div>
       </div>
@@ -578,18 +430,9 @@ const Settings = ({ currentOrg }) => {
                 >
                   <option value="gpt-4o">GPT-4o (Default)</option>
                   <option value="gpt-4o-mini">GPT-4o Mini</option>
-                  <option value="claude-3-opus-20240229">Claude 3 Opus</option>
-                  <option value="claude-3-sonnet-20240229">Claude 3 Sonnet</option>
-                  <option value="claude-3-haiku-20240307">Claude 3 Haiku</option>
-                  <option value="anthropic/claude-3-opus">Claude 3 Opus (via OpenRouter)</option>
-                  <option value="anthropic/claude-3-sonnet">Claude 3 Sonnet (via OpenRouter)</option>
-                  <option value="anthropic/claude-3-haiku">Claude 3 Haiku (via OpenRouter)</option>
-                  <option value="meta-llama/llama-3-70b-instruct">Llama 3 70B (via OpenRouter)</option>
-                  <option value="google/gemini-1.5-pro">Gemini 1.5 Pro (via OpenRouter)</option>
+                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
+                  <option value="claude-3-haiku">Claude 3 Haiku</option>
                 </select>
-                <p className="mt-1 text-xs text-gray-500">
-                  Note: OpenRouter models require an OpenRouter API key.
-                </p>
               </dd>
             </div>
             
@@ -661,105 +504,6 @@ const Settings = ({ currentOrg }) => {
                   <button className="text-indigo-600 hover:text-indigo-900">
                     Preview voice sample
                   </button>
-                </p>
-              </dd>
-            </div>
-          </dl>
-        </div>
-      </div>
-      
-      {/* GHL Integration */}
-      <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h2 className="text-lg leading-6 font-medium text-gray-900">Go High Level Integration</h2>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">Configure your GHL integration settings.</p>
-        </div>
-        <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-          <dl className="sm:divide-y sm:divide-gray-200">
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Status</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                {integrationStatus.ghl?.connected ? (
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    {integrationStatus.ghl.status}
-                  </span>
-                ) : (
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                    {integrationStatus.ghl?.status || "Not Connected"}
-                  </span>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  {integrationStatus.ghl?.connected 
-                    ? "Your GHL account is successfully connected."
-                    : "Fill in the credentials above and click 'Connect GHL Account'"}
-                </p>
-              </dd>
-            </div>
-            
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Webhook URL</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <div className="flex">
-                  <input
-                    type="text"
-                    readOnly
-                    value={`${process.env.REACT_APP_BACKEND_URL}/api/ghl/webhook`}
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md bg-gray-50"
-                  />
-                  <button
-                    onClick={() => navigator.clipboard.writeText(`${process.env.REACT_APP_BACKEND_URL}/api/ghl/webhook`)}
-                    className="ml-2 inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  Configure this webhook URL in your GHL account to receive events.
-                </p>
-              </dd>
-            </div>
-            
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Connect Account</dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <button 
-                  onClick={handleConnectGHL}
-                  className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Connect GHL Account
-                </button>
-                <p className="mt-1 text-xs text-gray-500">
-                  Connect your Go High Level account to enable full integration.
-                </p>
-              </dd>
-            </div>
-            
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">
-                AI Custom Fields
-                <p className="mt-1 text-xs text-gray-400">Required for AI insights</p>
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <button 
-                  onClick={handleCreateAICustomFields}
-                  className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Create AI Custom Fields
-                </button>
-                
-                <div className="mt-3 border rounded-md p-3 bg-gray-50">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Required AI Custom Fields:</h4>
-                  <ul className="text-xs text-gray-600 space-y-1 ml-4 list-disc">
-                    <li>AI Personality Type (Dropdown: Analytical, Driver, Expressive, Amiable)</li>
-                    <li>AI Trust Level (Number: 0-100)</li>
-                    <li>AI Conversion Score (Number: 0-100)</li>
-                    <li>AI Relationship Stage (Dropdown: Initial Contact, Qualification, Nurturing, Closing)</li>
-                    <li>AI Next Best Action (Text)</li>
-                  </ul>
-                </div>
-                
-                <p className="mt-2 text-xs text-gray-500">
-                  These custom fields allow the AI to store insights about leads in GHL.
                 </p>
               </dd>
             </div>
