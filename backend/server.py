@@ -30,6 +30,8 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 # Import GHL integration
+import sys
+sys.path.append('/app')
 from ghl import GHLIntegration
 
 # Initialize GHL integration
