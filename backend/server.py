@@ -65,6 +65,25 @@ app.add_middleware(
 async def root():
     return {"message": "Welcome to AI Closer API", "version": "1.0.0"}
 
+# Lead endpoints
+@app.get("/api/leads")
+async def get_leads(org_id: Optional[str] = None):
+    """Get all leads"""
+    query = {"org_id": org_id} if org_id else {}
+    leads = await db.leads.find(query).to_list(length=100)
+    for lead in leads:
+        lead["id"] = str(lead["_id"])
+    return {"leads": leads}
+
+@app.get("/api/leads/{lead_id}")
+async def get_lead(lead_id: str):
+    """Get a specific lead"""
+    lead = await db.leads.find_one({"_id": lead_id})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    lead["id"] = str(lead["_id"])
+    return {"lead": lead}
+
 # GHL Integration endpoints
 @app.get("/api/ghl/contacts")
 async def get_ghl_contacts(page: int = 1, limit: int = 100):
