@@ -282,7 +282,7 @@ class AgentOrchestrator:
         
         return agent
     
-    async def generate_response(self, agent_type: str, prompt: str, lead_context: Dict[str, Any]) -> Dict[str, Any]:
+    async def generate_response(self, agent_type: str, prompt: str, lead_context: Dict[str, Any], llm_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Generate a response using the specified agent
         
@@ -290,17 +290,140 @@ class AgentOrchestrator:
             agent_type: Type of agent to use
             prompt: User prompt/message
             lead_context: Context about the lead
+            llm_config: Configuration for the LLM to use (provider, model, etc.)
         
         Returns:
             Dict containing the generated response and metadata
         """
-        if not self.openai_api_key:
+        # Get the agent details
+        agent = self.agents.get(agent_type, self.agents[AgentType.INITIAL_CONTACT])
+        
+        # Build a comprehensive system prompt incorporating all available context
+        system_prompt = self._build_dynamic_system_prompt(agent_type, lead_context)
+        
+        # Default LLM configuration
+        default_llm_config = {
+            "provider": "openai",
+            "model": "gpt-4o",
+            "temperature": 0.7,
+            "max_tokens": 1000
+        }
+        
+        # Use provided LLM config or default
+        llm_config = llm_config or default_llm_config
+        
+        # Check if we have any API keys
+        if not self.openai_api_key and llm_config["provider"] == "openai":
             logger.warning("OpenAI API key not set, returning mock response")
             return self._generate_mock_response(agent_type, prompt, lead_context)
+            
+        # This would use the appropriate LLM based on the provider
+        # For now, we'll use a mock response but in a production environment
+        # this would make a real API call to OpenAI, Anthropic, or OpenRouter
+        try:
+            # Record the start of processing for analytics
+            start_time = datetime.now()
+            
+            # Log the context and prompt for debugging and improvement
+            logger.info(f"Generating response with {agent_type} agent using {llm_config['provider']}/{llm_config['model']}")
+            logger.debug(f"System prompt: {system_prompt}")
+            logger.debug(f"User prompt: {prompt}")
+            
+            # Generate real LLM response in production
+            # For now, use mock response
+            response = self._generate_mock_response(agent_type, prompt, lead_context)
+            
+            # Add metadata about the generation
+            response["llm_config"] = llm_config
+            response["processing_time_ms"] = (datetime.now() - start_time).total_seconds() * 1000
+            response["system_prompt_used"] = system_prompt
+            
+            return response
+        except Exception as e:
+            logger.error(f"Error generating response: {e}")
+            # Fallback to mock response on error
+            return self._generate_mock_response(agent_type, prompt, lead_context)
+            
+    def _build_dynamic_system_prompt(self, agent_type: str, lead_context: Dict[str, Any]) -> str:
+        """
+        Build a dynamic system prompt incorporating all available context
         
-        # In a real implementation, this would call the OpenAI API
-        # For MVP, we'll return mock responses
-        return self._generate_mock_response(agent_type, prompt, lead_context)
+        Args:
+            agent_type: Type of agent
+            lead_context: Context about the lead including GHL data and Mem0 memories
+            
+        Returns:
+            String containing the comprehensive system prompt
+        """
+        agent = self.agents.get(agent_type, self.agents[AgentType.INITIAL_CONTACT])
+        base_prompt = agent["system_prompt"]
+        
+        # Extract critical lead information for the prompt
+        lead_name = lead_context.get("name", "the customer")
+        personality_type = lead_context.get("personality_type", "unknown")
+        relationship_stage = lead_context.get("relationship_stage", "initial_contact")
+        
+        # Add GHL-specific context if available
+        ghl_context = ""
+        if "ghl_data" in lead_context:
+            ghl_data = lead_context["ghl_data"]
+            if "custom_fields" in ghl_data:
+                custom_fields = ghl_data["custom_fields"]
+                ghl_context += "\nGHL CUSTOM FIELDS:\n"
+                for field in custom_fields:
+                    ghl_context += f"- {field.get('name')}: {field.get('value')}\n"
+            
+            if "pipeline_stage" in ghl_data:
+                ghl_context += f"\nGHL PIPELINE STAGE: {ghl_data['pipeline_stage']}\n"
+                
+            if "tags" in ghl_data:
+                ghl_context += f"\nGHL TAGS: {', '.join(ghl_data['tags'])}\n"
+        
+        # Add Mem0 memories if available
+        memory_context = ""
+        if "memories" in lead_context:
+            memories = lead_context["memories"]
+            if memories:
+                memory_context += "\nRELEVANT MEMORIES FROM PREVIOUS INTERACTIONS:\n"
+                for memory in memories[:5]:  # Limit to top 5 memories
+                    memory_context += f"- {memory}\n"
+        
+        # Add property preferences if available
+        property_context = ""
+        if "property_preferences" in lead_context:
+            prefs = lead_context["property_preferences"]
+            property_context += "\nPROPERTY PREFERENCES:\n"
+            for key, value in prefs.items():
+                property_context += f"- {key}: {value}\n"
+        
+        # Add budget information if available
+        budget_context = ""
+        if "budget" in lead_context:
+            budget = lead_context["budget"]
+            budget_context += "\nBUDGET INFORMATION:\n"
+            if "min" in budget:
+                budget_context += f"- Minimum: ${budget['min']:,}\n"
+            if "max" in budget:
+                budget_context += f"- Maximum: ${budget['max']:,}\n"
+        
+        # Combine all context into a comprehensive prompt
+        enhanced_prompt = f"""
+{base_prompt}
+
+LEAD INFORMATION:
+- Name: {lead_name}
+- Personality Type: {personality_type}
+- Relationship Stage: {relationship_stage}
+{property_context}
+{budget_context}
+{ghl_context}
+{memory_context}
+
+Remember to be natural, helpful, and focused on the lead's needs. Reference their history and preferences in a natural way.
+Always maintain a professional, conversational tone that builds rapport and trust.
+"""
+        
+        return enhanced_prompt
     
     def _generate_mock_response(self, agent_type: str, prompt: str, lead_context: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a mock response for testing without API keys"""
