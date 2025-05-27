@@ -168,15 +168,19 @@ async def get_organization_api_keys(org_id: str):
 @app.put("/api/settings/api-keys/{org_id}")
 async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
     keys_data["org_id"] = org_id
-    keys_data["updated_at"] = datetime.now()
+    keys_data["updated_at"] = datetime.now().isoformat()
+    
+    # Filter out empty API keys
+    filtered_keys = {k: v for k, v in keys_data.items() if v is not None and v != ""}
     
     result = await db.api_keys_collection.update_one(
         {"org_id": org_id},
-        {"$set": keys_data},
+        {"$set": filtered_keys},
         upsert=True
     )
     
     api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
+    api_keys = serialize_object_id(api_keys)
     
     # Mask sensitive data in response
     masked_result = {}
