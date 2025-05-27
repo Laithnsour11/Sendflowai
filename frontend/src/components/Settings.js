@@ -378,6 +378,13 @@ const Settings = ({ currentOrg }) => {
               <dt className="text-sm font-medium text-gray-500">
                 Mem0 API Key
                 <p className="mt-1 text-xs text-gray-400">Required for persistent memory capabilities</p>
+                {integrationStatus.mem0 && (
+                  <p className={`mt-1 text-xs ${
+                    integrationStatus.mem0.connected ? 'text-green-500' : 'text-red-500'
+                  }`}>
+                    {integrationStatus.mem0.status}
+                  </p>
+                )}
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <input
