@@ -148,12 +148,18 @@ async def get_organization_api_keys(org_id: str):
     if not api_keys:
         return {}
     
+    # Convert ObjectId to string
+    api_keys = serialize_object_id(api_keys)
+    
     # Mask sensitive data
     masked_keys = {}
     for key_name, key_value in api_keys.items():
-        if key_name.endswith("_api_key") and key_value:
-            # Show only last 4 characters
-            masked_keys[key_name] = "••••••••" + key_value[-4:] if len(key_value) > 4 else "••••"
+        if key_name not in ["_id", "org_id"] and key_value:
+            if key_name.endswith("_api_key") or key_name.endswith("_secret"):
+                # Show only last 4 characters
+                masked_keys[key_name] = "••••••••" + key_value[-4:] if len(key_value) > 4 else "••••"
+            else:
+                masked_keys[key_name] = key_value
         else:
             masked_keys[key_name] = key_value
     
