@@ -138,8 +138,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All major frontend components tested"
-  stuck_tasks: []
+    - "Settings Page Mem0 API Key Validation"
+  stuck_tasks: 
+    - "Settings Page Mem0 API Key Validation"
   test_all: true
   test_priority: "high_first"
 
