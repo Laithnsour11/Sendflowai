@@ -109,6 +109,66 @@ const Settings = ({ currentOrg }) => {
     }
   };
   
+  // Create AI custom fields in GHL
+  const handleCreateAICustomFields = async () => {
+    try {
+      setSaving(true);
+      setSaveSuccess(false);
+      setSaveError(null);
+      
+      // First save the API keys
+      await handleSaveSettings(false);
+      
+      // In a real app, we would call the API to create the custom fields
+      // const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/ghl/create-ai-custom-fields?org_id=${currentOrg.id}`);
+      
+      // Define the AI custom fields to create
+      const aiCustomFields = [
+        {
+          name: "AI Personality Type",
+          fieldType: "DROPDOWN",
+          options: ["Analytical", "Driver", "Expressive", "Amiable"]
+        },
+        {
+          name: "AI Trust Level",
+          fieldType: "NUMBER",
+          minValue: 0,
+          maxValue: 100
+        },
+        {
+          name: "AI Conversion Score",
+          fieldType: "NUMBER",
+          minValue: 0,
+          maxValue: 100
+        },
+        {
+          name: "AI Relationship Stage",
+          fieldType: "DROPDOWN",
+          options: ["Initial Contact", "Qualification", "Nurturing", "Closing"]
+        },
+        {
+          name: "AI Next Best Action",
+          fieldType: "TEXT"
+        }
+      ];
+      
+      // For demo purposes, just show a success message
+      alert(`In a production environment, this would create the following AI custom fields in GHL:\n\n${aiCustomFields.map(field => `- ${field.name} (${field.fieldType})`).join('\n')}`);
+      
+      setSaveSuccess(true);
+      setSaving(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSaveSuccess(false);
+      }, 3000);
+    } catch (error) {
+      console.error('Error creating AI custom fields:', error);
+      setSaveError('Failed to create AI custom fields. Please try again.');
+      setSaving(false);
+    }
+  };
+  
   // Save settings
   const handleSaveSettings = async (showSuccess = true) => {
     try {
