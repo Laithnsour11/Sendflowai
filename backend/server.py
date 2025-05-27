@@ -29,10 +29,10 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 # Import integrations
-from ghl import GHLIntegration
-from vapi import VapiIntegration
-from mem0 import Mem0Integration
-from sendblue import SendBlueIntegration
+from backend.ghl import GHLIntegration
+from backend.vapi import VapiIntegration
+from backend.mem0 import Mem0Integration
+from backend.sendblue import SendBlueIntegration
 
 # Initialize integrations
 ghl_integration = GHLIntegration()
