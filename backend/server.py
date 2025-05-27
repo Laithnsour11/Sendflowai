@@ -199,6 +199,319 @@ async def get_organization_integration_status(org_id: str):
         "openrouter": openrouter_status
     }
 
+# GHL Webhook handler
+@app.post("/api/webhooks/ghl")
+async def ghl_webhook_handler(
+    payload: Dict[str, Any] = Body(...),
+    signature: Optional[str] = Header(None, alias="X-GHL-Signature")
+):
+    """
+    Handle webhooks from Go High Level for lead synchronization.
+    
+    This endpoint receives webhooks for different event types like:
+    - Contact creation/updates
+    - Note additions
+    - Task creation/updates
+    - Opportunity stage changes
+    """
+    logger.info(f"Received GHL webhook: {payload.get('event', 'unknown_event')}")
+    
+    # Get the organization that owns this webhook
+    org_id = payload.get("companyId")
+    if not org_id:
+        logger.warning("No organization ID found in GHL webhook")
+        return {"status": "error", "message": "No organization ID found"}
+    
+    # Get the organization's API keys
+    api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
+    if not api_keys or not api_keys.get("ghl_shared_secret"):
+        logger.warning(f"No GHL shared secret found for organization {org_id}")
+        return {"status": "error", "message": "No GHL shared secret configured"}
+    
+    # Verify webhook signature if provided
+    if signature:
+        from ghl import GHLIntegration
+        ghl_integration = GHLIntegration(
+            shared_secret=api_keys.get("ghl_shared_secret")
+        )
+        payload_str = json.dumps(payload)
+        if not ghl_integration.verify_webhook_signature(signature, payload_str):
+            logger.warning(f"Invalid GHL webhook signature for organization {org_id}")
+            return {"status": "error", "message": "Invalid webhook signature"}
+    
+    # Process based on event type
+    event_type = payload.get("event")
+    
+    if event_type == "ContactCreate" or event_type == "ContactUpdate":
+        await handle_contact_event(payload, org_id)
+    elif event_type == "NoteCreate":
+        await handle_note_event(payload, org_id)
+    elif event_type == "TaskCreate" or event_type == "TaskUpdate":
+        await handle_task_event(payload, org_id)
+    elif event_type == "OpportunityCreate" or event_type == "OpportunityUpdate":
+        await handle_opportunity_event(payload, org_id)
+    elif event_type == "ConversationMessageCreate":
+        await handle_message_event(payload, org_id)
+    else:
+        logger.info(f"Unhandled GHL event type: {event_type}")
+    
+    return {"status": "success", "message": f"Processed {event_type} event"}
+
+async def handle_contact_event(payload: Dict[str, Any], org_id: str):
+    """Handle contact creation or update events from GHL"""
+    contact_data = payload.get("contact", {})
+    if not contact_data or not contact_data.get("id"):
+        logger.warning("No valid contact data in webhook payload")
+        return
+    
+    ghl_contact_id = contact_data.get("id")
+    
+    # Check if this lead already exists in our system
+    existing_lead = await db.leads_collection.find_one({"ghl_contact_id": ghl_contact_id})
+    
+    # Prepare lead data from contact
+    lead_data = {
+        "org_id": org_id,
+        "ghl_contact_id": ghl_contact_id,
+        "name": f"{contact_data.get('firstName', '')} {contact_data.get('lastName', '')}".strip(),
+        "email": contact_data.get("email"),
+        "phone": contact_data.get("phone"),
+        "source": contact_data.get("source", "GHL Import"),
+        "tags": contact_data.get("tags", []),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    # Add custom fields if present
+    if "customField" in contact_data:
+        custom_fields = contact_data["customField"]
+        
+        # Map GHL custom fields to our AI fields
+        ai_mapping = {
+            "AI Personality Type": "personality_type",
+            "AI Trust Level": "trust_level",
+            "AI Conversion Score": "conversion_probability",
+            "AI Relationship Stage": "relationship_stage",
+            "AI Next Best Action": "next_best_action"
+        }
+        
+        for ghl_field, our_field in ai_mapping.items():
+            if ghl_field in custom_fields:
+                value = custom_fields[ghl_field]
+                
+                # Convert percentage values to decimal
+                if our_field in ["trust_level", "conversion_probability"] and isinstance(value, (int, float)):
+                    value = float(value) / 100  # Convert from percentage to decimal
+                
+                lead_data[our_field] = value
+    
+    if existing_lead:
+        # Update existing lead
+        await db.leads_collection.update_one(
+            {"ghl_contact_id": ghl_contact_id},
+            {"$set": lead_data}
+        )
+        logger.info(f"Updated lead {ghl_contact_id} from GHL webhook")
+    else:
+        # Create new lead
+        lead_data["created_at"] = datetime.now().isoformat()
+        await db.leads_collection.insert_one(lead_data)
+        logger.info(f"Created new lead {ghl_contact_id} from GHL webhook")
+        
+        # Initialize memory for this lead if Mem0 is configured
+        if use_memory_manager:
+            await initialize_lead_memory(lead_data)
+
+async def handle_note_event(payload: Dict[str, Any], org_id: str):
+    """Handle note creation events from GHL"""
+    note_data = payload.get("note", {})
+    if not note_data or not note_data.get("id") or not note_data.get("contactId"):
+        logger.warning("No valid note data in webhook payload")
+        return
+    
+    contact_id = note_data.get("contactId")
+    
+    # Find the lead in our system
+    lead = await db.leads_collection.find_one({"ghl_contact_id": contact_id})
+    if not lead:
+        logger.warning(f"No lead found for GHL contact ID: {contact_id}")
+        return
+    
+    # Store the note in our system
+    note_record = {
+        "lead_id": str(lead["_id"]),
+        "ghl_note_id": note_data.get("id"),
+        "content": note_data.get("body", ""),
+        "created_by": note_data.get("userId", "Unknown"),
+        "created_at": datetime.now().isoformat()
+    }
+    
+    await db.notes_collection.insert_one(note_record)
+    logger.info(f"Stored note for lead {contact_id} from GHL webhook")
+
+async def handle_task_event(payload: Dict[str, Any], org_id: str):
+    """Handle task creation or update events from GHL"""
+    task_data = payload.get("task", {})
+    if not task_data or not task_data.get("id") or not task_data.get("contactId"):
+        logger.warning("No valid task data in webhook payload")
+        return
+    
+    contact_id = task_data.get("contactId")
+    
+    # Find the lead in our system
+    lead = await db.leads_collection.find_one({"ghl_contact_id": contact_id})
+    if not lead:
+        logger.warning(f"No lead found for GHL contact ID: {contact_id}")
+        return
+    
+    # Store the task in our system
+    task_record = {
+        "lead_id": str(lead["_id"]),
+        "ghl_task_id": task_data.get("id"),
+        "title": task_data.get("title", ""),
+        "description": task_data.get("description", ""),
+        "due_date": task_data.get("dueDate"),
+        "status": task_data.get("status"),
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    # Update existing task or insert new one
+    await db.tasks_collection.update_one(
+        {"ghl_task_id": task_data.get("id")},
+        {"$set": task_record},
+        upsert=True
+    )
+    logger.info(f"Stored task for lead {contact_id} from GHL webhook")
+
+async def handle_opportunity_event(payload: Dict[str, Any], org_id: str):
+    """Handle opportunity creation or update events from GHL"""
+    opportunity_data = payload.get("opportunity", {})
+    if not opportunity_data or not opportunity_data.get("id") or not opportunity_data.get("contactId"):
+        logger.warning("No valid opportunity data in webhook payload")
+        return
+    
+    contact_id = opportunity_data.get("contactId")
+    
+    # Find the lead in our system
+    lead = await db.leads_collection.find_one({"ghl_contact_id": contact_id})
+    if not lead:
+        logger.warning(f"No lead found for GHL contact ID: {contact_id}")
+        return
+    
+    # Store the opportunity in our system
+    opportunity_record = {
+        "lead_id": str(lead["_id"]),
+        "ghl_opportunity_id": opportunity_data.get("id"),
+        "title": opportunity_data.get("title", ""),
+        "status": opportunity_data.get("status"),
+        "pipeline_id": opportunity_data.get("pipelineId"),
+        "pipeline_stage_id": opportunity_data.get("pipelineStageId"),
+        "monetary_value": opportunity_data.get("monetaryValue"),
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    # Update existing opportunity or insert new one
+    await db.opportunities_collection.update_one(
+        {"ghl_opportunity_id": opportunity_data.get("id")},
+        {"$set": opportunity_record},
+        upsert=True
+    )
+    logger.info(f"Stored opportunity for lead {contact_id} from GHL webhook")
+
+async def handle_message_event(payload: Dict[str, Any], org_id: str):
+    """Handle conversation message events from GHL"""
+    message_data = payload.get("message", {})
+    if not message_data or not message_data.get("id") or not message_data.get("contactId"):
+        logger.warning("No valid message data in webhook payload")
+        return
+    
+    contact_id = message_data.get("contactId")
+    
+    # Find the lead in our system
+    lead = await db.leads_collection.find_one({"ghl_contact_id": contact_id})
+    if not lead:
+        logger.warning(f"No lead found for GHL contact ID: {contact_id}")
+        return
+    
+    # Store the message in our system
+    message_record = {
+        "lead_id": str(lead["_id"]),
+        "ghl_message_id": message_data.get("id"),
+        "conversation_id": message_data.get("conversationId"),
+        "content": message_data.get("body", ""),
+        "direction": "inbound" if message_data.get("direction") == "inbound" else "outbound",
+        "channel": message_data.get("channel", "unknown"),
+        "created_at": datetime.now().isoformat()
+    }
+    
+    await db.messages_collection.insert_one(message_record)
+    logger.info(f"Stored message for lead {contact_id} from GHL webhook")
+    
+    # If it's an inbound message, we might want to trigger our AI response
+    if message_record["direction"] == "inbound":
+        # This will be implemented in a later phase with the AI response logic
+        pass
+
+async def initialize_lead_memory(lead_data: Dict[str, Any]):
+    """Initialize memory layers for a new lead"""
+    if not use_memory_manager:
+        logger.warning("Memory manager not available, skipping memory initialization")
+        return
+    
+    lead_id = str(lead_data["_id"]) if "_id" in lead_data else None
+    if not lead_id:
+        logger.warning("No lead ID found, cannot initialize memory")
+        return
+    
+    # Initialize factual memory layer with basic lead information
+    factual_data = {
+        "name": lead_data.get("name", ""),
+        "email": lead_data.get("email"),
+        "phone": lead_data.get("phone"),
+        "source": lead_data.get("source", "GHL Import"),
+        "tags": lead_data.get("tags", []),
+        "imported_from": "GHL",
+        "imported_at": datetime.now().isoformat()
+    }
+    
+    await memory_manager.store_memory(lead_id, factual_data, "factual")
+    logger.info(f"Initialized factual memory for lead {lead_id}")
+    
+    # Initialize emotional memory layer
+    emotional_data = {
+        "initial_impression": "No interaction yet",
+        "trust_level": lead_data.get("trust_level", 0.5),
+        "rapport_status": "Initial contact",
+        "sentiment": "Neutral"
+    }
+    
+    await memory_manager.store_memory(lead_id, emotional_data, "emotional")
+    logger.info(f"Initialized emotional memory for lead {lead_id}")
+    
+    # Initialize strategic memory layer
+    strategic_data = {
+        "relationship_stage": lead_data.get("relationship_stage", "initial_contact"),
+        "conversion_probability": lead_data.get("conversion_probability", 0.3),
+        "objections_encountered": [],
+        "buying_signals_detected": [],
+        "recommended_approach": "Build rapport and qualify needs"
+    }
+    
+    await memory_manager.store_memory(lead_id, strategic_data, "strategic")
+    logger.info(f"Initialized strategic memory for lead {lead_id}")
+    
+    # Initialize contextual memory layer
+    contextual_data = {
+        "optimal_contact_times": "Unknown",
+        "preferred_communication_channel": "Unknown",
+        "environmental_factors": "No context yet",
+        "recent_interactions": []
+    }
+    
+    await memory_manager.store_memory(lead_id, contextual_data, "contextual")
+    logger.info(f"Initialized contextual memory for lead {lead_id}")
+
 # Shutdown event to close database connection
 @app.on_event("shutdown")
 async def shutdown_db_client():
