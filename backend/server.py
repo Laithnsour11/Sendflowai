@@ -23,7 +23,7 @@ except ImportError as e:
     print(f"Memory manager import failed: {e}, will use default implementation")
     use_memory_manager = False
 
-import database as db
+import app.backend.database as db
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
