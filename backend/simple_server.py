@@ -114,6 +114,46 @@ async def validate_sendblue_api_key(api_key: str = Body(..., embed=True)):
     else:
         return {"valid": False, "message": "Invalid SendBlue API key format"}
 
+@app.post("/api/settings/validate-openai-key")
+async def validate_openai_api_key(api_key: str = Body(..., embed=True)):
+    """
+    Validate an OpenAI API key
+    
+    Args:
+        api_key: The OpenAI API key to validate
+    
+    Returns:
+        Dict with validation status
+    """
+    if not api_key:
+        return {"valid": False, "message": "API key is required"}
+    
+    # For MVP, just check if the key starts with 'sk-' and is long enough
+    if api_key.startswith("sk-") and len(api_key) > 10:
+        return {"valid": True, "message": "OpenAI API key format is valid"}
+    else:
+        return {"valid": False, "message": "Invalid OpenAI API key format"}
+
+@app.post("/api/settings/validate-openrouter-key")
+async def validate_openrouter_api_key(api_key: str = Body(..., embed=True)):
+    """
+    Validate an OpenRouter API key
+    
+    Args:
+        api_key: The OpenRouter API key to validate
+    
+    Returns:
+        Dict with validation status
+    """
+    if not api_key:
+        return {"valid": False, "message": "API key is required"}
+    
+    # For MVP, just check if the key starts with 'sk-or' and is long enough
+    if api_key.startswith("sk-or") and len(api_key) > 10:
+        return {"valid": True, "message": "OpenRouter API key format is valid"}
+    else:
+        return {"valid": False, "message": "Invalid OpenRouter API key format"}
+
 # Organization endpoints
 @app.get("/api/organizations")
 async def get_organizations():
