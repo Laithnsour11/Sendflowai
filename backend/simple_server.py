@@ -78,7 +78,7 @@ async def validate_mem0_api_key(api_key: str = Body(..., embed=True)):
         async with httpx.AsyncClient() as client:
             # Try to get a basic response from the Mem0 API
             response = await client.get(
-                    "https://api.memzo.ai/v1/users/me",
+                    "https://api.mem0.ai/add",
                     headers=headers,
                     timeout=10.0
                 )
