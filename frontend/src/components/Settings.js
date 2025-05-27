@@ -286,6 +286,13 @@ const Settings = ({ currentOrg }) => {
               <dt className="text-sm font-medium text-gray-500">
                 Go High Level Client ID
                 <p className="mt-1 text-xs text-gray-400">Required for GHL OAuth integration</p>
+                {integrationStatus.ghl && (
+                  <p className={`mt-1 text-xs ${
+                    integrationStatus.ghl.connected ? 'text-green-500' : 'text-red-500'
+                  }`}>
+                    {integrationStatus.ghl.status}
+                  </p>
+                )}
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <input
