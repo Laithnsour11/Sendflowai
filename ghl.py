@@ -221,3 +221,231 @@ class GHLIntegration:
         except Exception as e:
             logger.error(f"Error updating contact in GHL: {e}")
             raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+            
+    # CUSTOM FIELDS
+    
+    async def get_custom_fields(self) -> List[Dict[str, Any]]:
+        """Get custom fields from GHL"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/custom-fields"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(endpoint, headers=self.headers)
+                response.raise_for_status()
+                return response.json().get("customFields", [])
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while fetching custom fields: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error fetching custom fields from GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+    
+    async def create_custom_field(self, field_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a custom field in GHL"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/custom-fields"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(endpoint, headers=self.headers, json=field_data)
+                response.raise_for_status()
+                return response.json().get("customField", {})
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while creating custom field: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error creating custom field in GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+            
+    # PIPELINES
+    
+    async def get_pipelines(self) -> List[Dict[str, Any]]:
+        """Get all pipelines"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/pipelines"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(endpoint, headers=self.headers)
+                response.raise_for_status()
+                return response.json().get("pipelines", [])
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while fetching pipelines: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error fetching pipelines from GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+            
+    # OPPORTUNITIES
+    
+    async def get_opportunities(self, contact_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get opportunities, optionally filtered by contact ID"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/opportunities"
+        params = {}
+        
+        if contact_id:
+            params["contactId"] = contact_id
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(endpoint, headers=self.headers, params=params)
+                response.raise_for_status()
+                return response.json().get("opportunities", [])
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while fetching opportunities: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error fetching opportunities from GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+    
+    async def create_opportunity(self, opportunity_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new opportunity"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/opportunities"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(endpoint, headers=self.headers, json=opportunity_data)
+                response.raise_for_status()
+                return response.json().get("opportunity", {})
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while creating opportunity: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error creating opportunity in GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+    
+    async def update_opportunity(self, opportunity_id: str, opportunity_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update an opportunity"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/opportunities/{opportunity_id}"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.put(endpoint, headers=self.headers, json=opportunity_data)
+                response.raise_for_status()
+                return response.json().get("opportunity", {})
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while updating opportunity: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error updating opportunity in GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+    
+    async def move_opportunity_stage(self, opportunity_id: str, stage_id: str) -> Dict[str, Any]:
+        """Move an opportunity to a different stage"""
+        return await self.update_opportunity(opportunity_id, {"pipelineStageId": stage_id})
+        
+    # TASKS
+    
+    async def get_tasks(self, contact_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get tasks, optionally filtered by contact ID"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/tasks"
+        params = {}
+        
+        if contact_id:
+            params["contactId"] = contact_id
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(endpoint, headers=self.headers, params=params)
+                response.raise_for_status()
+                return response.json().get("tasks", [])
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while fetching tasks: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error fetching tasks from GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+    
+    async def create_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new task"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/tasks"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(endpoint, headers=self.headers, json=task_data)
+                response.raise_for_status()
+                return response.json().get("task", {})
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while creating task: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error creating task in GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+    
+    # NOTES
+    
+    async def get_contact_notes(self, contact_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get notes for a specific contact"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/contacts/{contact_id}/notes"
+        params = {"limit": limit}
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(endpoint, headers=self.headers, params=params)
+                response.raise_for_status()
+                return response.json().get("notes", [])
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while fetching notes: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error fetching notes for contact in GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+    
+    async def add_note_to_contact(self, contact_id: str, note: str, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Add a note to a contact"""
+        await self.ensure_valid_token()
+        
+        endpoint = f"{self.base_url}/contacts/{contact_id}/notes"
+        
+        note_data = {
+            "body": note
+        }
+        
+        if user_id:
+            note_data["userId"] = user_id
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(endpoint, headers=self.headers, json=note_data)
+                response.raise_for_status()
+                return response.json().get("note", {})
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error occurred while adding note: {e}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"GHL API error: {e.response.text}")
+        except Exception as e:
+            logger.error(f"Error adding note to contact in GHL: {e}")
+            raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
+    
+    # AI-SPECIFIC OPERATIONS
+    
+    async def create_follow_up_task(self, contact_id: str, task_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a follow-up task for a human agent"""
+        # Format task data for GHL
+        ghl_task_data = {
+            "contactId": contact_id,
+            "title": task_data.get('title', 'Follow-up required'),
+            "description": task_data.get('description', 'AI-suggested follow-up'),
+            "dueDate": task_data.get('due_date', None)
+        }
+        
+        if 'assigned_to' in task_data:
+            ghl_task_data["assignedTo"] = task_data['assigned_to']
+        
+        # Create the task
+        return await self.create_task(ghl_task_data)
