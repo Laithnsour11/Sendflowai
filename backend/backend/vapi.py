@@ -108,7 +108,7 @@ class VapiIntegration:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                    f"{self.base_url}/v1/assistants/{assistant_id}",
+                    f"{self.base_url}/assistants/{assistant_id}",
                     headers=self.headers
                 )
                 response.raise_for_status()
