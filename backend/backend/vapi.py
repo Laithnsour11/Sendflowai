@@ -16,7 +16,7 @@ class VapiIntegration:
     def __init__(self, public_key: Optional[str] = None, private_key: Optional[str] = None):
         self.public_key = public_key
         self.private_key = private_key
-        self.base_url = "https://api.vapi.ai"
+        self.base_url = "https://api.vapi.ai/v1"
         self.headers = {}
         self.update_headers()
     
