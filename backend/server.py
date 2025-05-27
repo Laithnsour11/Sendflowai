@@ -268,6 +268,182 @@ async def ghl_webhook(payload: Dict[str, Any], signature: str = Header(None, ali
     
     return {"status": "success", "message": f"Processed {event_type} webhook"}
 
+# API Keys management
+@app.get("/api/settings/api-keys/{org_id}")
+async def get_organization_api_keys(org_id: str):
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys:
+        return {}
+    
+    # Mask sensitive data
+    masked_keys = {}
+    for key_name, key_value in api_keys.items():
+        if (key_name.endswith("_api_key") or key_name.endswith("_secret") or 
+            key_name.endswith("_client_secret") or key_name.endswith("_private_key")) and key_value:
+            # Show only last 4 characters
+            masked_keys[key_name] = "••••••••" + key_value[-4:] if len(key_value) > 4 else "••••"
+        else:
+            masked_keys[key_name] = key_value
+    
+    # Get integration status
+    integration_status = await get_integration_status(org_id)
+    masked_keys["integration_status"] = integration_status
+    
+    return masked_keys
+
+@app.put("/api/settings/api-keys/{org_id}")
+async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
+    keys_data["org_id"] = org_id
+    keys_data["updated_at"] = datetime.now()
+    
+    # Update GHL integration with new credentials if provided
+    if all(key in keys_data for key in ["ghl_client_id", "ghl_client_secret", "ghl_shared_secret"]):
+        ghl_integration.set_credentials(
+            client_id=keys_data["ghl_client_id"],
+            client_secret=keys_data["ghl_client_secret"],
+            shared_secret=keys_data["ghl_shared_secret"]
+        )
+    
+    # Update Vapi integration with new credentials if provided
+    if all(key in keys_data for key in ["vapi_public_key", "vapi_private_key"]):
+        vapi_integration.set_api_keys(
+            public_key=keys_data["vapi_public_key"],
+            private_key=keys_data["vapi_private_key"]
+        )
+    
+    # Update Mem0 integration with new API key if provided
+    if "mem0_api_key" in keys_data and keys_data["mem0_api_key"]:
+        mem0_integration.set_api_key(keys_data["mem0_api_key"])
+    
+    # Update SendBlue integration with new credentials if provided
+    if all(key in keys_data for key in ["sendblue_api_key", "sendblue_api_secret"]):
+        sendblue_integration.set_api_credentials(
+            api_key=keys_data["sendblue_api_key"],
+            api_secret=keys_data["sendblue_api_secret"]
+        )
+    
+    result = await db.api_keys.update_one(
+        {"org_id": org_id},
+        {"$set": keys_data},
+        upsert=True
+    )
+    
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    
+    # Mask sensitive data in response
+    masked_result = {}
+    for key_name, key_value in api_keys.items():
+        if (key_name.endswith("_api_key") or key_name.endswith("_secret") or 
+            key_name.endswith("_client_secret") or key_name.endswith("_private_key")) and key_value:
+            # Show only last 4 characters
+            masked_result[key_name] = "••••••••" + key_value[-4:] if len(key_value) > 4 else "••••"
+        else:
+            masked_result[key_name] = key_value
+    
+    # Get updated integration status
+    integration_status = await get_integration_status(org_id)
+    masked_result["integration_status"] = integration_status
+    
+    return masked_result
+
+async def get_integration_status(org_id: str) -> Dict[str, Any]:
+    """Get the status of all integrations for an organization"""
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys:
+        return {
+            "ghl": {"connected": False, "status": "Not configured"},
+            "vapi": {"connected": False, "status": "Not configured"},
+            "mem0": {"connected": False, "status": "Not configured"},
+            "sendblue": {"connected": False, "status": "Not configured"},
+            "openai": {"connected": False, "status": "Not configured"},
+            "openrouter": {"connected": False, "status": "Not configured"}
+        }
+    
+    # GHL status
+    ghl_status = {
+        "connected": all(key in api_keys and api_keys[key] 
+                        for key in ["ghl_client_id", "ghl_client_secret", "ghl_shared_secret"]),
+        "status": "Connected" if all(key in api_keys and api_keys[key] 
+                                 for key in ["ghl_client_id", "ghl_client_secret", "ghl_shared_secret"]) 
+                 else "Not configured"
+    }
+    
+    # Vapi status
+    vapi_configured = all(key in api_keys and api_keys[key] 
+                         for key in ["vapi_public_key", "vapi_private_key"])
+    vapi_status = {"connected": vapi_configured}
+    
+    if vapi_configured:
+        # Update Vapi integration with keys from database
+        vapi_integration.set_api_keys(
+            public_key=api_keys["vapi_public_key"],
+            private_key=api_keys["vapi_private_key"]
+        )
+        
+        # Validate the keys
+        valid = await vapi_integration.validate_keys()
+        vapi_status["status"] = "Connected" if valid else "Invalid credentials"
+    else:
+        vapi_status["status"] = "Not configured"
+    
+    # Mem0 status
+    mem0_configured = "mem0_api_key" in api_keys and api_keys["mem0_api_key"]
+    mem0_status = {"connected": mem0_configured}
+    
+    if mem0_configured:
+        # Update Mem0 integration with key from database
+        mem0_integration.set_api_key(api_keys["mem0_api_key"])
+        
+        # Validate the key
+        valid = await mem0_integration.validate_key()
+        mem0_status["status"] = "Connected" if valid else "Invalid credentials"
+    else:
+        mem0_status["status"] = "Not configured"
+    
+    # SendBlue status
+    sendblue_configured = all(key in api_keys and api_keys[key] 
+                             for key in ["sendblue_api_key", "sendblue_api_secret"])
+    sendblue_status = {"connected": sendblue_configured}
+    
+    if sendblue_configured:
+        # Update SendBlue integration with keys from database
+        sendblue_integration.set_api_credentials(
+            api_key=api_keys["sendblue_api_key"],
+            api_secret=api_keys["sendblue_api_secret"]
+        )
+        
+        # Validate the keys
+        valid = await sendblue_integration.validate_credentials()
+        sendblue_status["status"] = "Connected" if valid else "Invalid credentials"
+    else:
+        sendblue_status["status"] = "Not configured"
+    
+    # OpenAI status
+    openai_status = {
+        "connected": "openai_api_key" in api_keys and api_keys["openai_api_key"],
+        "status": "Connected" if "openai_api_key" in api_keys and api_keys["openai_api_key"] else "Not configured"
+    }
+    
+    # OpenRouter status
+    openrouter_status = {
+        "connected": "openrouter_api_key" in api_keys and api_keys["openrouter_api_key"],
+        "status": "Connected" if "openrouter_api_key" in api_keys and api_keys["openrouter_api_key"] else "Not configured"
+    }
+    
+    return {
+        "ghl": ghl_status,
+        "vapi": vapi_status,
+        "mem0": mem0_status,
+        "sendblue": sendblue_status,
+        "openai": openai_status,
+        "openrouter": openrouter_status
+    }
+
+@app.get("/api/settings/integration-status/{org_id}")
+async def get_organization_integration_status(org_id: str):
+    """Get the status of all integrations for an organization"""
+    return await get_integration_status(org_id)
+
 # Shutdown event to close database connection
 @app.on_event("shutdown")
 async def shutdown_db_client():
