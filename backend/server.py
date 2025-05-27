@@ -163,12 +163,12 @@ async def get_organization_integration_status(org_id: str):
     mem0_configured = "mem0_api_key" in api_keys and api_keys["mem0_api_key"]
     mem0_status = {"connected": mem0_configured}
     
-    if mem0_configured:
+    if mem0_configured and use_memory_manager:
         # Validate the Mem0 API key
         valid = await memory_manager.validate_api_key(api_keys["mem0_api_key"])
         mem0_status["status"] = "Connected" if valid.get("valid", False) else f"Invalid credentials: {valid.get('message', '')}"
     else:
-        mem0_status["status"] = "Not configured"
+        mem0_status["status"] = "Not configured" if not mem0_configured else "API key present but validation unavailable"
     
     # Vapi status
     vapi_configured = "vapi_api_key" in api_keys and api_keys["vapi_api_key"]
