@@ -7,13 +7,23 @@ const Settings = ({ currentOrg }) => {
     ghl_client_secret: '',
     ghl_shared_secret: '',
     openai_api_key: '',
-    vapi_api_key: '',
+    vapi_public_key: '',
+    vapi_private_key: '',
     mem0_api_key: '',
     openrouter_api_key: '',
     sendblue_api_key: '',
     sendblue_api_secret: '',
     supabase_url: '',
     supabase_key: ''
+  });
+  
+  const [integrationStatus, setIntegrationStatus] = useState({
+    ghl: { connected: false, status: 'Not configured' },
+    vapi: { connected: false, status: 'Not configured' },
+    mem0: { connected: false, status: 'Not configured' },
+    sendblue: { connected: false, status: 'Not configured' },
+    openai: { connected: false, status: 'Not configured' },
+    openrouter: { connected: false, status: 'Not configured' }
   });
   
   const [aiSettings, setAiSettings] = useState({
