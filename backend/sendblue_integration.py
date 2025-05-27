@@ -1,35 +1,22 @@
-import os
-import json
 import logging
+import json
 import httpx
-import asyncio
 from typing import Dict, Any, List, Optional, Union
-from fastapi import HTTPException, Request
 from datetime import datetime
 import uuid
-import time
-
-from langchain_agents import AgentOrchestrator, ConversationManager
-from mem0 import Mem0Integration
+import os
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
 class SendBlueIntegration:
-    """Handles integration with SendBlue for SMS/MMS communication"""
+    """Integration with SendBlue for SMS/MMS capabilities"""
     
-    def __init__(
-        self, 
-        api_key: Optional[str] = None,
-        api_secret: Optional[str] = None,
-        agent_orchestrator: Optional[AgentOrchestrator] = None,
-        mem0_client: Optional[Mem0Integration] = None
-    ):
+    def __init__(self, api_key: Optional[str] = None, api_secret: Optional[str] = None):
         self.api_key = api_key
         self.api_secret = api_secret
-        self.base_url = "https://api.sendblue.co/api/v1"
+        self.base_url = "https://api.sendblue.co/api"
         self.headers = {}
-        self.agent_orchestrator = agent_orchestrator
-        self.mem0_client = mem0_client
         
         if self.api_key and self.api_secret:
             self.headers = {
@@ -38,8 +25,8 @@ class SendBlueIntegration:
                 "Content-Type": "application/json"
             }
     
-    def set_api_credentials(self, api_key: str, api_secret: str):
-        """Set the SendBlue API credentials"""
+    def set_credentials(self, api_key: str, api_secret: str):
+        """Set the SendBlue API credentials and update headers"""
         self.api_key = api_key
         self.api_secret = api_secret
         self.headers = {
@@ -48,370 +35,301 @@ class SendBlueIntegration:
             "Content-Type": "application/json"
         }
     
-    async def send_message(
-        self,
-        lead_id: str,
-        to_number: str,
+    async def validate_credentials(self) -> bool:
+        """Validate the API credentials by making a test request"""
+        if not self.api_key or not self.api_secret:
+            return False
+            
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/v1/account",
+                    headers=self.headers,
+                    timeout=10.0
+                )
+                response.raise_for_status()
+                return True
+        except Exception as e:
+            logger.error(f"Failed to validate SendBlue API credentials: {e}")
+            return False
+    
+    async def send_sms(
+        self, 
+        to_number: str, 
         message: str,
         from_number: Optional[str] = None,
-        media_urls: Optional[List[str]] = None,
-        conversation_id: Optional[str] = None,
-        message_parts: Optional[List[Dict[str, Any]]] = None
+        media_urls: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
-        Send an SMS/MMS message to a lead
+        Send an SMS/MMS message
         
         Args:
-            lead_id: ID of the lead
-            to_number: Recipient phone number
-            message: Message content
-            from_number: Sender phone number (if None, default account number is used)
+            to_number: The recipient's phone number
+            message: The message content
+            from_number: Optional sender phone number (if account has multiple numbers)
             media_urls: Optional list of media URLs for MMS
-            conversation_id: Optional ID of the conversation
-            message_parts: Optional list of message parts with pauses for natural cadence
             
         Returns:
-            Dict containing message information
+            Dict containing the message information
         """
         if not self.api_key or not self.api_secret:
-            logger.warning("SendBlue API credentials not set")
-            return self._get_mock_message_response(lead_id, to_number, message)
+            logger.warning("SendBlue API credentials not set, cannot send SMS")
+            raise ValueError("SendBlue API credentials not configured")
         
-        # If message parts are provided, send as multiple messages with natural pauses
-        if message_parts and len(message_parts) > 1:
-            return await self._send_message_with_cadence(lead_id, to_number, from_number, message_parts, conversation_id)
-        
-        # Otherwise, send as a single message
+        # Create message payload
         payload = {
-            "to_number": to_number,
-            "content": message
+            "to": to_number,
+            "body": message
         }
         
+        # Add from_number if provided
         if from_number:
-            payload["from_number"] = from_number
+            payload["from"] = from_number
         
-        if media_urls:
-            payload["media_urls"] = media_urls
+        # Add media_urls if provided for MMS
+        if media_urls and len(media_urls) > 0:
+            payload["mediaUrls"] = media_urls
         
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{self.base_url}/send",
+                    f"{self.base_url}/v1/send",
                     headers=self.headers,
                     json=payload,
                     timeout=30.0
                 )
                 response.raise_for_status()
-                result = response.json()
+                return response.json()
                 
-                # Store message in memory
-                if self.mem0_client and lead_id:
-                    await self.mem0_client.store_memory(
-                        user_id=lead_id,
-                        memory_data={
-                            "direction": "outbound",
-                            "channel": "sms",
-                            "message": message,
-                            "media_urls": media_urls,
-                            "to_number": to_number,
-                            "from_number": from_number,
-                            "sendblue_message_id": result.get("id"),
-                            "conversation_id": conversation_id,
-                            "timestamp": datetime.now().isoformat()
-                        },
-                        memory_type="contextual",
-                        metadata={
-                            "direction": "outbound",
-                            "channel": "sms",
-                            "conversation_id": conversation_id
-                        }
-                    )
-                
-                return result
-                
-        except httpx.HTTPStatusError as e:
-            logger.error(f"HTTP error occurred while sending message: {e}")
-            raise HTTPException(status_code=e.response.status_code, detail=f"SendBlue API error: {e.response.text}")
         except Exception as e:
-            logger.error(f"Error sending message with SendBlue: {e}")
-            return self._get_mock_message_response(lead_id, to_number, message)
+            logger.error(f"Error sending SMS with SendBlue: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to send SMS with SendBlue: {str(e)}")
     
-    async def _send_message_with_cadence(
+    async def send_sms_with_intelligent_cadence(
         self,
-        lead_id: str,
         to_number: str,
-        from_number: Optional[str],
-        message_parts: List[Dict[str, Any]],
-        conversation_id: Optional[str]
-    ) -> Dict[str, Any]:
-        """Send multiple messages with natural pauses between them"""
-        response_data = []
+        messages: List[str],
+        delay_seconds: int = 2,
+        from_number: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Send multiple SMS messages with intelligent cadence
         
-        for i, part in enumerate(message_parts):
-            text = part.get("text", "")
-            pause_seconds = part.get("pause_after", 0)
+        Args:
+            to_number: The recipient's phone number
+            messages: List of message content
+            delay_seconds: Delay between messages in seconds
+            from_number: Optional sender phone number (if account has multiple numbers)
             
-            # Skip empty messages
-            if not text.strip():
-                continue
-            
-            # Send this part
+        Returns:
+            List of Dicts containing message information
+        """
+        if not self.api_key or not self.api_secret:
+            logger.warning("SendBlue API credentials not set, cannot send SMS")
+            raise ValueError("SendBlue API credentials not configured")
+        
+        results = []
+        
+        for i, message in enumerate(messages):
             try:
+                # Create message payload
                 payload = {
-                    "to_number": to_number,
-                    "content": text
+                    "to": to_number,
+                    "body": message,
+                    "delaySeconds": delay_seconds * i  # Increasing delay for cadence
                 }
                 
+                # Add from_number if provided
                 if from_number:
-                    payload["from_number"] = from_number
+                    payload["from"] = from_number
                 
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
-                        f"{self.base_url}/send",
+                        f"{self.base_url}/v1/send",
                         headers=self.headers,
                         json=payload,
                         timeout=30.0
                     )
                     response.raise_for_status()
-                    result = response.json()
-                    response_data.append(result)
-                    
-                    # Store message in memory
-                    if self.mem0_client and lead_id:
-                        await self.mem0_client.store_memory(
-                            user_id=lead_id,
-                            memory_data={
-                                "direction": "outbound",
-                                "channel": "sms",
-                                "message": text,
-                                "message_part": i + 1,
-                                "total_parts": len(message_parts),
-                                "to_number": to_number,
-                                "from_number": from_number,
-                                "sendblue_message_id": result.get("id"),
-                                "conversation_id": conversation_id,
-                                "timestamp": datetime.now().isoformat()
-                            },
-                            memory_type="contextual",
-                            metadata={
-                                "direction": "outbound",
-                                "channel": "sms",
-                                "conversation_id": conversation_id,
-                                "message_part": i + 1,
-                                "total_parts": len(message_parts)
-                            }
-                        )
-                
-                # Wait for the specified pause time before sending the next message
-                if pause_seconds > 0 and i < len(message_parts) - 1:
-                    await asyncio.sleep(pause_seconds)
+                    results.append(response.json())
                     
             except Exception as e:
-                logger.error(f"Error sending message part {i+1}: {e}")
-                # Continue with other parts even if one fails
+                logger.error(f"Error sending SMS with SendBlue (message {i+1}): {e}")
+                results.append({
+                    "error": str(e),
+                    "message_index": i,
+                    "message": message
+                })
         
-        # Return combined response
-        return {
-            "message_parts_sent": len(response_data),
-            "message_parts_total": len(message_parts),
-            "responses": response_data,
-            "conversation_id": conversation_id
-        }
+        return results
     
-    async def process_webhook(self, request: Request) -> Dict[str, Any]:
+    async def get_message(self, message_id: str) -> Dict[str, Any]:
         """
-        Process an incoming webhook from SendBlue
+        Get information about a message
         
         Args:
-            request: The webhook request
+            message_id: The ID of the message
             
         Returns:
-            Response to the webhook
+            Dict containing message information
         """
+        if not self.api_key or not self.api_secret:
+            logger.warning("SendBlue API credentials not set, cannot get message")
+            raise ValueError("SendBlue API credentials not configured")
+        
         try:
-            payload = await request.json()
-            
-            event_type = payload.get("type")
-            message_data = payload.get("data", {})
-            
-            logger.info(f"Received SendBlue webhook: {event_type}")
-            
-            if event_type == "message.received":
-                # Incoming message from a lead
-                await self._handle_incoming_message(message_data)
-            
-            elif event_type == "message.sent":
-                # Confirmation that our message was sent
-                await self._handle_message_sent(message_data)
-            
-            elif event_type == "message.delivered":
-                # Confirmation that our message was delivered
-                await self._handle_message_delivered(message_data)
-            
-            elif event_type == "message.failed":
-                # Our message failed to send
-                await self._handle_message_failed(message_data)
-            
-            return {"status": "success"}
-            
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/v1/messages/{message_id}",
+                    headers=self.headers,
+                    timeout=10.0
+                )
+                response.raise_for_status()
+                return response.json()
+                
         except Exception as e:
-            logger.error(f"Error processing SendBlue webhook: {e}")
-            raise HTTPException(status_code=500, detail=f"Error processing webhook: {str(e)}")
+            logger.error(f"Error getting message from SendBlue: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to get message from SendBlue: {str(e)}")
     
-    async def _handle_incoming_message(self, message_data: Dict[str, Any]):
-        """Handle an incoming message from a lead"""
-        # Extract message information
-        from_number = message_data.get("from_number")
-        to_number = message_data.get("to_number")
-        content = message_data.get("content", "")
-        media_urls = message_data.get("media_urls", [])
-        message_id = message_data.get("id")
+    def process_webhook_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process a webhook event from SendBlue
         
-        # Find the lead based on phone number
-        lead_id = await self._find_lead_by_phone(from_number)
-        
-        if not lead_id:
-            logger.warning(f"Received message from unknown number: {from_number}")
-            lead_id = f"unknown_{from_number}"
-        
-        # Store the incoming message in memory
-        if self.mem0_client:
-            await self.mem0_client.store_memory(
-                user_id=lead_id,
-                memory_data={
-                    "direction": "inbound",
-                    "channel": "sms",
-                    "message": content,
-                    "media_urls": media_urls,
-                    "from_number": from_number,
-                    "to_number": to_number,
-                    "sendblue_message_id": message_id,
-                    "timestamp": datetime.now().isoformat()
-                },
-                memory_type="contextual",
-                metadata={
-                    "direction": "inbound",
-                    "channel": "sms"
-                }
-            )
-        
-        # Process the message with an appropriate agent if we have the orchestrator
-        if self.agent_orchestrator and lead_id:
-            # Get lead context
-            lead_context = await self._get_lead_context(lead_id)
+        Args:
+            event: The webhook event data
             
-            # Process message
-            conversation_manager = ConversationManager(self.agent_orchestrator, self.mem0_client)
-            result = await conversation_manager.process_message(
-                message=content,
-                lead_context=lead_context,
-                channel="sms"
-            )
-            
-            # Send the response
-            response_message = result["response"]["response"]
-            message_parts = result["response"].get("message_parts", [])
-            
-            # Use the conversation ID from the result
-            conversation_id = result["conversation"]["id"]
-            
-            # Send the response with natural cadence if message parts are available
-            await self.send_message(
-                lead_id=lead_id,
-                to_number=from_number,
-                message=response_message,
-                from_number=to_number,
-                conversation_id=conversation_id,
-                message_parts=message_parts
-            )
-    
-    async def _handle_message_sent(self, message_data: Dict[str, Any]):
-        """Handle confirmation that our message was sent"""
-        message_id = message_data.get("id")
-        to_number = message_data.get("to_number")
+        Returns:
+            Dict containing processed event information
+        """
+        event_type = event.get("type")
         
-        logger.info(f"Message {message_id} to {to_number} was sent")
-    
-    async def _handle_message_delivered(self, message_data: Dict[str, Any]):
-        """Handle confirmation that our message was delivered"""
-        message_id = message_data.get("id")
-        to_number = message_data.get("to_number")
+        if not event_type:
+            logger.error("Invalid webhook event: missing type")
+            raise ValueError("Invalid webhook event: missing type")
         
-        logger.info(f"Message {message_id} to {to_number} was delivered")
-    
-    async def _handle_message_failed(self, message_data: Dict[str, Any]):
-        """Handle notification that our message failed to send"""
-        message_id = message_data.get("id")
-        to_number = message_data.get("to_number")
-        error = message_data.get("error", {})
-        
-        logger.error(f"Message {message_id} to {to_number} failed: {error}")
-    
-    async def _find_lead_by_phone(self, phone_number: str) -> Optional[str]:
-        """Find a lead by phone number"""
-        # In a real implementation, this would query the database
-        # For MVP, return a mock lead ID
-        return f"lead_{phone_number.replace('+', '').replace('-', '')}"
-    
-    async def _get_lead_context(self, lead_id: str) -> Dict[str, Any]:
-        """Get the lead context for a lead"""
-        # In a real implementation, this would query the database and Mem0
-        # For MVP, return mock lead context
-        lead_context = {
-            "id": lead_id,
-            "name": "John Doe",
-            "email": "john.doe@example.com",
-            "phone": "123-456-7890",
-            "personality_type": "analytical",
-            "communication_preference": "text",
-            "trust_level": 0.7,
-            "relationship_stage": "qualification",
-            "property_preferences": {
-                "bedrooms": 3,
-                "bathrooms": 2,
-                "location": "downtown",
-                "property_type": "condo"
+        # Process different event types
+        if event_type == "message.received":
+            return self._process_message_received(event)
+        elif event_type == "message.sent":
+            return self._process_message_sent(event)
+        elif event_type == "message.delivered":
+            return self._process_message_delivered(event)
+        elif event_type == "message.failed":
+            return self._process_message_failed(event)
+        else:
+            logger.warning(f"Unhandled webhook event type: {event_type}")
+            return {
+                "event_type": event_type,
+                "processed": False,
+                "reason": "Unknown event type"
             }
-        }
-        
-        # Enhance with Mem0 data if available
-        if self.mem0_client:
-            try:
-                mem0_context = await self.mem0_client.synthesize_lead_context(lead_id)
-                
-                # Merge Mem0 context with basic lead context
-                if mem0_context.get("factual_information"):
-                    lead_context.update(mem0_context.get("factual_information", {}))
-                
-                # Update relationship insights
-                if mem0_context.get("relationship_insights"):
-                    insights = mem0_context.get("relationship_insights", {})
-                    
-                    if insights.get("trust_level"):
-                        lead_context["trust_level"] = insights["trust_level"]
-                    
-                    if insights.get("communication_style_preferences"):
-                        lead_context["communication_preference"] = insights["communication_style_preferences"].get("preferred_method", lead_context["communication_preference"])
-                
-            except Exception as e:
-                logger.error(f"Error retrieving lead context from Mem0: {e}")
-        
-        return lead_context
     
-    def _get_mock_message_response(
-        self, 
-        lead_id: str, 
-        to_number: str, 
-        message: str
-    ) -> Dict[str, Any]:
-        """Generate a mock message response for testing without API credentials"""
-        message_id = str(uuid.uuid4())
+    def _process_message_received(self, event: Dict[str, Any]) -> Dict[str, Any]:
+        """Process message.received event"""
+        message_data = event.get("data", {})
         
         return {
-            "id": message_id,
-            "status": "queued",
-            "to_number": to_number,
-            "content": message,
-            "created_at": datetime.now().isoformat(),
-            "message": "Message queued successfully (mock)"
+            "event_type": "message_received",
+            "message_id": message_data.get("id"),
+            "from_number": message_data.get("from"),
+            "to_number": message_data.get("to"),
+            "body": message_data.get("body"),
+            "media_urls": message_data.get("mediaUrls", []),
+            "timestamp": message_data.get("createdAt", datetime.now().isoformat()),
+            "processed": True
         }
+    
+    def _process_message_sent(self, event: Dict[str, Any]) -> Dict[str, Any]:
+        """Process message.sent event"""
+        message_data = event.get("data", {})
+        
+        return {
+            "event_type": "message_sent",
+            "message_id": message_data.get("id"),
+            "from_number": message_data.get("from"),
+            "to_number": message_data.get("to"),
+            "body": message_data.get("body"),
+            "media_urls": message_data.get("mediaUrls", []),
+            "timestamp": message_data.get("createdAt", datetime.now().isoformat()),
+            "processed": True
+        }
+    
+    def _process_message_delivered(self, event: Dict[str, Any]) -> Dict[str, Any]:
+        """Process message.delivered event"""
+        message_data = event.get("data", {})
+        
+        return {
+            "event_type": "message_delivered",
+            "message_id": message_data.get("id"),
+            "from_number": message_data.get("from"),
+            "to_number": message_data.get("to"),
+            "body": message_data.get("body"),
+            "delivered_at": message_data.get("deliveredAt", datetime.now().isoformat()),
+            "processed": True
+        }
+    
+    def _process_message_failed(self, event: Dict[str, Any]) -> Dict[str, Any]:
+        """Process message.failed event"""
+        message_data = event.get("data", {})
+        
+        return {
+            "event_type": "message_failed",
+            "message_id": message_data.get("id"),
+            "from_number": message_data.get("from"),
+            "to_number": message_data.get("to"),
+            "body": message_data.get("body"),
+            "error": message_data.get("error"),
+            "timestamp": message_data.get("createdAt", datetime.now().isoformat()),
+            "processed": True
+        }
+    
+    async def determine_intelligent_cadence(
+        self, 
+        message: str,
+        openai_api_key: Optional[str] = None
+    ) -> List[str]:
+        """
+        Determine intelligent cadence for a message
+        
+        Args:
+            message: The full message content
+            openai_api_key: Optional OpenAI API key for analysis
+            
+        Returns:
+            List of message segments with appropriate cadence
+        """
+        # For MVP, use a simplified approach without LLM
+        # In a real implementation, we would use OpenAI or another AI service
+        
+        # Split long messages
+        if len(message) <= 160:
+            # Short message, no need to split
+            return [message]
+        
+        # Simple sentence-based splitting for longer messages
+        sentences = message.replace('!', '.').replace('?', '.').split('.')
+        segments = []
+        current_segment = ""
+        
+        for sentence in sentences:
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+                
+            # If adding this sentence would make the segment too long, start a new segment
+            if len(current_segment) + len(sentence) + 2 > 160:
+                if current_segment:
+                    segments.append(current_segment.strip())
+                current_segment = sentence + ". "
+            else:
+                current_segment += sentence + ". "
+        
+        # Add the last segment if not empty
+        if current_segment:
+            segments.append(current_segment.strip())
+        
+        # Ensure we have at least one segment
+        if not segments:
+            segments = [message]
+        
+        return segments
