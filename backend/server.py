@@ -91,7 +91,11 @@ db_instance = client[db_name]
 # memory_manager already initialized above if imports succeeded
 
 # Create FastAPI app
-app = FastAPI(title="AI Closer API", version="1.0.0")
+app = FastAPI(
+    title="AI Closer API", 
+    version="1.0.0",
+    default_response_class=CustomJSONResponse  # Use our custom JSONResponse that handles ObjectId
+)
 
 # Add CORS middleware
 app.add_middleware(
