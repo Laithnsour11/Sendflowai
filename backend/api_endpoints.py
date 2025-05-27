@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends, Body
 from typing import Dict, Any, Optional
 import logging
 
-from memory_manager import MemoryManager
-import database as db
+from app.backend.memory_manager import MemoryManager
+import app.backend.database as db
 
 # Configure logging
 logger = logging.getLogger(__name__)
