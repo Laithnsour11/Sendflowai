@@ -68,34 +68,11 @@ async def validate_mem0_api_key(api_key: str = Body(..., embed=True)):
     if not api_key:
         return {"valid": False, "message": "API key is required"}
     
-    try:
-        # Make a test request to Mem0 API
-        headers = {
-            "Authorization": api_key,
-            "Content-Type": "application/json"
-        }
-        
-        async with httpx.AsyncClient() as client:
-            # Try to get a basic response from the Mem0 API
-            payload = {
-                "user_id": "test_user",
-                "messages": [{"role": "system", "content": "Test message"}]
-            }
-            
-            response = await client.post(
-                    "https://api.mem0.ai/add",
-                    headers=headers,
-                    json=payload,
-                    timeout=10.0
-                )
-            
-            if response.status_code == 200:
-                return {"valid": True, "message": "Mem0 API key is valid"}
-            else:
-                return {"valid": False, "message": f"Invalid Mem0 API key: {response.text}"}
-    except Exception as e:
-        logger.error(f"Error validating Mem0 API key: {e}")
-        return {"valid": False, "message": f"Error validating Mem0 API key: {str(e)}"}
+    # For MVP, just check the format of the API key
+    if api_key.startswith("m0-") and len(api_key) > 10:
+        return {"valid": True, "message": "Mem0 API key format is valid"}
+    else:
+        return {"valid": False, "message": "Invalid Mem0 API key format"}
 
 # Organization endpoints
 @app.get("/api/organizations")
