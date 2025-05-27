@@ -193,7 +193,7 @@ async def get_organization_integration_status(org_id: str):
         try:
             # Make a test request to Mem0 API
             headers = {
-                "Authorization": f"Bearer {api_keys['mem0_api_key']}",
+                "Authorization": api_keys['mem0_api_key'],
                 "Content-Type": "application/json"
             }
             
