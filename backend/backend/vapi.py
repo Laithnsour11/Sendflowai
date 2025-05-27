@@ -129,7 +129,7 @@ class VapiIntegration:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{self.base_url}/v1/calls",
+                    f"{self.base_url}/calls",
                     headers=self.headers,
                     json=call_data
                 )
