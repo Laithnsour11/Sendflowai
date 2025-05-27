@@ -215,17 +215,6 @@ async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
     except Exception as e:
         logger.error(f"Error updating API keys: {e}")
         raise HTTPException(status_code=500, detail=f"Error updating API keys: {str(e)}")
-    
-    # Mask sensitive data in response
-    masked_result = {}
-    for key_name, key_value in api_keys.items():
-        if key_name.endswith("_api_key") and key_value:
-            # Show only last 4 characters
-            masked_result[key_name] = "••••••••" + key_value[-4:] if len(key_value) > 4 else "••••"
-        else:
-            masked_result[key_name] = key_value
-    
-    return masked_result
 
 # Integration status endpoint
 @app.get("/api/settings/integration-status/{org_id}")
