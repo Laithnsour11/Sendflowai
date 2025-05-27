@@ -71,7 +71,7 @@ async def validate_mem0_api_key(api_key: str = Body(..., embed=True)):
     try:
         # Make a test request to Mem0 API
         headers = {
-            "Authorization": f"Bearer {api_key}",
+            "Authorization": api_key,
             "Content-Type": "application/json"
         }
         
