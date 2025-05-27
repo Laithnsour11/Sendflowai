@@ -194,6 +194,14 @@ async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
 async def get_integration_status(org_id: str) -> Dict[str, Any]:
     """Get the status of all integrations for an organization"""
     api_keys = await db.api_keys.find_one({"org_id": org_id})
+    
+    # Convert MongoDB ObjectId to string
+    if api_keys and "_id" in api_keys:
+        api_keys["_id"] = str(api_keys["_id"])
+    
+    # Convert all potential ObjectIds in the document
+    if api_keys:
+        api_keys = convert_objectid_to_str(api_keys)
     if not api_keys:
         return {
             "ghl": {"connected": False, "status": "Not configured"},
