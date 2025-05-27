@@ -18,7 +18,7 @@ from models import (
     AgentInteraction, MemorySnapshot, KnowledgeBase, ApiKeys, ApiKeysUpdate
 )
 import database as db
-from ghl import GHLIntegration
+from backend.ghl import GHLIntegration
 from agents import AgentOrchestrator, ConversationManager
 from memory import MemoryManager
 from knowledge import KnowledgeBaseManager
