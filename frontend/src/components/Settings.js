@@ -583,13 +583,31 @@ const Settings = ({ currentOrg }) => {
             </div>
             
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">Custom Fields</dt>
+              <dt className="text-sm font-medium text-gray-500">
+                AI Custom Fields
+                <p className="mt-1 text-xs text-gray-400">Required for AI insights</p>
+              </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <button className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                  Set Up Custom Fields
+                <button 
+                  onClick={handleCreateAICustomFields}
+                  className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Create AI Custom Fields
                 </button>
-                <p className="mt-1 text-xs text-gray-500">
-                  Configure custom fields in GHL for AI-specific data.
+                
+                <div className="mt-3 border rounded-md p-3 bg-gray-50">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Required AI Custom Fields:</h4>
+                  <ul className="text-xs text-gray-600 space-y-1 ml-4 list-disc">
+                    <li>AI Personality Type (Dropdown: Analytical, Driver, Expressive, Amiable)</li>
+                    <li>AI Trust Level (Number: 0-100)</li>
+                    <li>AI Conversion Score (Number: 0-100)</li>
+                    <li>AI Relationship Stage (Dropdown: Initial Contact, Qualification, Nurturing, Closing)</li>
+                    <li>AI Next Best Action (Text)</li>
+                  </ul>
+                </div>
+                
+                <p className="mt-2 text-xs text-gray-500">
+                  These custom fields allow the AI to store insights about leads in GHL.
                 </p>
               </dd>
             </div>
