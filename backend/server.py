@@ -111,6 +111,23 @@ async def get_organization_api_keys(org_id: str):
 
 @app.put("/api/settings/api-keys/{org_id}")
 async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
+    # Convert ObjectId to string to avoid serialization issues
+    from bson import ObjectId
+    from bson.json_util import dumps, loads
+    
+    # Helper function to convert ObjectId to str
+    def convert_objectid_to_str(obj):
+        if isinstance(obj, dict):
+            return {k: convert_objectid_to_str(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [convert_objectid_to_str(item) for item in obj]
+        elif isinstance(obj, ObjectId):
+            return str(obj)
+        elif hasattr(obj, '__dict__'):
+            return convert_objectid_to_str(obj.__dict__)
+        else:
+            return obj
+    
     keys_data["org_id"] = org_id
     keys_data["updated_at"] = datetime.now()
     
