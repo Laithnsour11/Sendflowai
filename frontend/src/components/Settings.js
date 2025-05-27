@@ -342,6 +342,13 @@ const Settings = ({ currentOrg }) => {
               <dt className="text-sm font-medium text-gray-500">
                 OpenAI API Key
                 <p className="mt-1 text-xs text-gray-400">Required for embeddings and knowledge base capabilities</p>
+                {integrationStatus.openai && (
+                  <p className={`mt-1 text-xs ${
+                    integrationStatus.openai.connected ? 'text-green-500' : 'text-red-500'
+                  }`}>
+                    {integrationStatus.openai.status}
+                  </p>
+                )}
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <input
