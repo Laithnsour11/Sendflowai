@@ -6,8 +6,8 @@ import uuid
 import os
 from fastapi import HTTPException
 
-from app.backend.mem0_integration import Mem0Integration
-import app.backend.database as db
+from .mem0_integration import Mem0Integration
+from . import database as db
 
 logger = logging.getLogger(__name__)
 
