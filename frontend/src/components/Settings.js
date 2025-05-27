@@ -438,19 +438,44 @@ const Settings = ({ currentOrg }) => {
               <h3 className="text-md font-medium text-indigo-600">Communication Integrations</h3>
             </div>
             
-            {/* Vapi API Key */}
+            {/* Vapi Public Key */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
-                Vapi.ai API Key
+                Vapi.ai Public Key
+                <p className="mt-1 text-xs text-gray-400">Required for voice capabilities</p>
+                {integrationStatus.vapi && (
+                  <p className={`mt-1 text-xs ${
+                    integrationStatus.vapi.connected ? 'text-green-500' : 'text-red-500'
+                  }`}>
+                    {integrationStatus.vapi.status}
+                  </p>
+                )}
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="text"
+                  name="vapi_public_key"
+                  value={apiKeys.vapi_public_key}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your Vapi.ai Public Key"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+              </dd>
+            </div>
+            
+            {/* Vapi Private Key */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Vapi.ai Private Key
                 <p className="mt-1 text-xs text-gray-400">Required for voice capabilities</p>
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <input
                   type="password"
-                  name="vapi_api_key"
-                  value={apiKeys.vapi_api_key}
+                  name="vapi_private_key"
+                  value={apiKeys.vapi_private_key}
                   onChange={handleApiKeyChange}
-                  placeholder="Enter your Vapi.ai API key"
+                  placeholder="Enter your Vapi.ai Private Key"
                   className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 />
               </dd>
