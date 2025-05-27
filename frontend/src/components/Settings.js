@@ -440,16 +440,28 @@ const Settings = ({ currentOrg }) => {
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <div className="flex items-center">
-                  <input
-                    type="password"
-                    name="vapi_api_key"
-                    value={apiKeys.vapi_api_key || ''}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your Vapi.ai API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                  <div className="ml-3">
-                    {renderConnectionStatus(integrationStatus.vapi)}
+                  <div className="flex-grow">
+                    <input
+                      type="password"
+                      name="vapi_api_key"
+                      value={apiKeys.vapi_api_key || ''}
+                      onChange={handleApiKeyChange}
+                      placeholder="Enter your Vapi.ai API key"
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                    {renderValidationStatus('vapi_api_key')}
+                  </div>
+                  <div className="ml-3 flex items-center">
+                    <button
+                      onClick={validateVapiApiKey}
+                      type="button"
+                      className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Validate
+                    </button>
+                    <div className="ml-2">
+                      {renderConnectionStatus(integrationStatus.vapi)}
+                    </div>
                   </div>
                 </div>
               </dd>
@@ -463,16 +475,28 @@ const Settings = ({ currentOrg }) => {
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <div className="flex items-center">
-                  <input
-                    type="password"
-                    name="sendblue_api_key"
-                    value={apiKeys.sendblue_api_key || ''}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your SendBlue API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                  <div className="ml-3">
-                    {renderConnectionStatus(integrationStatus.sendblue)}
+                  <div className="flex-grow">
+                    <input
+                      type="password"
+                      name="sendblue_api_key"
+                      value={apiKeys.sendblue_api_key || ''}
+                      onChange={handleApiKeyChange}
+                      placeholder="Enter your SendBlue API key"
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                    {renderValidationStatus('sendblue_api_key')}
+                  </div>
+                  <div className="ml-3 flex items-center">
+                    <button
+                      onClick={validateSendBlueApiKey}
+                      type="button"
+                      className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Validate
+                    </button>
+                    <div className="ml-2">
+                      {renderConnectionStatus(integrationStatus.sendblue)}
+                    </div>
                   </div>
                 </div>
               </dd>
@@ -486,16 +510,28 @@ const Settings = ({ currentOrg }) => {
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <div className="flex items-center">
-                  <input
-                    type="password"
-                    name="openai_api_key"
-                    value={apiKeys.openai_api_key || ''}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your OpenAI API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                  <div className="ml-3">
-                    {renderConnectionStatus(integrationStatus.openai)}
+                  <div className="flex-grow">
+                    <input
+                      type="password"
+                      name="openai_api_key"
+                      value={apiKeys.openai_api_key || ''}
+                      onChange={handleApiKeyChange}
+                      placeholder="Enter your OpenAI API key"
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                    {renderValidationStatus('openai_api_key')}
+                  </div>
+                  <div className="ml-3 flex items-center">
+                    <button
+                      onClick={validateOpenAIApiKey}
+                      type="button"
+                      className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Validate
+                    </button>
+                    <div className="ml-2">
+                      {renderConnectionStatus(integrationStatus.openai)}
+                    </div>
                   </div>
                 </div>
               </dd>
@@ -509,16 +545,28 @@ const Settings = ({ currentOrg }) => {
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <div className="flex items-center">
-                  <input
-                    type="password"
-                    name="openrouter_api_key"
-                    value={apiKeys.openrouter_api_key || ''}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your OpenRouter API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                  <div className="ml-3">
-                    {renderConnectionStatus(integrationStatus.openrouter)}
+                  <div className="flex-grow">
+                    <input
+                      type="password"
+                      name="openrouter_api_key"
+                      value={apiKeys.openrouter_api_key || ''}
+                      onChange={handleApiKeyChange}
+                      placeholder="Enter your OpenRouter API key"
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                    {renderValidationStatus('openrouter_api_key')}
+                  </div>
+                  <div className="ml-3 flex items-center">
+                    <button
+                      onClick={validateOpenRouterApiKey}
+                      type="button"
+                      className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Validate
+                    </button>
+                    <div className="ml-2">
+                      {renderConnectionStatus(integrationStatus.openrouter)}
+                    </div>
                   </div>
                 </div>
               </dd>
