@@ -217,7 +217,17 @@ async def get_organization_integration_status(org_id: str):
     
     # SendBlue status
     sendblue_configured = "sendblue_api_key" in api_keys and api_keys["sendblue_api_key"]
-    sendblue_status = {"connected": sendblue_configured, "status": "Connected" if sendblue_configured else "Not configured"}
+    sendblue_status = {"connected": sendblue_configured}
+    
+    if sendblue_configured:
+        # For MVP, just check if the key is long enough
+        api_key = api_keys["sendblue_api_key"]
+        if len(api_key) > 10:
+            sendblue_status["status"] = "Connected"
+        else:
+            sendblue_status["status"] = "Invalid API key format"
+    else:
+        sendblue_status["status"] = "Not configured"
     
     # OpenAI status
     openai_status = {
