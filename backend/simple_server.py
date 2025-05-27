@@ -250,16 +250,32 @@ async def get_organization_integration_status(org_id: str):
         sendblue_status["status"] = "Not configured"
     
     # OpenAI status
-    openai_status = {
-        "connected": "openai_api_key" in api_keys and api_keys["openai_api_key"],
-        "status": "Connected" if "openai_api_key" in api_keys and api_keys["openai_api_key"] else "Not configured"
-    }
+    openai_configured = "openai_api_key" in api_keys and api_keys["openai_api_key"]
+    openai_status = {"connected": openai_configured}
+    
+    if openai_configured:
+        # For MVP, just check if the key is long enough
+        api_key = api_keys["openai_api_key"]
+        if len(api_key) > 10:
+            openai_status["status"] = "Connected"
+        else:
+            openai_status["status"] = "Invalid API key format"
+    else:
+        openai_status["status"] = "Not configured"
     
     # OpenRouter status
-    openrouter_status = {
-        "connected": "openrouter_api_key" in api_keys and api_keys["openrouter_api_key"],
-        "status": "Connected" if "openrouter_api_key" in api_keys and api_keys["openrouter_api_key"] else "Not configured"
-    }
+    openrouter_configured = "openrouter_api_key" in api_keys and api_keys["openrouter_api_key"]
+    openrouter_status = {"connected": openrouter_configured}
+    
+    if openrouter_configured:
+        # For MVP, just check if the key is long enough
+        api_key = api_keys["openrouter_api_key"]
+        if len(api_key) > 10:
+            openrouter_status["status"] = "Connected"
+        else:
+            openrouter_status["status"] = "Invalid API key format"
+    else:
+        openrouter_status["status"] = "Not configured"
     
     return {
         "ghl": ghl_status,
