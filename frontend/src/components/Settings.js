@@ -236,6 +236,49 @@ const Settings = ({ currentOrg }) => {
     }
   };
   
+  // Connect to GHL and initiate OAuth flow
+  const handleConnectGHL = async () => {
+    if (!currentOrg || !currentOrg.id) return;
+    
+    // Validate GHL credentials
+    if (!apiKeys.ghl_client_id || !apiKeys.ghl_client_secret) {
+      alert('GHL Client ID and Client Secret are required for connection');
+      return;
+    }
+    
+    try {
+      // First save the credentials
+      setSaving(true);
+      
+      // Save API keys
+      await axios.put(
+        `${backendUrl}/api/settings/api-keys/${currentOrg.id}`,
+        apiKeys
+      );
+      
+      // Initiate OAuth flow
+      const response = await axios.post(
+        `${backendUrl}/api/ghl/initiate-oauth`,
+        { 
+          org_id: currentOrg.id,
+          redirect_uri: window.location.origin + '/ghl-callback'
+        }
+      );
+      
+      // Redirect to GHL OAuth page
+      if (response.data && response.data.authorization_url) {
+        window.location.href = response.data.authorization_url;
+      } else {
+        throw new Error('No authorization URL returned');
+      }
+      
+    } catch (error) {
+      console.error('Error connecting to GHL:', error);
+      setSaveError('Failed to connect to GHL. Please check your credentials and try again.');
+      setSaving(false);
+    }
+  };
+  
   // Handle AI settings changes
   const handleAiSettingChange = (e) => {
     const { name, value } = e.target;
