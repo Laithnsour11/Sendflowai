@@ -185,6 +185,13 @@ async def add_ghl_ai_interaction_note(contact_id: str, interaction_data: Dict[st
     result = await ghl_integration.add_ai_interaction_note(contact_id, interaction_data)
     return result
 
+# Testing endpoint for setting access token
+@app.post("/api/ghl/set-token")
+async def set_ghl_token(access_token: str, refresh_token: str):
+    """Set GHL access token for testing purposes"""
+    ghl_integration.set_tokens(access_token=access_token, refresh_token=refresh_token)
+    return {"status": "success", "message": "Token set successfully"}
+
 # Webhook endpoint
 @app.post("/api/ghl/webhook")
 async def ghl_webhook(payload: Dict[str, Any], signature: str = Header(None, alias="X-GoHighLevel-Signature"), event_type: str = Header(None, alias="X-Event-Type")):
