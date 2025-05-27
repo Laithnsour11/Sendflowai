@@ -185,12 +185,39 @@ async def add_ghl_ai_interaction_note(contact_id: str, interaction_data: Dict[st
     result = await ghl_integration.add_ai_interaction_note(contact_id, interaction_data)
     return result
 
-# Testing endpoint for setting access token
+# Testing endpoints
 @app.post("/api/ghl/set-token")
 async def set_ghl_token(access_token: str, refresh_token: str):
     """Set GHL access token for testing purposes"""
     ghl_integration.set_tokens(access_token=access_token, refresh_token=refresh_token)
     return {"status": "success", "message": "Token set successfully"}
+
+@app.post("/api/ghl/test/create-contact")
+async def test_create_contact(name: str, email: str, phone: str):
+    """Create a test contact in our system"""
+    # Prepare a test contact
+    contact_data = {
+        "_id": str(uuid.uuid4()),
+        "org_id": "test_org",
+        "name": name,
+        "email": email,
+        "phone": phone,
+        "ghl_contact_id": str(uuid.uuid4()),  # Simulate a GHL contact ID
+        "relationship_stage": "initial_contact",
+        "trust_level": 0.5,
+        "conversion_probability": 0.3,
+        "created_at": datetime.now(),
+        "updated_at": datetime.now()
+    }
+    
+    # Store in database
+    await db.leads.insert_one(contact_data)
+    
+    return {
+        "status": "success", 
+        "message": "Test contact created", 
+        "contact": contact_data
+    }
 
 # Webhook endpoint
 @app.post("/api/ghl/webhook")
