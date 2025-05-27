@@ -146,75 +146,58 @@ async def get_conversations(lead_id: Optional[str] = None):
 async def get_organization_api_keys(org_id: str):
     try:
         api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
+        
+        # If no API keys found, return empty object
         if not api_keys:
             return {}
         
-        # Create a new dictionary without ObjectId
-        clean_keys = {}
+        # Create a new dictionary excluding ObjectId
+        result = {}
+        if "_id" in api_keys:
+            result["id"] = str(api_keys["_id"])
+        
         for key, value in api_keys.items():
-            if key == "_id":
-                clean_keys["id"] = str(value)
-            elif isinstance(value, ObjectId):
-                clean_keys[key] = str(value)
-            else:
-                clean_keys[key] = value
+            if key != "_id":  # Skip _id as we already processed it
+                if isinstance(value, ObjectId):
+                    result[key] = str(value)
+                else:
+                    result[key] = value
         
         # Mask sensitive data
-        masked_keys = {}
-        for key_name, key_value in clean_keys.items():
-            if key_name not in ["id", "org_id"] and key_value:
-                if key_name.endswith("_api_key") or key_name.endswith("_secret"):
-                    # Show only last 4 characters
-                    masked_keys[key_name] = "••••••••" + str(key_value)[-4:] if len(str(key_value)) > 4 else "••••"
-                else:
-                    masked_keys[key_name] = key_value
-            else:
-                masked_keys[key_name] = key_value
+        for key in list(result.keys()):
+            if key.endswith("_api_key") or key.endswith("_secret") or key.endswith("_key"):
+                if result[key] and len(str(result[key])) > 4:
+                    result[key] = "••••••••" + str(result[key])[-4:]
+                elif result[key]:
+                    result[key] = "••••"
         
-        return masked_keys
+        return result
     except Exception as e:
         logger.error(f"Error getting API keys: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting API keys: {str(e)}")
+        return {"error": str(e)}
 
 @app.put("/api/settings/api-keys/{org_id}")
 async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
     try:
-        # Clean the data
-        keys_data["org_id"] = org_id
-        keys_data["updated_at"] = datetime.now().isoformat()
+        # Set org_id and updated_at
+        update_data = dict(keys_data)
+        update_data["org_id"] = org_id
+        update_data["updated_at"] = datetime.now().isoformat()
         
-        # Filter out empty API keys
-        filtered_keys = {k: v for k, v in keys_data.items() if v is not None and v != ""}
+        # Remove empty values
+        update_data = {k: v for k, v in update_data.items() if v is not None and v != ""}
         
-        # Make sure no ObjectId values are present
-        for key, value in filtered_keys.items():
-            if isinstance(value, ObjectId):
-                filtered_keys[key] = str(value)
-        
-        result = await db.api_keys_collection.update_one(
+        # Update the database
+        await db.api_keys_collection.update_one(
             {"org_id": org_id},
-            {"$set": filtered_keys},
+            {"$set": update_data},
             upsert=True
         )
         
-        # Get the updated keys
-        api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
-        
-        # Create a new dictionary without ObjectId
-        clean_keys = {}
-        if api_keys:
-            for key, value in api_keys.items():
-                if key == "_id":
-                    clean_keys["id"] = str(value)
-                elif isinstance(value, ObjectId):
-                    clean_keys[key] = str(value)
-                else:
-                    clean_keys[key] = value
-        
-        return {"status": "success", "message": "API keys updated", "keys": clean_keys}
+        return {"status": "success", "message": "API keys updated"}
     except Exception as e:
         logger.error(f"Error updating API keys: {e}")
-        raise HTTPException(status_code=500, detail=f"Error updating API keys: {str(e)}")
+        return {"status": "error", "message": str(e)}
 
 # Integration status endpoint
 @app.get("/api/settings/integration-status/{org_id}")
