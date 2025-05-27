@@ -457,10 +457,12 @@ Always maintain a professional, conversational tone that builds rapport and trus
 class ConversationManager:
     """Manages conversations across multiple channels"""
     
-    def __init__(self, agent_orchestrator: AgentOrchestrator):
+    def __init__(self, agent_orchestrator: AgentOrchestrator, mem0_integration=None, ghl_integration=None):
         self.agent_orchestrator = agent_orchestrator
+        self.mem0_integration = mem0_integration
+        self.ghl_integration = ghl_integration
     
-    async def process_message(self, message: str, lead_context: Dict[str, Any], channel: str = "chat") -> Dict[str, Any]:
+    async def process_message(self, message: str, lead_context: Dict[str, Any], channel: str = "chat", llm_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Process an incoming message and generate a response
         
@@ -468,10 +470,26 @@ class ConversationManager:
             message: The user's message
             lead_context: Context about the lead
             channel: The communication channel (chat, sms, email, voice)
+            llm_config: Configuration for the LLM to use
         
         Returns:
             Dict containing the response and conversation metadata
         """
+        lead_id = lead_context.get("id")
+        
+        # Check if we need to fetch memories from Mem0
+        if self.mem0_integration and self.mem0_integration.is_configured() and lead_id:
+            try:
+                # Retrieve memory context
+                memory_context = await self.mem0_integration.synthesize_lead_context(lead_id)
+                
+                # Merge memory context with lead context
+                if memory_context:
+                    logger.info(f"Retrieved memory context for lead {lead_id} with {len(memory_context.get('memories', []))} memories")
+                    lead_context.update(memory_context)
+            except Exception as e:
+                logger.error(f"Error retrieving memories for lead {lead_id}: {e}")
+        
         # Determine the appropriate objective based on message content and lead context
         objective = self._determine_objective(message, lead_context)
         
@@ -486,13 +504,15 @@ class ConversationManager:
         response = await self.agent_orchestrator.generate_response(
             agent_type=agent["type"],
             prompt=message,
-            lead_context=lead_context
+            lead_context=lead_context,
+            llm_config=llm_config
         )
         
         # Update conversation metadata
+        conversation_id = str(uuid.uuid4())
         conversation_data = {
-            "id": str(uuid.uuid4()),
-            "lead_id": lead_context.get("id"),
+            "id": conversation_id,
+            "lead_id": lead_id,
             "channel": channel,
             "agent_type": agent["type"],
             "message": message,
@@ -501,11 +521,200 @@ class ConversationManager:
             "created_at": datetime.now().isoformat()
         }
         
+        # Store in Mem0 if configured
+        if self.mem0_integration and self.mem0_integration.is_configured() and lead_id:
+            try:
+                # Extract factual information from message
+                factual_data = self._extract_factual_data(message)
+                
+                # Extract emotional insights
+                emotional_data = self._extract_emotional_data(message, response)
+                
+                # Generate conversation analysis
+                analysis = {
+                    "factual_statements": factual_data.get("statements", []),
+                    "expressed_preferences": factual_data.get("preferences", {}),
+                    "sentiment_trajectory": emotional_data.get("sentiment_trajectory", []),
+                    "trust_building_moments": emotional_data.get("trust_indicators", []),
+                    "buying_indicators": response.get("analysis", {}).get("buying_signals", []),
+                    "objection_history": response.get("analysis", {}).get("objections_detected", []),
+                    "next_best_action": response.get("analysis", {}).get("next_best_action", "")
+                }
+                
+                # Store the memory in Mem0
+                await self.mem0_integration.store_conversation_memory(
+                    user_id=lead_id,
+                    conversation=conversation_data,
+                    analysis=analysis
+                )
+                
+                logger.info(f"Stored conversation memory for lead {lead_id}")
+            except Exception as e:
+                logger.error(f"Error storing memory for lead {lead_id}: {e}")
+        
+        # Update GHL if configured
+        if self.ghl_integration and hasattr(self.ghl_integration, 'update_contact') and lead_context.get("ghl_contact_id"):
+            try:
+                # Prepare contact updates based on conversation
+                updates = {
+                    "notes": [{
+                        "title": f"AI Conversation via {channel}",
+                        "content": f"User: {message}\nAI: {response['response']}"
+                    }]
+                }
+                
+                # Update custom fields if any insights were gained
+                custom_fields = []
+                
+                # Add AI personality type if detected
+                if "personality_type" in lead_context and lead_context["personality_type"]:
+                    custom_fields.append({
+                        "name": "AI Personality Type",
+                        "value": lead_context["personality_type"]
+                    })
+                
+                # Add AI Trust Level if available
+                if "trust_level" in lead_context:
+                    custom_fields.append({
+                        "name": "AI Trust Level",
+                        "value": str(int(lead_context["trust_level"] * 100))
+                    })
+                
+                # Add AI Relationship Stage if available
+                if "relationship_stage" in lead_context:
+                    custom_fields.append({
+                        "name": "AI Relationship Stage",
+                        "value": lead_context["relationship_stage"]
+                    })
+                
+                # Add AI Next Best Action if available
+                if "next_best_action" in response.get("analysis", {}):
+                    custom_fields.append({
+                        "name": "AI Next Best Action",
+                        "value": response["analysis"]["next_best_action"]
+                    })
+                
+                if custom_fields:
+                    updates["custom_fields"] = custom_fields
+                
+                # Update the contact in GHL
+                await self.ghl_integration.update_contact(
+                    contact_id=lead_context["ghl_contact_id"],
+                    contact_data=updates
+                )
+                
+                logger.info(f"Updated GHL contact {lead_context['ghl_contact_id']} with conversation data")
+            except Exception as e:
+                logger.error(f"Error updating GHL contact: {e}")
+        
         return {
             "conversation": conversation_data,
             "agent_used": agent,
             "response": response
         }
+    
+    def _extract_factual_data(self, message: str) -> Dict[str, Any]:
+        """
+        Extract factual information from a message
+        
+        In a production environment, this would use an LLM to extract structured data
+        For now, we'll use a simple rule-based approach
+        """
+        factual_data = {
+            "statements": [],
+            "preferences": {}
+        }
+        
+        # Extract basic facts about bedrooms
+        if "bedroom" in message.lower():
+            factual_data["statements"].append("Mentioned bedrooms")
+            
+            # Simple number extraction for bedrooms
+            import re
+            bedroom_match = re.search(r'(\d+)\s*bedroom', message.lower())
+            if bedroom_match:
+                factual_data["preferences"]["bedrooms"] = int(bedroom_match.group(1))
+        
+        # Extract basic facts about bathrooms
+        if "bathroom" in message.lower() or "bath" in message.lower():
+            factual_data["statements"].append("Mentioned bathrooms")
+            
+            # Simple number extraction for bathrooms
+            import re
+            bathroom_match = re.search(r'(\d+)\s*bath', message.lower())
+            if bathroom_match:
+                factual_data["preferences"]["bathrooms"] = int(bathroom_match.group(1))
+        
+        # Extract basic facts about location
+        for location in ["downtown", "suburb", "city", "rural", "urban"]:
+            if location in message.lower():
+                factual_data["statements"].append(f"Mentioned {location}")
+                factual_data["preferences"]["location"] = location
+                break
+        
+        # Extract basic facts about budget
+        if "budget" in message.lower() or "afford" in message.lower() or "price" in message.lower() or "$" in message:
+            factual_data["statements"].append("Mentioned budget/price")
+            
+            # Simple price extraction
+            import re
+            price_matches = re.findall(r'\$?(\d{3,6})[k]?', message)
+            if price_matches:
+                prices = [int(p) for p in price_matches]
+                if len(prices) >= 2:
+                    factual_data["preferences"]["budget_min"] = min(prices)
+                    factual_data["preferences"]["budget_max"] = max(prices)
+                elif len(prices) == 1:
+                    factual_data["preferences"]["budget_max"] = prices[0]
+        
+        return factual_data
+    
+    def _extract_emotional_data(self, message: str, response: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Extract emotional insights from a message and response
+        
+        In a production environment, this would use an LLM for sentiment analysis
+        For now, we'll use a simple rule-based approach
+        """
+        emotional_data = {
+            "sentiment_trajectory": [],
+            "trust_indicators": []
+        }
+        
+        # Simple sentiment detection
+        positive_words = ["happy", "great", "excellent", "good", "love", "like", "interested", "excited"]
+        negative_words = ["unhappy", "bad", "terrible", "hate", "dislike", "concerned", "worried", "disappointed"]
+        
+        # Count positive and negative words
+        positive_count = sum(1 for word in positive_words if word in message.lower())
+        negative_count = sum(1 for word in negative_words if word in message.lower())
+        
+        # Determine sentiment
+        if positive_count > negative_count:
+            sentiment = "positive"
+        elif negative_count > positive_count:
+            sentiment = "negative"
+        else:
+            sentiment = "neutral"
+        
+        emotional_data["sentiment_trajectory"].append({
+            "time": 0,
+            "sentiment": sentiment
+        })
+        
+        # Simple trust indicator detection
+        trust_phrases = [
+            "thank you", "thanks", "appreciate", "helpful", "understand", "trust", "believe you"
+        ]
+        
+        for phrase in trust_phrases:
+            if phrase in message.lower():
+                emotional_data["trust_indicators"].append({
+                    "indicator": f"Used phrase: '{phrase}'",
+                    "score": 0.7
+                })
+        
+        return emotional_data
     
     def _determine_objective(self, message: str, lead_context: Dict[str, Any]) -> str:
         """Determine the conversation objective based on message content and lead context"""
