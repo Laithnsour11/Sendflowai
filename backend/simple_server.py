@@ -74,6 +74,26 @@ async def validate_mem0_api_key(api_key: str = Body(..., embed=True)):
     else:
         return {"valid": False, "message": "Invalid Mem0 API key format"}
 
+@app.post("/api/settings/validate-vapi-key")
+async def validate_vapi_api_key(api_key: str = Body(..., embed=True)):
+    """
+    Validate a Vapi API key
+    
+    Args:
+        api_key: The Vapi API key to validate
+    
+    Returns:
+        Dict with validation status
+    """
+    if not api_key:
+        return {"valid": False, "message": "API key is required"}
+    
+    # For MVP, just check if the key is long enough
+    if len(api_key) > 10:
+        return {"valid": True, "message": "Vapi API key format is valid"}
+    else:
+        return {"valid": False, "message": "Invalid Vapi API key format"}
+
 # Organization endpoints
 @app.get("/api/organizations")
 async def get_organizations():
