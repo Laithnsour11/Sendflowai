@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Query, Body, Header
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 from motor.motor_asyncio import AsyncIOMotorClient
 from typing import List, Dict, Any, Optional
 from bson import ObjectId
@@ -14,17 +14,61 @@ from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
 
+# Custom JSON encoder for MongoDB ObjectId
+class ObjectIdJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        return super().default(obj)
+
+# Custom JSONResponse that handles ObjectId
+class CustomJSONResponse(JSONResponse):
+    def render(self, content) -> bytes:
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+            separators=(",", ":"),
+            cls=ObjectIdJSONEncoder,
+        ).encode("utf-8")
+
+# Helper function to convert ObjectId to string in dictionaries
+def serialize_object_id(obj):
+    if isinstance(obj, dict):
+        return {k: serialize_object_id(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize_object_id(item) for item in obj]
+    elif isinstance(obj, ObjectId):
+        return str(obj)
+    return obj
+
 # Local imports
 try:
-    from app.backend.memory_manager import MemoryManager
-    from app.backend.api_endpoints import router as api_router
-    memory_manager = MemoryManager()
-    use_memory_manager = True
+    # First try direct import
+    try:
+        from memory_manager import MemoryManager
+        from api_endpoints import router as api_router
+        memory_manager = MemoryManager()
+        use_memory_manager = True
+    except ImportError:
+        # Try with app prefix
+        from app.backend.memory_manager import MemoryManager
+        from app.backend.api_endpoints import router as api_router
+        memory_manager = MemoryManager()
+        use_memory_manager = True
 except ImportError as e:
     print(f"Memory manager import failed: {e}, will use default implementation")
     use_memory_manager = False
 
-import app.backend.database as db
+# Try different import strategies for database module
+try:
+    import database as db
+except ImportError:
+    try:
+        import app.backend.database as db
+    except ImportError:
+        from . import database as db
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
