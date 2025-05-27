@@ -43,7 +43,7 @@ client = AsyncIOMotorClient(mongo_url)
 db_instance = client[db_name]
 
 # Initialize services
-memory_manager = MemoryManager()
+# memory_manager already initialized above if imports succeeded
 
 # Create FastAPI app
 app = FastAPI(title="AI Closer API", version="1.0.0")
