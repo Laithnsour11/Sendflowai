@@ -126,9 +126,6 @@ async def get_organization_api_keys(org_id: str):
 
 @app.put("/api/settings/api-keys/{org_id}")
 async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
-    # Convert ObjectId to string to avoid serialization issues
-    from bson import ObjectId
-    from bson.json_util import dumps, loads
     
 
     
