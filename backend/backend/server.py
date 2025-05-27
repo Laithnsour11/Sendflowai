@@ -11,17 +11,17 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Local imports
-from models import (
+from backend.models import (
     Organization, OrganizationCreate, OrganizationUpdate,
     LeadProfile, LeadProfileCreate, LeadProfileUpdate,
     Conversation, ConversationCreate,
     AgentInteraction, MemorySnapshot, KnowledgeBase, ApiKeys, ApiKeysUpdate
 )
-import database as db
+import backend.database as db
 from backend.ghl import GHLIntegration
-from agents import AgentOrchestrator, ConversationManager
-from memory import MemoryManager
-from knowledge import KnowledgeBaseManager
+from backend.agents import AgentOrchestrator, ConversationManager
+from backend.memory import MemoryManager
+from backend.knowledge import KnowledgeBaseManager
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
