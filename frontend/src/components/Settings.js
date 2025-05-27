@@ -181,9 +181,9 @@ const Settings = ({ currentOrg }) => {
     }
   };
   
-  // Render Mem0 validation status
-  const renderMem0ValidationStatus = () => {
-    const status = validationStatus.mem0_api_key;
+  // Render API key validation status
+  const renderValidationStatus = (key) => {
+    const status = validationStatus[key];
     
     if (!status) return null;
     
