@@ -144,43 +144,77 @@ async def get_conversations(lead_id: Optional[str] = None):
 # API Keys management
 @app.get("/api/settings/api-keys/{org_id}")
 async def get_organization_api_keys(org_id: str):
-    api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
-    if not api_keys:
-        return {}
-    
-    # Convert ObjectId to string
-    api_keys = serialize_object_id(api_keys)
-    
-    # Mask sensitive data
-    masked_keys = {}
-    for key_name, key_value in api_keys.items():
-        if key_name not in ["_id", "org_id"] and key_value:
-            if key_name.endswith("_api_key") or key_name.endswith("_secret"):
-                # Show only last 4 characters
-                masked_keys[key_name] = "••••••••" + key_value[-4:] if len(key_value) > 4 else "••••"
+    try:
+        api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
+        if not api_keys:
+            return {}
+        
+        # Create a new dictionary without ObjectId
+        clean_keys = {}
+        for key, value in api_keys.items():
+            if key == "_id":
+                clean_keys["id"] = str(value)
+            elif isinstance(value, ObjectId):
+                clean_keys[key] = str(value)
+            else:
+                clean_keys[key] = value
+        
+        # Mask sensitive data
+        masked_keys = {}
+        for key_name, key_value in clean_keys.items():
+            if key_name not in ["id", "org_id"] and key_value:
+                if key_name.endswith("_api_key") or key_name.endswith("_secret"):
+                    # Show only last 4 characters
+                    masked_keys[key_name] = "••••••••" + str(key_value)[-4:] if len(str(key_value)) > 4 else "••••"
+                else:
+                    masked_keys[key_name] = key_value
             else:
                 masked_keys[key_name] = key_value
-        else:
-            masked_keys[key_name] = key_value
-    
-    return masked_keys
+        
+        return masked_keys
+    except Exception as e:
+        logger.error(f"Error getting API keys: {e}")
+        raise HTTPException(status_code=500, detail=f"Error getting API keys: {str(e)}")
 
 @app.put("/api/settings/api-keys/{org_id}")
 async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
-    keys_data["org_id"] = org_id
-    keys_data["updated_at"] = datetime.now().isoformat()
-    
-    # Filter out empty API keys
-    filtered_keys = {k: v for k, v in keys_data.items() if v is not None and v != ""}
-    
-    result = await db.api_keys_collection.update_one(
-        {"org_id": org_id},
-        {"$set": filtered_keys},
-        upsert=True
-    )
-    
-    api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
-    api_keys = serialize_object_id(api_keys)
+    try:
+        # Clean the data
+        keys_data["org_id"] = org_id
+        keys_data["updated_at"] = datetime.now().isoformat()
+        
+        # Filter out empty API keys
+        filtered_keys = {k: v for k, v in keys_data.items() if v is not None and v != ""}
+        
+        # Make sure no ObjectId values are present
+        for key, value in filtered_keys.items():
+            if isinstance(value, ObjectId):
+                filtered_keys[key] = str(value)
+        
+        result = await db.api_keys_collection.update_one(
+            {"org_id": org_id},
+            {"$set": filtered_keys},
+            upsert=True
+        )
+        
+        # Get the updated keys
+        api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
+        
+        # Create a new dictionary without ObjectId
+        clean_keys = {}
+        if api_keys:
+            for key, value in api_keys.items():
+                if key == "_id":
+                    clean_keys["id"] = str(value)
+                elif isinstance(value, ObjectId):
+                    clean_keys[key] = str(value)
+                else:
+                    clean_keys[key] = value
+        
+        return {"status": "success", "message": "API keys updated", "keys": clean_keys}
+    except Exception as e:
+        logger.error(f"Error updating API keys: {e}")
+        raise HTTPException(status_code=500, detail=f"Error updating API keys: {str(e)}")
     
     # Mask sensitive data in response
     masked_result = {}
