@@ -7,10 +7,9 @@ import os
 import json
 import time
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
-import asyncio
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
@@ -30,32 +29,19 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 # Import integrations
-import sys
-sys.path.append('/app')
 from ghl import GHLIntegration
 from vapi import VapiIntegration
 from mem0 import Mem0Integration
 from sendblue import SendBlueIntegration
 
 # Initialize integrations
-ghl_integration = GHLIntegration(
-    client_id=os.environ.get('GHL_CLIENT_ID', '681a8d486b267326cb42a4db-mb5qftwj'),
-    client_secret=os.environ.get('GHL_CLIENT_SECRET', '12395acc-c70b-4aee-b86f-abb4c7da3b62'),
-    shared_secret=os.environ.get('GHL_SHARED_SECRET', '6a705549-ecb6-48cf-b5e4-8fe59b3bafa9')
-)
+ghl_integration = GHLIntegration()
 vapi_integration = VapiIntegration(
     public_key=os.environ.get('VAPI_PUBLIC_KEY', 'd14070eb-c48a-45d5-9a53-6115b8c4d517'),
     private_key=os.environ.get('VAPI_PRIVATE_KEY', 'c948ca43-806d-4a15-8f7b-a29e019457b1')
 )
 mem0_integration = Mem0Integration()
 sendblue_integration = SendBlueIntegration()
-
-# Set access token if available (for testing purposes)
-if os.environ.get('GHL_ACCESS_TOKEN') and os.environ.get('GHL_REFRESH_TOKEN'):
-    ghl_integration.set_tokens(
-        access_token=os.environ.get('GHL_ACCESS_TOKEN'),
-        refresh_token=os.environ.get('GHL_REFRESH_TOKEN')
-    )
 
 # Create FastAPI app
 app = FastAPI(title="AI Closer API", version="1.0.0")
@@ -74,199 +60,31 @@ app.add_middleware(
 async def root():
     return {"message": "Welcome to AI Closer API", "version": "1.0.0"}
 
+# Organization endpoints
+@app.get("/api/organizations")
+async def get_organizations():
+    orgs = await db.organizations.find().to_list(length=100)
+    for org in orgs:
+        org["id"] = str(org["_id"])
+    return orgs
+
 # Lead endpoints
 @app.get("/api/leads")
 async def get_leads(org_id: Optional[str] = None):
-    """Get all leads"""
     query = {"org_id": org_id} if org_id else {}
     leads = await db.leads.find(query).to_list(length=100)
     for lead in leads:
         lead["id"] = str(lead["_id"])
-    return {"leads": leads}
+    return leads
 
-@app.get("/api/leads/{lead_id}")
-async def get_lead(lead_id: str):
-    """Get a specific lead"""
-    lead = await db.leads.find_one({"_id": lead_id})
-    if not lead:
-        raise HTTPException(status_code=404, detail="Lead not found")
-    lead["id"] = str(lead["_id"])
-    return {"lead": lead}
-
-# GHL Integration endpoints
-@app.get("/api/ghl/contacts")
-async def get_ghl_contacts(page: int = 1, limit: int = 100):
-    """Get contacts from GHL with pagination"""
-    query_params = {
-        "page": page,
-        "limit": limit
-    }
-    
-    contacts = await ghl_integration.get_contacts(query_params=query_params)
-    return {"contacts": contacts}
-
-@app.get("/api/ghl/contacts/{contact_id}")
-async def get_ghl_contact(contact_id: str):
-    """Get a specific contact from GHL"""
-    contact = await ghl_integration.get_contact(contact_id)
-    return {"contact": contact}
-
-@app.post("/api/ghl/contacts")
-async def create_ghl_contact(contact_data: Dict[str, Any]):
-    """Create a new contact in GHL"""
-    contact = await ghl_integration.create_contact(contact_data)
-    return {"contact": contact}
-
-@app.put("/api/ghl/contacts/{contact_id}")
-async def update_ghl_contact(contact_id: str, contact_data: Dict[str, Any]):
-    """Update a contact in GHL"""
-    contact = await ghl_integration.update_contact(contact_id, contact_data)
-    return {"contact": contact}
-
-@app.get("/api/ghl/contacts/{contact_id}/notes")
-async def get_ghl_contact_notes(contact_id: str, limit: int = 50):
-    """Get notes for a specific contact"""
-    notes = await ghl_integration.get_contact_notes(contact_id, limit=limit)
-    return {"notes": notes}
-
-@app.post("/api/ghl/contacts/{contact_id}/notes")
-async def add_ghl_contact_note(contact_id: str, note: str = Body(...), user_id: Optional[str] = None):
-    """Add a note to a contact"""
-    result = await ghl_integration.add_note_to_contact(contact_id, note, user_id)
-    return result
-
-@app.get("/api/ghl/custom-fields")
-async def get_ghl_custom_fields():
-    """Get custom fields from GHL"""
-    custom_fields = await ghl_integration.get_custom_fields()
-    return {"custom_fields": custom_fields}
-
-@app.post("/api/ghl/custom-fields")
-async def create_ghl_custom_field(field_data: Dict[str, Any]):
-    """Create a custom field in GHL"""
-    custom_field = await ghl_integration.create_custom_field(field_data)
-    return {"custom_field": custom_field}
-
-@app.get("/api/ghl/pipelines")
-async def get_ghl_pipelines():
-    """Get all pipelines"""
-    pipelines = await ghl_integration.get_pipelines()
-    return {"pipelines": pipelines}
-
-@app.get("/api/ghl/opportunities")
-async def get_ghl_opportunities(contact_id: Optional[str] = None):
-    """Get opportunities, optionally filtered by contact ID"""
-    opportunities = await ghl_integration.get_opportunities(contact_id=contact_id)
-    return {"opportunities": opportunities}
-
-@app.post("/api/ghl/opportunities")
-async def create_ghl_opportunity(opportunity_data: Dict[str, Any]):
-    """Create a new opportunity"""
-    opportunity = await ghl_integration.create_opportunity(opportunity_data)
-    return {"opportunity": opportunity}
-
-@app.put("/api/ghl/opportunities/{opportunity_id}")
-async def update_ghl_opportunity(opportunity_id: str, opportunity_data: Dict[str, Any]):
-    """Update an opportunity"""
-    opportunity = await ghl_integration.update_opportunity(opportunity_id, opportunity_data)
-    return {"opportunity": opportunity}
-
-@app.put("/api/ghl/opportunities/{opportunity_id}/stage/{stage_id}")
-async def move_ghl_opportunity_stage(opportunity_id: str, stage_id: str):
-    """Move an opportunity to a different stage"""
-    opportunity = await ghl_integration.move_opportunity_stage(opportunity_id, stage_id)
-    return {"opportunity": opportunity}
-
-@app.get("/api/ghl/tasks")
-async def get_ghl_tasks(contact_id: Optional[str] = None):
-    """Get tasks, optionally filtered by contact ID"""
-    tasks = await ghl_integration.get_tasks(contact_id=contact_id)
-    return {"tasks": tasks}
-
-@app.post("/api/ghl/tasks")
-async def create_ghl_task(task_data: Dict[str, Any]):
-    """Create a new task"""
-    task = await ghl_integration.create_task(task_data)
-    return {"task": task}
-
-@app.post("/api/ghl/contacts/{contact_id}/follow-up")
-async def create_ghl_follow_up_task(contact_id: str, task_data: Dict[str, Any]):
-    """Create a follow-up task for a human agent"""
-    task = await ghl_integration.create_follow_up_task(contact_id, task_data)
-    return {"task": task}
-
-@app.get("/api/ghl/contacts/{contact_id}/comprehensive")
-async def get_ghl_comprehensive_lead_data(contact_id: str):
-    """Get comprehensive data about a lead"""
-    data = await ghl_integration.get_comprehensive_lead_data(contact_id)
-    return data
-
-@app.post("/api/ghl/contacts/{contact_id}/ai-insights")
-async def update_ghl_ai_insights(contact_id: str, ai_insights: Dict[str, Any]):
-    """Update AI-specific insights in GHL custom fields"""
-    result = await ghl_integration.update_ai_insights(contact_id, ai_insights)
-    return result
-
-@app.post("/api/ghl/contacts/{contact_id}/ai-interaction")
-async def add_ghl_ai_interaction_note(contact_id: str, interaction_data: Dict[str, Any]):
-    """Add a structured note about an AI interaction"""
-    result = await ghl_integration.add_ai_interaction_note(contact_id, interaction_data)
-    return result
-
-# Testing endpoints
-@app.post("/api/ghl/set-token")
-async def set_ghl_token(access_token: str, refresh_token: str):
-    """Set GHL access token for testing purposes"""
-    ghl_integration.set_tokens(access_token=access_token, refresh_token=refresh_token)
-    return {"status": "success", "message": "Token set successfully"}
-
-@app.post("/api/ghl/test/create-contact")
-async def test_create_contact(name: str, email: str, phone: str):
-    """Create a test contact in our system"""
-    # Prepare a test contact
-    contact_data = {
-        "_id": str(uuid.uuid4()),
-        "org_id": "test_org",
-        "name": name,
-        "email": email,
-        "phone": phone,
-        "ghl_contact_id": str(uuid.uuid4()),  # Simulate a GHL contact ID
-        "relationship_stage": "initial_contact",
-        "trust_level": 0.5,
-        "conversion_probability": 0.3,
-        "created_at": datetime.now(),
-        "updated_at": datetime.now()
-    }
-    
-    # Store in database
-    await db.leads.insert_one(contact_data)
-    
-    return {
-        "status": "success", 
-        "message": "Test contact created", 
-        "contact": contact_data
-    }
-
-# Webhook endpoint
-@app.post("/api/ghl/webhook")
-async def ghl_webhook(payload: Dict[str, Any], signature: str = Header(None, alias="X-GoHighLevel-Signature"), event_type: str = Header(None, alias="X-Event-Type")):
-    """Handle GHL webhooks"""
-    logger.info(f"Received GHL webhook: {event_type}")
-    
-    # Verify webhook signature if provided
-    if signature:
-        payload_str = json.dumps(payload)
-        if not ghl_integration.verify_webhook_signature(signature, payload_str):
-            logger.warning(f"Invalid webhook signature")
-            raise HTTPException(status_code=403, detail="Invalid webhook signature")
-    
-    # Process webhook based on event type
-    if event_type:
-        logger.info(f"Processing {event_type} webhook")
-        # Here you would handle different event types
-        # For now, just log the event
-    
-    return {"status": "success", "message": f"Processed {event_type} webhook"}
+# Conversation endpoints
+@app.get("/api/conversations")
+async def get_conversations(lead_id: Optional[str] = None):
+    query = {"lead_id": lead_id} if lead_id else {}
+    conversations = await db.conversations.find(query).to_list(length=100)
+    for convo in conversations:
+        convo["id"] = str(convo["_id"])
+    return conversations
 
 # API Keys management
 @app.get("/api/settings/api-keys/{org_id}")
@@ -443,6 +261,538 @@ async def get_integration_status(org_id: str) -> Dict[str, Any]:
 async def get_organization_integration_status(org_id: str):
     """Get the status of all integrations for an organization"""
     return await get_integration_status(org_id)
+
+# GHL OAuth endpoints
+@app.get("/api/ghl/oauth-url")
+async def get_ghl_oauth_url(org_id: str):
+    # Get the GHL credentials
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "ghl_client_id" not in api_keys:
+        raise HTTPException(status_code=400, detail="GHL Client ID not configured")
+    
+    # Set up GHL integration
+    ghl_integration.set_credentials(
+        client_id=api_keys["ghl_client_id"],
+        client_secret=api_keys.get("ghl_client_secret", ""),
+        shared_secret=api_keys.get("ghl_shared_secret", "")
+    )
+    
+    # Generate OAuth URL
+    redirect_uri = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/ghl-callback"
+    oauth_url = await ghl_integration.get_oauth_url(redirect_uri)
+    
+    return {"oauth_url": oauth_url}
+
+@app.post("/api/ghl/oauth-callback")
+async def ghl_oauth_callback(org_id: str, code: str):
+    # Get the GHL credentials
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "ghl_client_id" not in api_keys or "ghl_client_secret" not in api_keys:
+        raise HTTPException(status_code=400, detail="GHL OAuth credentials not configured")
+    
+    # Set up GHL integration
+    ghl_integration.set_credentials(
+        client_id=api_keys["ghl_client_id"],
+        client_secret=api_keys["ghl_client_secret"],
+        shared_secret=api_keys.get("ghl_shared_secret", "")
+    )
+    
+    # Exchange code for token
+    redirect_uri = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/ghl-callback"
+    try:
+        token_data = await ghl_integration.exchange_code_for_token(code, redirect_uri)
+        
+        # Store tokens in database
+        await db.api_keys.update_one(
+            {"org_id": org_id},
+            {"$set": {
+                "ghl_access_token": token_data["access_token"],
+                "ghl_refresh_token": token_data["refresh_token"],
+                "ghl_token_expires_at": int(time.time()) + token_data["expires_in"],
+                "ghl_location_id": token_data.get("locationId", ""),
+                "ghl_company_id": token_data.get("companyId", ""),
+                "updated_at": datetime.now()
+            }}
+        )
+        
+        return {"success": True, "message": "GHL account connected successfully"}
+    except Exception as e:
+        logger.error(f"Error exchanging GHL OAuth code: {e}")
+        raise HTTPException(status_code=500, detail=f"Error connecting GHL account: {str(e)}")
+
+# Vapi endpoints
+@app.post("/api/vapi/create-call")
+async def create_vapi_call(
+    org_id: str, 
+    phone_number: str = Body(...), 
+    agent_type: str = Body(...),
+    lead_id: Optional[str] = Body(None)
+):
+    """Create a new voice call using Vapi.ai"""
+    # Get the API keys
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "vapi_public_key" not in api_keys or "vapi_private_key" not in api_keys:
+        raise HTTPException(status_code=400, detail="Vapi API keys not configured")
+    
+    # Set up Vapi integration
+    vapi_integration.set_api_keys(
+        public_key=api_keys["vapi_public_key"],
+        private_key=api_keys["vapi_private_key"]
+    )
+    
+    # Get lead information if lead_id is provided
+    lead_context = {}
+    if lead_id:
+        lead = await db.leads.find_one({"_id": lead_id})
+        if lead:
+            # Basic lead information
+            lead_context = {
+                "id": str(lead["_id"]),
+                "name": lead.get("name", ""),
+                "email": lead.get("email", ""),
+                "phone": lead.get("phone", ""),
+                "personality_type": lead.get("personality_type"),
+                "relationship_stage": lead.get("relationship_stage", "initial_contact"),
+                "property_preferences": lead.get("property_preferences", {}),
+                "budget": lead.get("budget_analysis", {})
+            }
+            
+            # Get memory context if Mem0 is configured
+            if "mem0_api_key" in api_keys and api_keys["mem0_api_key"]:
+                mem0_integration.set_api_key(api_keys["mem0_api_key"])
+                memory_context = await mem0_integration.synthesize_lead_context(str(lead["_id"]))
+                
+                # Merge memory context with lead context
+                lead_context.update(memory_context)
+    
+    # Configure agent based on type
+    agent_config = {
+        "type": agent_type,
+        "name": f"{agent_type.replace('_', ' ').title()} Agent",
+        "from_number": "+12345678901",  # Would be configured properly in production
+        "webhook_url": f"{os.environ.get('BACKEND_URL', 'http://localhost:8000')}/api/vapi/webhook",
+        "webhook_auth": f"Bearer {uuid.uuid4()}",  # Simple auth token for webhook
+        "llm_provider": "openai",  # Would use org's preferred provider
+        "llm_model": "gpt-4o",  # Would use org's preferred model
+        "temperature": 0.7,
+        "first_message": f"Hello, this is AI Closer calling from {api_keys.get('company_name', 'Real Estate Partners')}. How are you doing today?"
+    }
+    
+    # Create the call
+    try:
+        result = await vapi_integration.create_intelligent_call(
+            phone_number=phone_number,
+            agent_config=agent_config,
+            lead_context=lead_context
+        )
+        
+        # Save the call in the database
+        call_record = {
+            "_id": str(uuid.uuid4()),
+            "org_id": org_id,
+            "lead_id": lead_id,
+            "vapi_call_id": result.get("id"),
+            "phone_number": phone_number,
+            "agent_type": agent_type,
+            "status": result.get("status", "initiated"),
+            "created_at": datetime.now()
+        }
+        
+        await db.calls.insert_one(call_record)
+        
+        return {
+            "success": True,
+            "call_id": call_record["_id"],
+            "vapi_call_id": result.get("id"),
+            "status": result.get("status")
+        }
+    except Exception as e:
+        logger.error(f"Error creating Vapi call: {e}")
+        raise HTTPException(status_code=500, detail=f"Error creating call: {str(e)}")
+
+@app.post("/api/vapi/webhook")
+async def vapi_webhook(payload: Dict[str, Any]):
+    """Handle webhooks from Vapi.ai"""
+    logger.info(f"Received Vapi webhook: {payload.get('type')}")
+    
+    try:
+        # Process the webhook
+        result = await vapi_integration.process_webhook(payload)
+        
+        # Update call status in database
+        call_id = payload.get("call_id")
+        if call_id:
+            call = await db.calls.find_one({"vapi_call_id": call_id})
+            if call:
+                update_data = {
+                    "status": payload.get("status", call["status"]),
+                    "updated_at": datetime.now()
+                }
+                
+                # If call ended, store additional data
+                if payload.get("type") == "call-ended":
+                    update_data["duration"] = payload.get("duration")
+                    update_data["recording_url"] = payload.get("recording_url")
+                    
+                    # If we have a lead_id, store memory
+                    if call.get("lead_id"):
+                        # Get the full call details from Vapi
+                        call_details = await vapi_integration.get_call(call_id)
+                        
+                        # Store memory if Mem0 is configured
+                        api_keys = await db.api_keys.find_one({"org_id": call["org_id"]})
+                        if api_keys and "mem0_api_key" in api_keys:
+                            mem0_integration.set_api_key(api_keys["mem0_api_key"])
+                            
+                            # Analyze the call
+                            analysis = await vapi_integration.analyze_call(
+                                call_id=call_id,
+                                agent_config={"type": call["agent_type"]}
+                            )
+                            
+                            # Store in Mem0
+                            await mem0_integration.store_conversation_memory(
+                                user_id=call["lead_id"],
+                                conversation={
+                                    "id": call["_id"],
+                                    "channel": "voice",
+                                    "agent_type": call["agent_type"],
+                                    "duration_seconds": call_details.get("duration"),
+                                    "transcript": call_details.get("transcript"),
+                                    "created_at": datetime.now().isoformat()
+                                },
+                                analysis=analysis
+                            )
+                            
+                            update_data["analysis"] = analysis
+                
+                await db.calls.update_one(
+                    {"vapi_call_id": call_id},
+                    {"$set": update_data}
+                )
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error processing Vapi webhook: {e}")
+        return {"success": False, "error": str(e)}
+
+# Mem0 endpoints
+@app.get("/api/memory/lead/{lead_id}")
+async def get_lead_memory(lead_id: str, org_id: str):
+    """Get the memory context for a lead"""
+    # Get the API keys
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "mem0_api_key" not in api_keys:
+        raise HTTPException(status_code=400, detail="Mem0 API key not configured")
+    
+    # Set up Mem0 integration
+    mem0_integration.set_api_key(api_keys["mem0_api_key"])
+    
+    try:
+        # Get lead context from Mem0
+        context = await mem0_integration.synthesize_lead_context(lead_id)
+        return context
+    except Exception as e:
+        logger.error(f"Error getting lead memory: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving memory: {str(e)}")
+
+@app.post("/api/memory/store")
+async def store_memory(
+    org_id: str,
+    lead_id: str = Body(...),
+    memory_type: str = Body(...),
+    memory_data: Dict[str, Any] = Body(...)
+):
+    """Store a memory for a lead"""
+    # Get the API keys
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "mem0_api_key" not in api_keys:
+        raise HTTPException(status_code=400, detail="Mem0 API key not configured")
+    
+    # Set up Mem0 integration
+    mem0_integration.set_api_key(api_keys["mem0_api_key"])
+    
+    try:
+        # Store memory in Mem0
+        result = await mem0_integration.store_multi_layered_memory(
+            user_id=lead_id,
+            memory_data=memory_data,
+            memory_type=memory_type
+        )
+        
+        return {
+            "success": True,
+            "memory_id": result.get("id"),
+            "memory_type": memory_type
+        }
+    except Exception as e:
+        logger.error(f"Error storing memory: {e}")
+        raise HTTPException(status_code=500, detail=f"Error storing memory: {str(e)}")
+
+# SendBlue endpoints
+@app.post("/api/sendblue/send-message")
+async def send_sendblue_message(
+    org_id: str,
+    to_number: str = Body(...),
+    message: str = Body(...),
+    from_number: Optional[str] = Body(None),
+    media_urls: Optional[List[str]] = Body(None)
+):
+    """Send an SMS message using SendBlue"""
+    # Get the API keys
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "sendblue_api_key" not in api_keys or "sendblue_api_secret" not in api_keys:
+        raise HTTPException(status_code=400, detail="SendBlue API credentials not configured")
+    
+    # Set up SendBlue integration
+    sendblue_integration.set_api_credentials(
+        api_key=api_keys["sendblue_api_key"],
+        api_secret=api_keys["sendblue_api_secret"]
+    )
+    
+    try:
+        # Send message via SendBlue
+        result = await sendblue_integration.send_message(
+            to_number=to_number,
+            message=message,
+            from_number=from_number,
+            media_urls=media_urls
+        )
+        
+        return {
+            "success": True,
+            "message_id": result.get("id"),
+            "status": result.get("status")
+        }
+    except Exception as e:
+        logger.error(f"Error sending SendBlue message: {e}")
+        raise HTTPException(status_code=500, detail=f"Error sending message: {str(e)}")
+
+@app.post("/api/sendblue/send-sequence")
+async def send_sendblue_sequence(
+    org_id: str,
+    to_number: str = Body(...),
+    messages: List[Dict[str, Any]] = Body(...),
+    from_number: Optional[str] = Body(None),
+    lead_id: Optional[str] = Body(None)
+):
+    """Send a sequence of SMS messages with intelligent cadence using SendBlue"""
+    # Get the API keys
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys or "sendblue_api_key" not in api_keys or "sendblue_api_secret" not in api_keys:
+        raise HTTPException(status_code=400, detail="SendBlue API credentials not configured")
+    
+    # Set up SendBlue integration
+    sendblue_integration.set_api_credentials(
+        api_key=api_keys["sendblue_api_key"],
+        api_secret=api_keys["sendblue_api_secret"]
+    )
+    
+    # Get lead context if lead_id is provided
+    agent_config = {}
+    if lead_id:
+        lead = await db.leads.find_one({"_id": lead_id})
+        if lead and lead.get("personality_type"):
+            # Adjust cadence based on personality type
+            if lead["personality_type"] == "analytical":
+                agent_config["cadence_multiplier"] = 1.5  # Longer pauses for analytical types
+            elif lead["personality_type"] == "driver":
+                agent_config["cadence_multiplier"] = 0.7  # Shorter pauses for driver types
+    
+    try:
+        # Send message sequence via SendBlue
+        result = await sendblue_integration.send_multi_part_message(
+            to_number=to_number,
+            messages=messages,
+            from_number=from_number,
+            agent_config=agent_config
+        )
+        
+        # Store in Mem0 if configured
+        if lead_id and "mem0_api_key" in api_keys and api_keys["mem0_api_key"]:
+            mem0_integration.set_api_key(api_keys["mem0_api_key"])
+            
+            # Combine all messages into a single string for context
+            combined_message = "\n".join([msg["content"] for msg in messages])
+            
+            # Store in Mem0
+            await mem0_integration.store_contextual_memory(
+                user_id=lead_id,
+                contextual_data={
+                    "channel": "sms",
+                    "direction": "outbound",
+                    "content": combined_message,
+                    "timestamp": datetime.now().isoformat(),
+                    "message_count": len(messages)
+                }
+            )
+        
+        return {
+            "success": True,
+            "message_count": result.get("message_count"),
+            "successful_sends": result.get("successful_sends")
+        }
+    except Exception as e:
+        logger.error(f"Error sending SendBlue message sequence: {e}")
+        raise HTTPException(status_code=500, detail=f"Error sending message sequence: {str(e)}")
+
+@app.post("/api/sendblue/webhook")
+async def sendblue_webhook(payload: Dict[str, Any]):
+    """Handle webhooks from SendBlue"""
+    logger.info(f"Received SendBlue webhook: {payload.get('event_type')}")
+    
+    try:
+        # Process the webhook
+        result = await sendblue_integration.process_webhook(payload)
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error processing SendBlue webhook: {e}")
+        return {"success": False, "error": str(e)}
+
+# Conversation processing endpoint
+@app.post("/api/conversation/process")
+async def process_message(
+    org_id: str = Body(...),
+    lead_id: str = Body(...),
+    message: str = Body(...),
+    channel: str = Body(...),  # "sms", "email", "chat"
+    agent_type: Optional[str] = Body(None)
+):
+    """Process a message and get an AI response"""
+    # Get the API keys and organization settings
+    api_keys = await db.api_keys.find_one({"org_id": org_id})
+    if not api_keys:
+        raise HTTPException(status_code=400, detail="Organization API keys not configured")
+    
+    # Get the lead information
+    lead = await db.leads.find_one({"_id": lead_id})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    # Get lead context from Mem0 if configured
+    lead_context = {
+        "id": lead_id,
+        "name": lead.get("name", ""),
+        "email": lead.get("email", ""),
+        "phone": lead.get("phone", ""),
+        "personality_type": lead.get("personality_type"),
+        "relationship_stage": lead.get("relationship_stage", "initial_contact"),
+        "property_preferences": lead.get("property_preferences", {}),
+        "budget_analysis": lead.get("budget_analysis", {})
+    }
+    
+    if "mem0_api_key" in api_keys and api_keys["mem0_api_key"]:
+        mem0_integration.set_api_key(api_keys["mem0_api_key"])
+        
+        try:
+            memory_context = await mem0_integration.synthesize_lead_context(lead_id)
+            lead_context.update(memory_context)
+        except Exception as e:
+            logger.error(f"Error retrieving memory context: {e}")
+    
+    # For demo, return a mock response based on the message and lead context
+    # In a real implementation, this would use an LLM via OpenAI or OpenRouter
+    
+    # Determine relationship stage
+    relationship_stage = lead_context.get("relationship_stage", "initial_contact")
+    
+    # Mock agent selection based on stage and message content
+    selected_agent_type = agent_type
+    
+    if not selected_agent_type:
+        if "appointment" in message.lower() or "schedule" in message.lower():
+            selected_agent_type = "appointment_setter"
+        elif "price" in message.lower() or "expensive" in message.lower() or "afford" in message.lower():
+            selected_agent_type = "objection_handler"
+        elif relationship_stage == "initial_contact":
+            selected_agent_type = "initial_contact"
+        elif relationship_stage == "qualification":
+            selected_agent_type = "qualifier"
+        elif relationship_stage == "nurturing":
+            selected_agent_type = "nurturer"
+        elif relationship_stage == "closing":
+            selected_agent_type = "closer"
+        else:
+            selected_agent_type = "initial_contact"
+    
+    # Generate mock response based on agent type
+    responses = {
+        "initial_contact": f"Hi {lead_context.get('name', 'there')}! I'm excited to help with your real estate journey. Could you tell me what you're looking for in a property?",
+        "qualifier": f"Based on what you've shared, it sounds like you're looking for a property with {lead_context.get('property_preferences', {}).get('bedrooms', '3')} bedrooms. What's your ideal price range?",
+        "nurturer": f"I thought you might be interested in this new market report for {lead_context.get('property_preferences', {}).get('location', 'your area')}. Property values have increased 5% since we last spoke.",
+        "objection_handler": f"I understand your concern about the price. Many of my clients have felt the same way initially. Have you considered looking at properties in nearby neighborhoods that offer similar features at a lower price point?",
+        "closer": f"Based on everything we've discussed, this property at 123 Main St seems to be a perfect match for your needs. Would you like to move forward with making an offer?",
+        "appointment_setter": f"I'd be happy to show you the property at 123 Main St. Would Tuesday at 2pm or Wednesday at 4pm work better for your schedule?"
+    }
+    
+    response_text = responses.get(selected_agent_type, responses["initial_contact"])
+    
+    # Store the conversation
+    conversation = {
+        "_id": str(uuid.uuid4()),
+        "org_id": org_id,
+        "lead_id": lead_id,
+        "message": message,
+        "response": response_text,
+        "channel": channel,
+        "agent_type": selected_agent_type,
+        "created_at": datetime.now()
+    }
+    
+    await db.conversations.insert_one(conversation)
+    
+    # Store in Mem0 if configured
+    if "mem0_api_key" in api_keys and api_keys["mem0_api_key"]:
+        mem0_integration.set_api_key(api_keys["mem0_api_key"])
+        
+        # Mock analysis
+        mock_analysis = {
+            "factual_statements": [],
+            "expressed_preferences": {},
+            "sentiment_trajectory": [{"time": 0, "sentiment": "positive"}],
+            "buying_indicators": []
+        }
+        
+        # Extract basic factual statements from message
+        if "bedroom" in message.lower():
+            mock_analysis["factual_statements"].append("Mentioned bedrooms")
+            if "3" in message:
+                mock_analysis["expressed_preferences"]["bedrooms"] = 3
+        
+        if "bathroom" in message.lower():
+            mock_analysis["factual_statements"].append("Mentioned bathrooms")
+            if "2" in message:
+                mock_analysis["expressed_preferences"]["bathrooms"] = 2
+        
+        if "budget" in message.lower() or "afford" in message.lower() or "price" in message.lower():
+            mock_analysis["factual_statements"].append("Mentioned budget/price")
+            # Try to extract numbers that could be prices
+            import re
+            numbers = re.findall(r'\d+', message)
+            if numbers:
+                largest_number = max([int(num) for num in numbers])
+                if largest_number > 100000:  # Likely a property price
+                    mock_analysis["expressed_preferences"]["budget_max"] = largest_number
+        
+        # Store in Mem0
+        try:
+            await mem0_integration.store_conversation_memory(
+                user_id=lead_id,
+                conversation=conversation,
+                analysis=mock_analysis
+            )
+        except Exception as e:
+            logger.error(f"Error storing memory: {e}")
+    
+    # Return the response
+    return {
+        "id": conversation["_id"],
+        "response": response_text,
+        "agent_type": selected_agent_type,
+        "lead_context": lead_context,
+        "channel": channel
+    }
 
 # Shutdown event to close database connection
 @app.on_event("shutdown")
