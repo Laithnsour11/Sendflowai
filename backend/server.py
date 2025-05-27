@@ -588,6 +588,371 @@ async def sync_leads_from_ghl(org_id: str):
         logger.error(f"Error syncing leads from GHL: {e}")
         raise HTTPException(status_code=500, detail=f"Error syncing leads from GHL: {str(e)}")
 
+# Agent Orchestration endpoints
+from agent_orchestrator import AgentOrchestrator
+agent_orchestrator = AgentOrchestrator()
+
+@app.post("/api/agents/select")
+async def select_agent(
+    lead_id: str,
+    objective: str,
+    channel: str,
+    conversation_history: Optional[bool] = True
+):
+    """
+    Select the most appropriate agent for a given lead and objective.
+    
+    Args:
+        lead_id: ID of the lead
+        objective: The objective of the interaction
+        channel: The communication channel (chat, sms, email, voice)
+        conversation_history: Whether to include conversation history in the context
+        
+    Returns:
+        The selected agent and selection confidence
+    """
+    # Get the lead data
+    lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    # Get the lead's organization
+    org_id = lead["org_id"]
+    
+    # Get the lead's memory if available
+    lead_memory = None
+    if use_memory_manager:
+        lead_memory = await memory_manager.get_comprehensive_memory(lead_id)
+    
+    # Build context for agent selection
+    context = {
+        "lead_information": {
+            "name": lead.get("name", ""),
+            "email": lead.get("email"),
+            "phone": lead.get("phone"),
+            "source": lead.get("source", ""),
+            "personality_type": lead.get("personality_type"),
+            "trust_level": lead.get("trust_level"),
+            "conversion_probability": lead.get("conversion_probability"),
+            "relationship_stage": lead.get("relationship_stage"),
+            "memory": lead_memory
+        },
+        "objective": objective,
+        "channel": channel
+    }
+    
+    # Get conversation history if requested
+    if conversation_history:
+        conversations = await db.conversations_collection.find({"lead_id": lead_id}).sort("created_at", -1).limit(5).to_list(5)
+        context["conversation_history"] = conversations
+    
+    # Select the agent
+    selection_result = await agent_orchestrator.select_agent(org_id, context)
+    
+    return {
+        "agent_type": selection_result["agent_type"],
+        "confidence": selection_result["confidence"],
+        "reasoning": selection_result["reasoning"],
+        "lead_context": context
+    }
+
+@app.post("/api/agents/process-message")
+async def process_message(
+    lead_id: str,
+    message: str,
+    channel: str,
+    agent_type: Optional[str] = None,
+    conversation_id: Optional[str] = None
+):
+    """
+    Process a message through the agent orchestrator and get a response.
+    
+    Args:
+        lead_id: ID of the lead
+        message: The message to process
+        channel: The communication channel (chat, sms, email, voice)
+        agent_type: Optional specific agent type to use
+        conversation_id: Optional existing conversation ID
+        
+    Returns:
+        The agent's response and processing metadata
+    """
+    # Get the lead data
+    lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    # Get the lead's organization
+    org_id = lead["org_id"]
+    
+    # Build context
+    context = {
+        "agent_type": agent_type,
+        "conversation_id": conversation_id
+    }
+    
+    # Process the message
+    result = await agent_orchestrator.process_message(org_id, lead_id, message, channel, context)
+    
+    # Create or update conversation
+    if not conversation_id:
+        conversation_id = str(uuid.uuid4())
+        
+        conversation_data = {
+            "id": conversation_id,
+            "lead_id": lead_id,
+            "channel": channel,
+            "agent_type": result["agent_type"],
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        }
+        
+        await db.conversations_collection.insert_one(conversation_data)
+    else:
+        await db.conversations_collection.update_one(
+            {"id": conversation_id},
+            {"$set": {
+                "updated_at": datetime.now().isoformat(),
+                "agent_type": result["agent_type"]
+            }}
+        )
+    
+    # Record the message and response
+    message_data = {
+        "conversation_id": conversation_id,
+        "lead_id": lead_id,
+        "sender": "lead",
+        "content": message,
+        "channel": channel,
+        "created_at": datetime.now().isoformat()
+    }
+    
+    response_data = {
+        "conversation_id": conversation_id,
+        "lead_id": lead_id,
+        "sender": "ai",
+        "content": result["response"],
+        "channel": channel,
+        "agent_type": result["agent_type"],
+        "created_at": datetime.now().isoformat()
+    }
+    
+    await db.messages_collection.insert_one(message_data)
+    await db.messages_collection.insert_one(response_data)
+    
+    # Store agent interaction data
+    interaction_data = {
+        "conversation_id": conversation_id,
+        "lead_id": lead_id,
+        "agent_type": result["agent_type"],
+        "reasoning": result.get("reasoning", ""),
+        "confidence_score": result.get("confidence", 0.0),
+        "strategy_used": result.get("strategy", ""),
+        "effectiveness_score": result.get("effectiveness", 0.0),
+        "created_at": datetime.now().isoformat()
+    }
+    
+    await db.agent_interactions_collection.insert_one(interaction_data)
+    
+    # Update memory if available
+    if use_memory_manager and "memory_update" in result:
+        await memory_manager.store_memory(
+            lead_id, 
+            result["memory_update"], 
+            result.get("memory_layer", "factual")
+        )
+    
+    return {
+        "conversation_id": conversation_id,
+        "response": result["response"],
+        "agent_type": result["agent_type"],
+        "next_best_action": result.get("next_best_action"),
+        "ai_insights": result.get("ai_insights", {})
+    }
+
+@app.post("/api/agents/initiate-voice-call")
+async def initiate_voice_call(
+    lead_id: str,
+    objective: str,
+    phone_number: Optional[str] = None
+):
+    """
+    Initiate an AI-powered voice call to a lead.
+    
+    Args:
+        lead_id: ID of the lead
+        objective: The objective of the call
+        phone_number: Optional override for the lead's phone number
+        
+    Returns:
+        The call session information
+    """
+    # Get the lead data
+    lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    # Get the lead's organization
+    org_id = lead["org_id"]
+    
+    # Get the phone number to call
+    if not phone_number:
+        phone_number = lead.get("phone")
+        if not phone_number:
+            raise HTTPException(status_code=400, detail="No phone number provided or found in lead data")
+    
+    # Select the appropriate agent
+    selection_result = await select_agent(lead_id, objective, "voice", True)
+    
+    # Initialize the voice call
+    call_result = await agent_orchestrator.initiate_voice_call(
+        org_id=org_id,
+        lead_id=lead_id,
+        phone_number=phone_number,
+        objective=objective,
+        agent_type=selection_result["agent_type"],
+        lead_context=selection_result["lead_context"]
+    )
+    
+    # Create a conversation record
+    conversation_id = str(uuid.uuid4())
+    conversation_data = {
+        "id": conversation_id,
+        "lead_id": lead_id,
+        "channel": "voice",
+        "agent_type": selection_result["agent_type"],
+        "vapi_call_id": call_result.get("call_id"),
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    await db.conversations_collection.insert_one(conversation_data)
+    
+    return {
+        "call_id": call_result.get("call_id"),
+        "conversation_id": conversation_id,
+        "status": call_result.get("status"),
+        "agent_type": selection_result["agent_type"]
+    }
+
+# Knowledge Base endpoints
+@app.post("/api/knowledge-base/upload-document")
+async def upload_document(
+    org_id: str,
+    document_name: str,
+    document_type: str,
+    content: str
+):
+    """
+    Upload a document to the organization's knowledge base.
+    
+    Args:
+        org_id: ID of the organization
+        document_name: Name of the document
+        document_type: Type of document (policy, script, faq, etc.)
+        content: The document content to be vectorized
+        
+    Returns:
+        The document ID and vectorization status
+    """
+    # Create document record
+    document_id = str(uuid.uuid4())
+    document_data = {
+        "id": document_id,
+        "org_id": org_id,
+        "name": document_name,
+        "type": document_type,
+        "content": content,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    await db.knowledge_base_collection.insert_one(document_data)
+    
+    # Vectorize the document if memory manager is available
+    vectorization_status = "pending"
+    if use_memory_manager:
+        try:
+            vectorization_result = await memory_manager.vectorize_document(
+                org_id=org_id,
+                document_id=document_id,
+                content=content,
+                metadata={
+                    "name": document_name,
+                    "type": document_type
+                }
+            )
+            
+            # Update the document with vector information
+            await db.knowledge_base_collection.update_one(
+                {"id": document_id},
+                {"$set": {
+                    "vector_id": vectorization_result.get("vector_id"),
+                    "vectorized": True,
+                    "vector_count": vectorization_result.get("vector_count", 0),
+                    "updated_at": datetime.now().isoformat()
+                }}
+            )
+            
+            vectorization_status = "complete"
+            
+        except Exception as e:
+            logger.error(f"Error vectorizing document: {e}")
+            vectorization_status = f"error: {str(e)}"
+    
+    return {
+        "document_id": document_id,
+        "vectorization_status": vectorization_status
+    }
+
+@app.get("/api/knowledge-base/documents")
+async def get_documents(org_id: str):
+    """
+    Get all documents in the organization's knowledge base.
+    
+    Args:
+        org_id: ID of the organization
+        
+    Returns:
+        List of documents
+    """
+    documents = await db.knowledge_base_collection.find({"org_id": org_id}).to_list(100)
+    for doc in documents:
+        doc["id"] = str(doc["_id"])
+        # Don't return the full content for efficiency
+        if "content" in doc and len(doc["content"]) > 200:
+            doc["content"] = doc["content"][:200] + "..."
+    
+    return documents
+
+@app.get("/api/knowledge-base/search")
+async def search_knowledge_base(
+    org_id: str,
+    query: str,
+    limit: int = 5
+):
+    """
+    Search the organization's knowledge base.
+    
+    Args:
+        org_id: ID of the organization
+        query: The search query
+        limit: Maximum number of results to return
+        
+    Returns:
+        Search results
+    """
+    if not use_memory_manager:
+        raise HTTPException(status_code=400, detail="Memory manager not available for knowledge base search")
+    
+    search_results = await memory_manager.search_knowledge_base(
+        org_id=org_id,
+        query=query,
+        limit=limit
+    )
+    
+    return search_results
+
 # Shutdown event to close database connection
 @app.on_event("shutdown")
 async def shutdown_db_client():
