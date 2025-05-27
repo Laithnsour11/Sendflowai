@@ -203,7 +203,17 @@ async def get_organization_integration_status(org_id: str):
     
     # Vapi status
     vapi_configured = "vapi_api_key" in api_keys and api_keys["vapi_api_key"]
-    vapi_status = {"connected": vapi_configured, "status": "Connected" if vapi_configured else "Not configured"}
+    vapi_status = {"connected": vapi_configured}
+    
+    if vapi_configured:
+        # For MVP, just check if the key is long enough
+        api_key = api_keys["vapi_api_key"]
+        if len(api_key) > 10:
+            vapi_status["status"] = "Connected"
+        else:
+            vapi_status["status"] = "Invalid API key format"
+    else:
+        vapi_status["status"] = "Not configured"
     
     # SendBlue status
     sendblue_configured = "sendblue_api_key" in api_keys and api_keys["sendblue_api_key"]
