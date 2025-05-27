@@ -15,12 +15,12 @@ from pathlib import Path
 
 # Local imports
 try:
-    from memory_manager import MemoryManager
-    from api_endpoints import router as api_router
+    from app.backend.memory_manager import MemoryManager
+    from app.backend.api_endpoints import router as api_router
     memory_manager = MemoryManager()
     use_memory_manager = True
-except ImportError:
-    print("Memory manager import failed, will use default implementation")
+except ImportError as e:
+    print(f"Memory manager import failed: {e}, will use default implementation")
     use_memory_manager = False
 
 import database as db
