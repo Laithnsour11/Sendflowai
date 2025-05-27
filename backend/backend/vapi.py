@@ -86,7 +86,7 @@ class VapiIntegration:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"{self.base_url}/v1/assistants",
+                    f"{self.base_url}/assistants",
                     headers=self.headers,
                     json=assistant_data
                 )
