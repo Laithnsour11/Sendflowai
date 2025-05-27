@@ -118,6 +118,122 @@ const Settings = ({ currentOrg }) => {
     }
   };
   
+  // Validate Vapi API key
+  const validateVapiApiKey = async () => {
+    if (!apiKeys.vapi_api_key) {
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        vapi_api_key: { valid: false, message: 'API key is required' } 
+      }));
+      return;
+    }
+    
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/settings/validate-vapi-key`,
+        { api_key: apiKeys.vapi_api_key }
+      );
+      
+      setValidationStatus(prev => ({ ...prev, vapi_api_key: response.data }));
+    } catch (error) {
+      console.error('Error validating Vapi API key:', error);
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        vapi_api_key: { 
+          valid: false, 
+          message: error.response?.data?.detail || 'Error validating API key' 
+        } 
+      }));
+    }
+  };
+  
+  // Validate SendBlue API key
+  const validateSendBlueApiKey = async () => {
+    if (!apiKeys.sendblue_api_key) {
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        sendblue_api_key: { valid: false, message: 'API key is required' } 
+      }));
+      return;
+    }
+    
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/settings/validate-sendblue-key`,
+        { api_key: apiKeys.sendblue_api_key }
+      );
+      
+      setValidationStatus(prev => ({ ...prev, sendblue_api_key: response.data }));
+    } catch (error) {
+      console.error('Error validating SendBlue API key:', error);
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        sendblue_api_key: { 
+          valid: false, 
+          message: error.response?.data?.detail || 'Error validating API key' 
+        } 
+      }));
+    }
+  };
+  
+  // Validate OpenAI API key
+  const validateOpenAIApiKey = async () => {
+    if (!apiKeys.openai_api_key) {
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        openai_api_key: { valid: false, message: 'API key is required' } 
+      }));
+      return;
+    }
+    
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/settings/validate-openai-key`,
+        { api_key: apiKeys.openai_api_key }
+      );
+      
+      setValidationStatus(prev => ({ ...prev, openai_api_key: response.data }));
+    } catch (error) {
+      console.error('Error validating OpenAI API key:', error);
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        openai_api_key: { 
+          valid: false, 
+          message: error.response?.data?.detail || 'Error validating API key' 
+        } 
+      }));
+    }
+  };
+  
+  // Validate OpenRouter API key
+  const validateOpenRouterApiKey = async () => {
+    if (!apiKeys.openrouter_api_key) {
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        openrouter_api_key: { valid: false, message: 'API key is required' } 
+      }));
+      return;
+    }
+    
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/settings/validate-openrouter-key`,
+        { api_key: apiKeys.openrouter_api_key }
+      );
+      
+      setValidationStatus(prev => ({ ...prev, openrouter_api_key: response.data }));
+    } catch (error) {
+      console.error('Error validating OpenRouter API key:', error);
+      setValidationStatus(prev => ({ 
+        ...prev, 
+        openrouter_api_key: { 
+          valid: false, 
+          message: error.response?.data?.detail || 'Error validating API key' 
+        } 
+      }));
+    }
+  };
+  
   // Handle AI settings changes
   const handleAiSettingChange = (e) => {
     const { name, value } = e.target;
