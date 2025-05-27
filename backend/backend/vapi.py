@@ -151,7 +151,7 @@ class VapiIntegration:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                    f"{self.base_url}/v1/calls/{call_id}",
+                    f"{self.base_url}/calls/{call_id}",
                     headers=self.headers
                 )
                 response.raise_for_status()
