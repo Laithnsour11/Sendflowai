@@ -126,9 +126,6 @@ async def get_organization_api_keys(org_id: str):
 
 @app.put("/api/settings/api-keys/{org_id}")
 async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
-    
-
-    
     keys_data["org_id"] = org_id
     keys_data["updated_at"] = datetime.now()
     
