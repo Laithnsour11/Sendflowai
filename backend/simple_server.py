@@ -94,6 +94,26 @@ async def validate_vapi_api_key(api_key: str = Body(..., embed=True)):
     else:
         return {"valid": False, "message": "Invalid Vapi API key format"}
 
+@app.post("/api/settings/validate-sendblue-key")
+async def validate_sendblue_api_key(api_key: str = Body(..., embed=True)):
+    """
+    Validate a SendBlue API key
+    
+    Args:
+        api_key: The SendBlue API key to validate
+    
+    Returns:
+        Dict with validation status
+    """
+    if not api_key:
+        return {"valid": False, "message": "API key is required"}
+    
+    # For MVP, just check if the key is long enough
+    if len(api_key) > 10:
+        return {"valid": True, "message": "SendBlue API key format is valid"}
+    else:
+        return {"valid": False, "message": "Invalid SendBlue API key format"}
+
 # Organization endpoints
 @app.get("/api/organizations")
 async def get_organizations():
