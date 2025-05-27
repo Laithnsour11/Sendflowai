@@ -41,6 +41,13 @@ ghl_integration = GHLIntegration(
     shared_secret=os.environ.get('GHL_SHARED_SECRET', '6a705549-ecb6-48cf-b5e4-8fe59b3bafa9')
 )
 
+# Set access token if available (for testing purposes)
+if os.environ.get('GHL_ACCESS_TOKEN') and os.environ.get('GHL_REFRESH_TOKEN'):
+    ghl_integration.set_tokens(
+        access_token=os.environ.get('GHL_ACCESS_TOKEN'),
+        refresh_token=os.environ.get('GHL_REFRESH_TOKEN')
+    )
+
 # Create FastAPI app
 app = FastAPI(title="AI Closer API", version="1.0.0")
 
