@@ -54,13 +54,23 @@ const Settings = ({ currentOrg }) => {
             ghl_client_secret: '••••••••b62',
             ghl_shared_secret: '••••••••fa9',
             openai_api_key: '••••••••5678',
-            vapi_api_key: '',
+            vapi_public_key: 'd14070eb-c48a-45d5-9a53-6115b8c4d517',
+            vapi_private_key: '••••••••7b1',
             mem0_api_key: 'm0-TTwLd8awIP6aFAixLPn1lgkIUR2DJlDTzApPil8E',
             openrouter_api_key: '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',
             sendblue_api_key: '',
             sendblue_api_secret: '',
             supabase_url: '',
             supabase_key: 'sbp_6ea3d96a8efc1a50026610a12c4728d5b9793434'
+          });
+          
+          setIntegrationStatus({
+            ghl: { connected: true, status: 'Connected' },
+            vapi: { connected: true, status: 'Connected' },
+            mem0: { connected: true, status: 'Connected' },
+            sendblue: { connected: false, status: 'Not configured' },
+            openai: { connected: true, status: 'Connected' },
+            openrouter: { connected: true, status: 'Connected' }
           });
           
           setAiSettings({
