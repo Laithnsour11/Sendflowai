@@ -512,6 +512,82 @@ async def initialize_lead_memory(lead_data: Dict[str, Any]):
     await memory_manager.store_memory(lead_id, contextual_data, "contextual")
     logger.info(f"Initialized contextual memory for lead {lead_id}")
 
+# GHL Manual Sync endpoint
+@app.post("/api/ghl/sync-leads")
+async def sync_leads_from_ghl(org_id: str):
+    """
+    Manually synchronize leads from GHL for an organization.
+    
+    This is useful for initial setup or when webhook events may have been missed.
+    """
+    # Get the organization's API keys
+    api_keys = await db.api_keys_collection.find_one({"org_id": org_id})
+    if not api_keys or not all(key in api_keys and api_keys[key] for key in ["ghl_client_id", "ghl_client_secret"]):
+        raise HTTPException(status_code=400, detail="GHL API credentials not configured")
+    
+    # Initialize GHL integration
+    from ghl import GHLIntegration
+    ghl_integration = GHLIntegration(
+        client_id=api_keys.get("ghl_client_id"),
+        client_secret=api_keys.get("ghl_client_secret"),
+        shared_secret=api_keys.get("ghl_shared_secret")
+    )
+    
+    # Set tokens if they exist
+    org = await db.organizations_collection.find_one({"_id": ObjectId(org_id)})
+    if org and "ghl_access_token" in org and "ghl_refresh_token" in org:
+        ghl_integration.set_tokens(
+            access_token=org["ghl_access_token"],
+            refresh_token=org["ghl_refresh_token"],
+            location_id=org.get("ghl_location_id")
+        )
+    
+    try:
+        # Get all contacts from GHL
+        contacts = await ghl_integration.get_contacts()
+        
+        # Track stats
+        stats = {
+            "total": len(contacts),
+            "created": 0,
+            "updated": 0,
+            "failed": 0
+        }
+        
+        # Process each contact
+        for contact in contacts:
+            try:
+                # Create a synthetic webhook payload
+                contact_payload = {
+                    "event": "ContactCreate",
+                    "companyId": org_id,
+                    "contact": contact
+                }
+                
+                # Use the same handler as the webhook
+                await handle_contact_event(contact_payload, org_id)
+                
+                # Update stats based on whether the lead existed
+                existing = await db.leads_collection.find_one({"ghl_contact_id": contact["id"]})
+                if existing:
+                    stats["updated"] += 1
+                else:
+                    stats["created"] += 1
+                    
+            except Exception as e:
+                logger.error(f"Error processing contact {contact.get('id')}: {e}")
+                stats["failed"] += 1
+        
+        return {
+            "status": "success",
+            "message": f"Synchronized {stats['total']} leads from GHL",
+            "stats": stats
+        }
+        
+    except Exception as e:
+        logger.error(f"Error syncing leads from GHL: {e}")
+        raise HTTPException(status_code=500, detail=f"Error syncing leads from GHL: {str(e)}")
+
 # Shutdown event to close database connection
 @app.on_event("shutdown")
 async def shutdown_db_client():
