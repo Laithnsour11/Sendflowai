@@ -550,7 +550,7 @@ const Settings = ({ currentOrg }) => {
               </dd>
             </div>
             
-            {/* SendBlue API Secret */}
+            {/* Integration Settings */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
                 SendBlue API Secret
