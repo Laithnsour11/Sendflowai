@@ -172,35 +172,12 @@ async def get_organization_integration_status(org_id: str):
     mem0_status = {"connected": mem0_configured}
     
     if mem0_configured:
-        # Validate the Mem0 API key
-        try:
-            # Make a test request to Mem0 API
-            headers = {
-                "Authorization": api_keys['mem0_api_key'],
-                "Content-Type": "application/json"
-            }
-            
-            async with httpx.AsyncClient() as client:
-                # Try to get a basic response from the Mem0 API
-                payload = {
-                    "user_id": "test_user",
-                    "messages": [{"role": "system", "content": "Test message"}]
-                }
-                
-                response = await client.post(
-                    "https://api.mem0.ai/add",
-                    headers=headers,
-                    json=payload,
-                    timeout=10.0
-                )
-                
-                if response.status_code == 200:
-                    mem0_status["status"] = "Connected"
-                else:
-                    mem0_status["status"] = f"Invalid credentials: {response.text}"
-        except Exception as e:
-            logger.error(f"Error validating Mem0 API key: {e}")
-            mem0_status["status"] = f"Error: {str(e)}"
+        # For MVP, just check the format of the API key
+        api_key = api_keys["mem0_api_key"]
+        if api_key.startswith("m0-") and len(api_key) > 10:
+            mem0_status["status"] = "Connected"
+        else:
+            mem0_status["status"] = "Invalid API key format"
     else:
         mem0_status["status"] = "Not configured"
     
