@@ -57,8 +57,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API router
-app.include_router(api_router)
+# Include API router if available
+if 'api_router' in locals():
+    app.include_router(api_router)
 
 # Root endpoint
 @app.get("/api")
