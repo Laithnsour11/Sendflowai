@@ -550,23 +550,7 @@ const Settings = ({ currentOrg }) => {
               </dd>
             </div>
             
-            {/* Integration Settings */}
-            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-              <dt className="text-sm font-medium text-gray-500">
-                SendBlue API Secret
-                <p className="mt-1 text-xs text-gray-400">Required for SMS capabilities</p>
-              </dt>
-              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <input
-                  type="password"
-                  name="sendblue_api_secret"
-                  value={apiKeys.sendblue_api_secret}
-                  onChange={handleApiKeyChange}
-                  placeholder="Enter your SendBlue API secret"
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                />
-              </dd>
-            </div>
+
           </dl>
         </div>
       </div>
