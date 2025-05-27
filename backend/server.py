@@ -165,6 +165,13 @@ async def update_organization_api_keys(org_id: str, keys_data: Dict[str, Any]):
     
     api_keys = await db.api_keys.find_one({"org_id": org_id})
     
+    # Convert MongoDB ObjectId to string
+    if api_keys and "_id" in api_keys:
+        api_keys["_id"] = str(api_keys["_id"])
+    
+    # Convert all potential ObjectIds in the document
+    api_keys = convert_objectid_to_str(api_keys)
+    
     # Mask sensitive data in response
     masked_result = {}
     for key_name, key_value in api_keys.items():
