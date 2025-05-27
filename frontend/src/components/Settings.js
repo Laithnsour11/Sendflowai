@@ -12,7 +12,11 @@ const Settings = ({ currentOrg }) => {
   });
   
   const [validationStatus, setValidationStatus] = useState({
-    mem0_api_key: null
+    mem0_api_key: null,
+    vapi_api_key: null,
+    sendblue_api_key: null,
+    openai_api_key: null,
+    openrouter_api_key: null
   });
   
   const [aiSettings, setAiSettings] = useState({
