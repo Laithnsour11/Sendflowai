@@ -376,24 +376,79 @@ const Settings = ({ currentOrg }) => {
         
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
           <dl className="sm:divide-y sm:divide-gray-200">
-            {/* Go High Level API Key */}
+            {/* GHL Client ID */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
-                Go High Level API Key
+                Go High Level Client ID
                 <p className="mt-1 text-xs text-gray-400">Required for GHL integration</p>
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <div className="flex items-center">
-                  <input
-                    type="password"
-                    name="ghl_api_key"
-                    value={apiKeys.ghl_api_key || ''}
-                    onChange={handleApiKeyChange}
-                    placeholder="Enter your GHL API key"
-                    className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                  />
-                  <div className="ml-3">
+                  <div className="flex-grow">
+                    <input
+                      type="password"
+                      name="ghl_client_id"
+                      value={apiKeys.ghl_client_id || ''}
+                      onChange={handleApiKeyChange}
+                      placeholder="Enter your GHL Client ID"
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div className="ml-2">
                     {renderConnectionStatus(integrationStatus.ghl)}
+                  </div>
+                </div>
+              </dd>
+            </div>
+            
+            {/* GHL Client Secret */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Go High Level Client Secret
+                <p className="mt-1 text-xs text-gray-400">Required for GHL API authentication</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <div className="flex items-center">
+                  <div className="flex-grow">
+                    <input
+                      type="password"
+                      name="ghl_client_secret"
+                      value={apiKeys.ghl_client_secret || ''}
+                      onChange={handleApiKeyChange}
+                      placeholder="Enter your GHL Client Secret"
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                  </div>
+                </div>
+              </dd>
+            </div>
+            
+            {/* GHL Shared Secret */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Go High Level Webhook Shared Secret
+                <p className="mt-1 text-xs text-gray-400">Required for verifying GHL webhooks</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <div className="flex items-center">
+                  <div className="flex-grow">
+                    <input
+                      type="password"
+                      name="ghl_shared_secret"
+                      value={apiKeys.ghl_shared_secret || ''}
+                      onChange={handleApiKeyChange}
+                      placeholder="Enter your GHL Webhook Shared Secret"
+                      className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                    />
+                  </div>
+                  <div className="ml-3 flex items-center">
+                    <button
+                      onClick={handleConnectGHL}
+                      type="button"
+                      className="inline-flex items-center px-2.5 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      Connect GHL
+                    </button>
                   </div>
                 </div>
               </dd>
