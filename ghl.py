@@ -432,7 +432,116 @@ class GHLIntegration:
             logger.error(f"Error adding note to contact in GHL: {e}")
             raise HTTPException(status_code=500, detail=f"Error communicating with GHL: {str(e)}")
     
+    # COMPREHENSIVE DATA ACCESS
+    
+    async def get_comprehensive_lead_data(self, contact_id: str) -> Dict[str, Any]:
+        """
+        Get comprehensive data about a lead, including:
+        - Basic contact details
+        - Custom fields
+        - Tags
+        - Notes
+        - Opportunities and pipeline stages
+        - Tasks
+        """
+        await self.ensure_valid_token()
+        
+        # Get individual pieces of data
+        try:
+            contact = await self.get_contact(contact_id)
+            notes = await self.get_contact_notes(contact_id)
+            opportunities = await self.get_opportunities(contact_id=contact_id)
+            tasks = await self.get_tasks(contact_id=contact_id)
+            
+            # Combine all data
+            return {
+                "contact": contact,
+                "notes": notes,
+                "opportunities": opportunities,
+                "tasks": tasks,
+                "fetched_at": time.time()
+            }
+        except Exception as e:
+            logger.error(f"Error fetching comprehensive lead data: {e}")
+            raise HTTPException(status_code=500, detail=f"Error fetching comprehensive lead data: {str(e)}")
+    
     # AI-SPECIFIC OPERATIONS
+    
+    async def update_ai_insights(self, contact_id: str, ai_insights: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Update AI-specific insights in GHL custom fields
+        
+        Args:
+            contact_id: GHL contact ID
+            ai_insights: Dict containing AI insights with keys like:
+                - personality_type
+                - trust_level
+                - conversion_probability
+                - relationship_stage
+                - next_best_action
+        """
+        # Map our internal insight keys to GHL custom field names
+        custom_field_mapping = {
+            "personality_type": "AI Personality Type",
+            "trust_level": "AI Trust Level",
+            "conversion_probability": "AI Conversion Score",
+            "relationship_stage": "AI Relationship Stage",
+            "next_best_action": "AI Next Best Action"
+        }
+        
+        # Prepare custom field updates
+        custom_field_updates = {}
+        
+        for insight_key, custom_field_name in custom_field_mapping.items():
+            if insight_key in ai_insights:
+                value = ai_insights[insight_key]
+                
+                # Format values as needed
+                if insight_key in ["trust_level", "conversion_probability"]:
+                    # Convert float to percentage integer
+                    value = int(float(value) * 100)
+                
+                custom_field_updates[custom_field_name] = value
+        
+        # Update custom fields
+        if custom_field_updates:
+            return await self.update_contact(contact_id, {"customField": custom_field_updates})
+        
+        return {"message": "No AI insights to update"}
+    
+    async def add_ai_interaction_note(self, contact_id: str, interaction_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Add a structured note about an AI interaction
+        
+        Args:
+            contact_id: GHL contact ID
+            interaction_data: Dict containing interaction details like:
+                - channel: Voice, SMS, Email
+                - agent_type: Which specialized agent was used
+                - summary: Brief summary of the interaction
+                - outcome: What was achieved
+                - sentiment: Overall sentiment
+                - next_steps: Recommended next steps
+        """
+        # Format the note in a structured way
+        note_content = f"""
+        🤖 AI INTERACTION SUMMARY
+        
+        Channel: {interaction_data.get('channel', 'Unknown')}
+        Agent: {interaction_data.get('agent_type', 'General AI')}
+        
+        Summary: {interaction_data.get('summary', 'No summary provided')}
+        
+        Outcome: {interaction_data.get('outcome', 'No specific outcome')}
+        Sentiment: {interaction_data.get('sentiment', 'Neutral')}
+        
+        Next Steps: {interaction_data.get('next_steps', 'No specific next steps')}
+        
+        Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}
+        """
+        
+        # Add the note
+        return await self.add_note_to_contact(contact_id, note_content)
     
     async def create_follow_up_task(self, contact_id: str, task_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a follow-up task for a human agent"""
