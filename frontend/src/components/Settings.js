@@ -507,6 +507,13 @@ const Settings = ({ currentOrg }) => {
               <dt className="text-sm font-medium text-gray-500">
                 SendBlue API Key
                 <p className="mt-1 text-xs text-gray-400">Required for SMS capabilities</p>
+                {integrationStatus.sendblue && (
+                  <p className={`mt-1 text-xs ${
+                    integrationStatus.sendblue.connected ? 'text-green-500' : 'text-red-500'
+                  }`}>
+                    {integrationStatus.sendblue.status}
+                  </p>
+                )}
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <input
@@ -517,6 +524,29 @@ const Settings = ({ currentOrg }) => {
                   placeholder="Enter your SendBlue API key"
                   className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 />
+              </dd>
+            </div>
+            
+            {/* SendBlue API Secret */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                SendBlue API Secret
+                <p className="mt-1 text-xs text-gray-400">Required for SMS capabilities</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <input
+                  type="password"
+                  name="sendblue_api_secret"
+                  value={apiKeys.sendblue_api_secret}
+                  onChange={handleApiKeyChange}
+                  placeholder="Enter your SendBlue API Secret"
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  <a href="https://sendblue.co/" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
+                    Don't have SendBlue? Sign up here
+                  </a>
+                </p>
               </dd>
             </div>
             
