@@ -200,7 +200,7 @@ async def get_organization_integration_status(org_id: str):
             async with httpx.AsyncClient() as client:
                 # Try to get a basic response from the Mem0 API
                 response = await client.get(
-                    "https://api.memzo.ai/v1/users/me",
+                    "https://api.mem0.ai/add",
                     headers=headers,
                     timeout=10.0
                 )
