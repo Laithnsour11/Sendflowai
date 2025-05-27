@@ -29,17 +29,26 @@ db_name = os.environ.get('DB_NAME', 'ai_closer_db')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
-# Import GHL integration
+# Import integrations
 import sys
 sys.path.append('/app')
 from ghl import GHLIntegration
+from vapi import VapiIntegration
+from mem0 import Mem0Integration
+from sendblue import SendBlueIntegration
 
-# Initialize GHL integration
+# Initialize integrations
 ghl_integration = GHLIntegration(
     client_id=os.environ.get('GHL_CLIENT_ID', '681a8d486b267326cb42a4db-mb5qftwj'),
     client_secret=os.environ.get('GHL_CLIENT_SECRET', '12395acc-c70b-4aee-b86f-abb4c7da3b62'),
     shared_secret=os.environ.get('GHL_SHARED_SECRET', '6a705549-ecb6-48cf-b5e4-8fe59b3bafa9')
 )
+vapi_integration = VapiIntegration(
+    public_key=os.environ.get('VAPI_PUBLIC_KEY', 'd14070eb-c48a-45d5-9a53-6115b8c4d517'),
+    private_key=os.environ.get('VAPI_PRIVATE_KEY', 'c948ca43-806d-4a15-8f7b-a29e019457b1')
+)
+mem0_integration = Mem0Integration()
+sendblue_integration = SendBlueIntegration()
 
 # Set access token if available (for testing purposes)
 if os.environ.get('GHL_ACCESS_TOKEN') and os.environ.get('GHL_REFRESH_TOKEN'):
