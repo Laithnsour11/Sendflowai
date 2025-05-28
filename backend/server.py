@@ -834,7 +834,17 @@ async def process_message(
         The agent's response and processing metadata
     """
     # Get the lead data
-    lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+    # Try to find lead by UUID first
+    lead = await db.leads_collection.find_one({"id": lead_id})
+    
+    # If not found, try by ObjectId
+    if not lead:
+        try:
+            lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+        except:
+            # If lead_id is not a valid ObjectId, this will fail
+            pass
+            
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     
