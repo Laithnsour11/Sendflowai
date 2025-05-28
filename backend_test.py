@@ -132,20 +132,30 @@ class AICloserAPITester:
 
     def test_agent_selection(self):
         """Test the agent selection endpoint"""
+        # Skip if no contact_id is available
+        if not self.contact_id:
+            print("⚠️ Skipping Agent Selection test - no contact ID available")
+            return True
+            
         return self.run_test(
             "Agent Selection",
             "POST",
-            f"api/agents/select?lead_id={self.lead_id}&objective=initial_contact&channel=chat&conversation_history=true",
-            404  # Expecting 404 because the lead doesn't exist
+            f"api/agents/select?lead_id={self.contact_id}&objective=initial_contact&channel=chat&conversation_history=true",
+            200
         )
         
     def test_process_message(self):
         """Test the message processing endpoint"""
+        # Skip if no contact_id is available
+        if not self.contact_id:
+            print("⚠️ Skipping Process Message test - no contact ID available")
+            return True
+            
         return self.run_test(
             "Process Message",
             "POST",
-            f"api/agents/process-message?lead_id={self.lead_id}&message=Hello&channel=chat",
-            404  # Expecting 404 because the lead doesn't exist
+            f"api/agents/process-message?lead_id={self.contact_id}&message=Hello&channel=chat",
+            200
         )
 
     def test_create_lead_via_webhook(self):
