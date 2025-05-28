@@ -201,12 +201,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "GET /api/campaigns - List campaigns for organization"
-    - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
-    - "POST /api/campaigns/{campaign_id}/start - Start an active campaign"
-    - "POST /api/campaigns/{campaign_id}/pause - Pause an active campaign"
-    - "POST /api/campaigns/{campaign_id}/stop - Stop and complete a campaign"
-    - "GET /api/campaigns/{campaign_id}/status - Get detailed campaign status and metrics"
+    - "Advanced Analytics Navigation"
+    - "Comprehensive Dashboard Tab"
+    - "Campaign Intelligence Tab"
+    - "Agent Intelligence Tab"
+    - "Interactive Features"
   stuck_tasks:
     - "GET /api/campaigns - List campaigns for organization"
     - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
