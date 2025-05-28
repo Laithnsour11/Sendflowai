@@ -8,7 +8,17 @@ from fastapi import HTTPException
 from enum import Enum
 
 import database as db
-from agent_orchestrator import AgentOrchestrator
+
+# Import agent orchestrator with error handling  
+try:
+    from agent_orchestrator import AgentOrchestrator
+except ImportError:
+    try:
+        from app.backend.agent_orchestrator import AgentOrchestrator
+    except ImportError:
+        AgentOrchestrator = None
+        print("Warning: AgentOrchestrator not available")
+
 from ghl_integration import GHLIntegration
 
 logger = logging.getLogger(__name__)
