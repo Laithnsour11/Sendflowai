@@ -1088,7 +1088,145 @@ async def search_knowledge_base(
     
     return search_results
 
-# ===== CAMPAIGN MANAGEMENT ENDPOINTS (Phase C.1) =====
+# ===== AI FINE-TUNING ENDPOINTS (Phase C.2) =====
+
+@app.post("/api/fine-tuning/create")
+async def create_fine_tuning_job(request: dict):
+    """Create a new AI fine-tuning job based on RLHF data"""
+    if not use_fine_tuning_service:
+        raise HTTPException(status_code=503, detail="Fine-tuning service not available")
+    
+    try:
+        org_id = request.get("org_id", "production_org_123")
+        job_config = request.get("job_config", {})
+        
+        result = await fine_tuning_service.create_fine_tuning_job(org_id, job_config)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error creating fine-tuning job: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/fine-tuning/{job_id}/start")
+async def start_fine_tuning_job(job_id: str, request: dict):
+    """Start a fine-tuning job"""
+    if not use_fine_tuning_service:
+        raise HTTPException(status_code=503, detail="Fine-tuning service not available")
+    
+    try:
+        org_id = request.get("org_id", "production_org_123")
+        
+        result = await fine_tuning_service.start_fine_tuning_job(org_id, job_id)
+        return result
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error starting fine-tuning job: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/fine-tuning/{job_id}/cancel")
+async def cancel_fine_tuning_job(job_id: str, request: dict):
+    """Cancel a running fine-tuning job"""
+    if not use_fine_tuning_service:
+        raise HTTPException(status_code=503, detail="Fine-tuning service not available")
+    
+    try:
+        org_id = request.get("org_id", "production_org_123")
+        
+        result = await fine_tuning_service.cancel_fine_tuning_job(org_id, job_id)
+        return result
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error cancelling fine-tuning job: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/fine-tuning/{job_id}/status")
+async def get_fine_tuning_job_status(job_id: str, org_id: str = "production_org_123"):
+    """Get detailed fine-tuning job status"""
+    if not use_fine_tuning_service:
+        raise HTTPException(status_code=503, detail="Fine-tuning service not available")
+    
+    try:
+        result = await fine_tuning_service.get_job_status(org_id, job_id)
+        return result
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error getting fine-tuning job status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/fine-tuning/jobs")
+async def list_fine_tuning_jobs(
+    org_id: str = "production_org_123",
+    status_filter: str = None,
+    limit: int = 50
+):
+    """List fine-tuning jobs for an organization"""
+    if not use_fine_tuning_service:
+        raise HTTPException(status_code=503, detail="Fine-tuning service not available")
+    
+    try:
+        result = await fine_tuning_service.list_fine_tuning_jobs(org_id, status_filter, limit)
+        return {
+            "jobs": result,
+            "total": len(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listing fine-tuning jobs: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/fine-tuning/{job_id}/deploy")
+async def deploy_fine_tuned_model(job_id: str, request: dict):
+    """Deploy a completed fine-tuned model"""
+    if not use_fine_tuning_service:
+        raise HTTPException(status_code=503, detail="Fine-tuning service not available")
+    
+    try:
+        org_id = request.get("org_id", "production_org_123")
+        deployment_config = request.get("deployment_config", {})
+        
+        result = await fine_tuning_service.deploy_fine_tuned_model(org_id, job_id, deployment_config)
+        return result
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error deploying fine-tuned model: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/rlhf/analytics")
+async def get_rlhf_analytics(
+    org_id: str = "production_org_123",
+    start_date: str = None,
+    end_date: str = None,
+    agent_type: str = None
+):
+    """Get analytics on RLHF feedback data for fine-tuning insights"""
+    if not use_fine_tuning_service:
+        raise HTTPException(status_code=503, detail="Fine-tuning service not available")
+    
+    try:
+        # Default to last 30 days if no dates provided
+        if not start_date or not end_date:
+            end_date = datetime.now().isoformat()
+            start_date = (datetime.now() - timedelta(days=30)).isoformat()
+        
+        date_range = {
+            "start_date": start_date,
+            "end_date": end_date
+        }
+        
+        result = await fine_tuning_service.get_rlhf_analytics(org_id, date_range, agent_type)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting RLHF analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/campaigns/create")
 async def create_campaign(request: dict):
