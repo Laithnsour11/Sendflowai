@@ -667,8 +667,8 @@ const LeadsList = ({ currentOrg }) => {
         </div>
       </div>
     )}
-  </div>
-  </>
+    </div>
+    </>
   );
 };
 
