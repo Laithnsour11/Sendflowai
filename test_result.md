@@ -146,6 +146,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Retested with the updated test script. Endpoint is still working correctly. Successfully adds a new lead with UUID and returns the lead ID and details."
+      - working: true
+        agent: "testing"
+        comment: "Tested the fixed endpoint with the new Pydantic model (AddLeadRequest). The endpoint now accepts JSON request body instead of query parameters and returns a 200 status code for valid requests. Successfully adds a new lead and returns the lead ID and details."
 
   - task: "POST /api/actions/view-lead - View lead details"
     implemented: true
