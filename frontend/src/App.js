@@ -17,22 +17,38 @@ import Campaigns from './components/Campaigns';
 import AppLayout from './layouts/AppLayout';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentOrg, setCurrentOrg] = useState(null);
+  // Initialize authentication state from localStorage
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('ai_closer_authenticated') === 'true';
+  });
+  
+  const [currentOrg, setCurrentOrg] = useState(() => {
+    const savedOrg = localStorage.getItem('ai_closer_org');
+    return savedOrg ? JSON.parse(savedOrg) : null;
+  });
   
   // Simple mock authentication for demo
   const handleLogin = () => {
     setIsAuthenticated(true);
-    setCurrentOrg({
+    const orgData = {
       id: '12345',
       name: 'ABC Realty',
       subscription_tier: 'starter'
-    });
+    };
+    setCurrentOrg(orgData);
+    
+    // Persist authentication state
+    localStorage.setItem('ai_closer_authenticated', 'true');
+    localStorage.setItem('ai_closer_org', JSON.stringify(orgData));
   };
   
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentOrg(null);
+    
+    // Clear persisted authentication state
+    localStorage.removeItem('ai_closer_authenticated');
+    localStorage.removeItem('ai_closer_org');
   };
   
   return (
