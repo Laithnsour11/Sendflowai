@@ -1084,6 +1084,249 @@ class AICloserAPITester:
             f"api/analytics/exports/{self.export_id}/download",
             200
         )
+        
+    # UI Action Endpoints Test Methods
+    
+    def test_add_lead(self):
+        """Test the add lead endpoint"""
+        test_data = {
+            "org_id": self.org_id,
+            "name": "Test UI Lead",
+            "email": f"test-ui-{uuid.uuid4()}@example.com",
+            "phone": "1234567890",
+            "status": "Initial Contact",
+            "source": "UI Test"
+        }
+        
+        success, response = self.run_test(
+            "Add Lead",
+            "POST",
+            "api/actions/add-lead",
+            200,
+            data=test_data
+        )
+        
+        if success and "lead_id" in response:
+            self.ui_lead_id = response["lead_id"]
+            print(f"✅ Created UI lead with ID: {self.ui_lead_id}")
+            
+            # Also store the MongoDB ObjectId for this lead
+            if "lead" in response and "id" in response["lead"]:
+                self.ui_lead_mongo_id = response["lead"]["id"]
+                print(f"✅ MongoDB ID for UI lead: {self.ui_lead_mongo_id}")
+        
+        return success, response
+    
+    def test_view_lead(self):
+        """Test the view lead endpoint"""
+        # First try with the UI lead ID if available
+        if hasattr(self, 'ui_lead_mongo_id'):
+            lead_id = self.ui_lead_mongo_id
+        # Fall back to the test lead ID
+        elif hasattr(self, 'lead_id'):
+            lead_id = self.lead_id
+        else:
+            print("⚠️ Skipping View Lead test - no lead ID available")
+            return True, {}
+        
+        success, response = self.run_test(
+            "View Lead",
+            "POST",
+            f"api/actions/view-lead?lead_id={lead_id}",
+            200
+        )
+        
+        # Validate response structure
+        if success:
+            if "lead" in response and "recent_conversations" in response and "memory_context" in response:
+                print("✅ View Lead response contains expected data structure")
+            else:
+                print("⚠️ View Lead response missing expected data structure")
+        
+        return success, response
+    
+    def test_send_message(self):
+        """Test the send message endpoint"""
+        # First try with the UI lead ID if available
+        if hasattr(self, 'ui_lead_mongo_id'):
+            lead_id = self.ui_lead_mongo_id
+        # Fall back to the test lead ID
+        elif hasattr(self, 'lead_id'):
+            lead_id = self.lead_id
+        else:
+            print("⚠️ Skipping Send Message test - no lead ID available")
+            return True, {}
+        
+        # Test with explicit message
+        test_data = {
+            "lead_id": lead_id,
+            "message": "Hello from the UI test! How can I help you today?",
+            "org_id": self.org_id
+        }
+        
+        success1, response1 = self.run_test(
+            "Send Message (with explicit message)",
+            "POST",
+            "api/actions/send-message",
+            200,
+            data=test_data
+        )
+        
+        # Test with auto-generated message
+        test_data = {
+            "lead_id": lead_id,
+            "org_id": self.org_id
+        }
+        
+        success2, response2 = self.run_test(
+            "Send Message (with auto-generated message)",
+            "POST",
+            "api/actions/send-message",
+            200,
+            data=test_data
+        )
+        
+        # Test with invalid lead ID
+        test_data = {
+            "lead_id": "invalid_lead_id",
+            "message": "This should fail",
+            "org_id": self.org_id
+        }
+        
+        success3, _ = self.run_test(
+            "Send Message (with invalid lead ID)",
+            "POST",
+            "api/actions/send-message",
+            404,  # Expecting 404 Not Found
+            data=test_data
+        )
+        
+        return success1 and success2 and success3, response1
+    
+    def test_initiate_call(self):
+        """Test the initiate call endpoint"""
+        # First try with the UI lead ID if available
+        if hasattr(self, 'ui_lead_mongo_id'):
+            lead_id = self.ui_lead_mongo_id
+        # Fall back to the test lead ID
+        elif hasattr(self, 'lead_id'):
+            lead_id = self.lead_id
+        else:
+            print("⚠️ Skipping Initiate Call test - no lead ID available")
+            return True, {}
+        
+        # Test with explicit objective
+        test_data = {
+            "lead_id": lead_id,
+            "objective": "Qualify the lead and understand their needs",
+            "org_id": self.org_id
+        }
+        
+        success1, response1 = self.run_test(
+            "Initiate Call (with explicit objective)",
+            "POST",
+            "api/actions/initiate-call",
+            200,
+            data=test_data
+        )
+        
+        # Test with auto-generated objective
+        test_data = {
+            "lead_id": lead_id,
+            "org_id": self.org_id
+        }
+        
+        success2, response2 = self.run_test(
+            "Initiate Call (with auto-generated objective)",
+            "POST",
+            "api/actions/initiate-call",
+            200,
+            data=test_data
+        )
+        
+        # Test with invalid lead ID
+        test_data = {
+            "lead_id": "invalid_lead_id",
+            "objective": "This should fail",
+            "org_id": self.org_id
+        }
+        
+        success3, _ = self.run_test(
+            "Initiate Call (with invalid lead ID)",
+            "POST",
+            "api/actions/initiate-call",
+            404,  # Expecting 404 Not Found
+            data=test_data
+        )
+        
+        return success1 and success2 and success3, response1
+    
+    def test_get_leads(self):
+        """Test the get leads endpoint"""
+        # Test with org_id
+        success1, response1 = self.run_test(
+            "Get Leads (with org_id)",
+            "GET",
+            f"api/leads?org_id={self.org_id}",
+            200
+        )
+        
+        # Test with limit
+        success2, response2 = self.run_test(
+            "Get Leads (with limit)",
+            "GET",
+            f"api/leads?org_id={self.org_id}&limit=5",
+            200
+        )
+        
+        # Validate response structure
+        if success1:
+            if "leads" in response1 and "total" in response1:
+                print("✅ Get Leads response contains expected data structure")
+                
+                # Check if our UI lead is in the list
+                if hasattr(self, 'ui_lead_mongo_id'):
+                    found = False
+                    for lead in response1["leads"]:
+                        if lead.get("id") == self.ui_lead_mongo_id:
+                            found = True
+                            break
+                    
+                    if found:
+                        print("✅ UI lead found in leads list")
+                    else:
+                        print("⚠️ UI lead not found in leads list")
+            else:
+                print("⚠️ Get Leads response missing expected data structure")
+        
+        return success1 and success2, response1
+    
+    def test_get_conversations(self):
+        """Test the get conversations endpoint"""
+        # Test with org_id
+        success1, response1 = self.run_test(
+            "Get Conversations (with org_id)",
+            "GET",
+            f"api/conversations?org_id={self.org_id}",
+            200
+        )
+        
+        # Test with limit
+        success2, response2 = self.run_test(
+            "Get Conversations (with limit)",
+            "GET",
+            f"api/conversations?org_id={self.org_id}&limit=5",
+            200
+        )
+        
+        # Validate response structure
+        if success1:
+            if "conversations" in response1 and "total" in response1:
+                print("✅ Get Conversations response contains expected data structure")
+            else:
+                print("⚠️ Get Conversations response missing expected data structure")
+        
+        return success1 and success2, response1
 
 def main():
     print("=" * 50)
