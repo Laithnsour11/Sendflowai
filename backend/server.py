@@ -1828,8 +1828,11 @@ async def action_send_message(
             message = f"Hi {lead.get('name', 'there')}, this is regarding your recent inquiry. I'd love to help answer any questions you might have!"
         
         # Process the message through the agent system
+        # Get the MongoDB ObjectId from the lead document
+        mongo_lead_id = str(lead["_id"])
+        
         result = await process_message(
-            lead_id=lead_id,
+            lead_id=mongo_lead_id,
             message=message,
             channel="sms",
             agent_type=None,  # Let the system select
