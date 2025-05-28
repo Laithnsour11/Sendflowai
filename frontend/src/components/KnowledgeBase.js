@@ -28,20 +28,29 @@ const KnowledgeBase = ({ currentOrg }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedType, setSelectedType] = useState('all');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('documents');
+  const [suggestions, setSuggestions] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  
   const [newDocument, setNewDocument] = useState({
     title: '',
     content: '',
     document_type: 'sop',
-    metadata: {}
+    metadata: {},
+    tags: []
   });
-  const [showAddForm, setShowAddForm] = useState(false);
   
   const documentTypes = [
-    { value: 'sop', label: 'Standard Operating Procedure' },
-    { value: 'script', label: 'Sales Script' },
-    { value: 'training', label: 'Training Material' },
-    { value: 'faq', label: 'FAQ' },
-    { value: 'objection', label: 'Objection Handler' }
+    { value: 'sop', label: 'Standard Operating Procedure', icon: FileText, color: 'blue' },
+    { value: 'script', label: 'Sales Script', icon: MessageSquare, color: 'green' },
+    { value: 'training', label: 'Training Material', icon: GraduationCap, color: 'purple' },
+    { value: 'faq', label: 'FAQ', icon: HelpCircle, color: 'orange' },
+    { value: 'objection', label: 'Objection Handler', icon: AlertTriangle, color: 'red' },
+    { value: 'market_data', label: 'Market Intelligence', icon: TrendingUp, color: 'indigo' },
+    { value: 'competitor', label: 'Competitor Analysis', icon: Eye, color: 'gray' }
   ];
   
   useEffect(() => {
