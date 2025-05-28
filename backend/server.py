@@ -766,6 +766,9 @@ async def process_message(
     }
     
     # Process the message
+    if not use_agent_orchestrator:
+        raise HTTPException(status_code=503, detail="Agent orchestrator service unavailable")
+    
     result = await agent_orchestrator.process_message(org_id, lead_id, message, channel, context)
     
     # Create or update conversation
