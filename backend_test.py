@@ -137,13 +137,56 @@ class AICloserAPITester:
             404  # Expecting 404 because the lead doesn't exist
         )
 
-    def test_process_message(self):
-        """Test the message processing endpoint"""
+    def test_memory_store(self):
+        """Test storing memory for a lead"""
+        test_data = {
+            "memory_data": {
+                "name": "Test Lead",
+                "email": "test@example.com",
+                "phone": "1234567890",
+                "budget": "$500,000",
+                "property_type": "Single Family Home"
+            },
+            "memory_type": "factual",
+            "confidence_level": 0.9
+        }
         return self.run_test(
-            "Process Message",
+            "Store Memory",
+            "POST",
+            f"api/memory/{self.org_id}/{self.lead_id}",
+            200,
+            data=test_data
+        )
+        
+    def test_memory_retrieve(self):
+        """Test retrieving memories for a lead"""
+        return self.run_test(
+            "Retrieve Memories",
             "GET",
-            f"api/agents/process-message?lead_id={self.lead_id}&message=Hello&channel=chat",
-            404  # Expecting 404 because the lead doesn't exist
+            f"api/memory/{self.org_id}/{self.lead_id}?memory_type=factual&limit=5",
+            200
+        )
+        
+    def test_memory_context(self):
+        """Test getting context for an agent"""
+        return self.run_test(
+            "Get Agent Context",
+            "GET",
+            f"api/memory/context/{self.org_id}/{self.lead_id}?agent_type=initial_contact",
+            200
+        )
+        
+    def test_validate_mem0_key(self):
+        """Test validating a Mem0 API key"""
+        test_data = {
+            "api_key": "m0-TTwLd8awIP6aFAixLPn1lgkIUR2DJlDTzApPil8E"
+        }
+        return self.run_test(
+            "Validate Mem0 API Key",
+            "POST",
+            "api/settings/validate-mem0-key",
+            200,
+            data=test_data
         )
 
 def main():
@@ -164,6 +207,12 @@ def main():
     # Test GHL integration endpoints
     tester.test_ghl_webhook()
     tester.test_ghl_sync_leads()
+    
+    # Test memory system endpoints
+    tester.test_memory_store()
+    tester.test_memory_retrieve()
+    tester.test_memory_context()
+    tester.test_validate_mem0_key()
     
     # Test agent orchestration endpoints
     tester.test_agent_selection()
