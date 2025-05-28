@@ -60,8 +60,8 @@ class CampaignService:
     """
     
     def __init__(self):
-        self.agent_orchestrator = AgentOrchestrator()
-        self.ghl_integration = GHLIntegration()
+        self.agent_orchestrator = AgentOrchestrator() if AgentOrchestrator else None
+        self.ghl_integration = GHLIntegration() if GHLIntegration else None
         self.active_campaigns = {}  # In-memory tracking for active campaigns
         
     async def create_campaign(
