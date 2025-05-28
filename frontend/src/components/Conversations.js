@@ -497,6 +497,104 @@ const Conversations = ({ currentOrg }) => {
           ))
         )}
       </div>
+      
+      {/* View Conversation Details Modal */}
+      {viewConversation && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-10 mx-auto p-5 border w-4/5 max-w-4xl shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-medium text-gray-900">Conversation Details</h3>
+                <button
+                  onClick={() => setViewConversation(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Conversation Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-medium text-gray-900 mb-3">Conversation Information</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Channel:</span> {viewConversation.conversation?.channel}</p>
+                    <p><span className="font-medium">Agent Type:</span> {viewConversation.conversation?.agent_type}</p>
+                    {viewConversation.conversation?.duration_seconds && (
+                      <p><span className="font-medium">Duration:</span> {formatDuration(viewConversation.conversation.duration_seconds)}</p>
+                    )}
+                    <p><span className="font-medium">Date:</span> {formatDate(viewConversation.conversation?.created_at)}</p>
+                    {viewConversation.conversation?.effectiveness_score && (
+                      <p><span className="font-medium">Effectiveness:</span> {Math.round(viewConversation.conversation.effectiveness_score * 100)}%</p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Lead Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-medium text-gray-900 mb-3">Lead Information</h4>
+                  <div className="space-y-2">
+                    <p><span className="font-medium">Name:</span> {viewConversation.lead?.name}</p>
+                    <p><span className="font-medium">Email:</span> {viewConversation.lead?.email}</p>
+                    <p><span className="font-medium">Phone:</span> {viewConversation.lead?.phone}</p>
+                    <p><span className="font-medium">Status:</span> {viewConversation.lead?.status}</p>
+                    <p><span className="font-medium">Trust Level:</span> {Math.round((viewConversation.lead?.trust_level || 0) * 100)}%</p>
+                  </div>
+                </div>
+                
+                {/* Sentiment Analysis */}
+                {viewConversation.conversation?.sentiment_analysis && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="text-md font-medium text-gray-900 mb-3">Sentiment Analysis</h4>
+                    <div className="space-y-2">
+                      <p><span className="font-medium">Overall Sentiment:</span> {renderSentimentIndicator(viewConversation.conversation.sentiment_analysis.overall)}</p>
+                      {viewConversation.conversation.sentiment_analysis.changes && (
+                        <div>
+                          <p className="font-medium mb-2">Sentiment Changes:</p>
+                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                            {viewConversation.conversation.sentiment_analysis.changes.map((change, index) => (
+                              <div key={index} className="text-sm bg-white p-2 rounded">
+                                <span className="font-medium">Time {Math.floor(change.time / 60)}:{(change.time % 60).toString().padStart(2, '0')}:</span> {renderSentimentIndicator(change.sentiment)}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* AI Memory Context */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-md font-medium text-gray-900 mb-3">AI Memory Context</h4>
+                  {viewConversation.memory_context && Object.keys(viewConversation.memory_context).length > 0 ? (
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {Object.entries(viewConversation.memory_context).map(([key, value], index) => (
+                        <div key={index} className="text-sm">
+                          <span className="font-medium">{key}:</span> {typeof value === 'object' ? JSON.stringify(value) : value}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No memory context available</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex justify-end mt-6">
+                <button
+                  onClick={() => setViewConversation(null)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
