@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import uuid
+import re
 from bson import ObjectId
 
 # Get the backend URL from the frontend .env file
@@ -17,6 +18,268 @@ if not BACKEND_URL:
     raise ValueError("REACT_APP_BACKEND_URL not found in frontend/.env")
 
 print(f"Using backend URL: {BACKEND_URL}")
+
+# Test class for API key validation endpoints
+class TestAPIKeyValidation:
+    def __init__(self):
+        self.base_url = f"{BACKEND_URL}/api"
+        
+    def run_all_tests(self):
+        """Run all API key validation endpoint tests"""
+        print("\n=== Running API Key Validation Endpoint Tests ===\n")
+        
+        # Test Mem0 API key validation
+        print("\n--- Testing POST /api/settings/validate-mem0-key ---")
+        self.test_mem0_key_validation()
+        
+        # Test Vapi API key validation
+        print("\n--- Testing POST /api/settings/validate-vapi-key ---")
+        self.test_vapi_key_validation()
+        
+        # Test SendBlue API key validation
+        print("\n--- Testing POST /api/settings/validate-sendblue-key ---")
+        self.test_sendblue_key_validation()
+        
+        # Test OpenAI API key validation
+        print("\n--- Testing POST /api/settings/validate-openai-key ---")
+        self.test_openai_key_validation()
+        
+        # Test OpenRouter API key validation
+        print("\n--- Testing POST /api/settings/validate-openrouter-key ---")
+        self.test_openrouter_key_validation()
+        
+        print("\n=== API Key Validation Endpoint Tests Complete ===\n")
+        return True
+    
+    def test_mem0_key_validation(self):
+        """Test Mem0 API key validation endpoint"""
+        try:
+            # Test with valid key
+            valid_key = "m0-1234567890abcdefghijklmnop"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-mem0-key",
+                json={"api_key": valid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("valid"):
+                    print(f"✅ Successfully validated valid Mem0 API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Valid Mem0 API key was incorrectly rejected")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate Mem0 API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+            
+            # Test with invalid key
+            invalid_key = "invalid-key"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-mem0-key",
+                json={"api_key": invalid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if not result.get("valid"):
+                    print(f"✅ Successfully rejected invalid Mem0 API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Invalid Mem0 API key was incorrectly accepted")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate Mem0 API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Exception in test_mem0_key_validation: {str(e)}")
+    
+    def test_vapi_key_validation(self):
+        """Test Vapi API key validation endpoint"""
+        try:
+            # Test with valid key (UUID format)
+            valid_key = "d14070eb-c48a-45d5-9a53-6115b8c4d517"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-vapi-key",
+                json={"api_key": valid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("valid"):
+                    print(f"✅ Successfully validated valid Vapi API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Valid Vapi API key was incorrectly rejected")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate Vapi API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+            
+            # Test with invalid key
+            invalid_key = "not-a-uuid"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-vapi-key",
+                json={"api_key": invalid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if not result.get("valid"):
+                    print(f"✅ Successfully rejected invalid Vapi API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Invalid Vapi API key was incorrectly accepted")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate Vapi API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Exception in test_vapi_key_validation: {str(e)}")
+    
+    def test_sendblue_key_validation(self):
+        """Test SendBlue API key validation endpoint"""
+        try:
+            # Test with valid key (length > 10)
+            valid_key = "sendblue123456"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-sendblue-key",
+                json={"api_key": valid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("valid"):
+                    print(f"✅ Successfully validated valid SendBlue API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Valid SendBlue API key was incorrectly rejected")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate SendBlue API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+            
+            # Test with invalid key (too short)
+            invalid_key = "short"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-sendblue-key",
+                json={"api_key": invalid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if not result.get("valid"):
+                    print(f"✅ Successfully rejected invalid SendBlue API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Invalid SendBlue API key was incorrectly accepted")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate SendBlue API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Exception in test_sendblue_key_validation: {str(e)}")
+    
+    def test_openai_key_validation(self):
+        """Test OpenAI API key validation endpoint"""
+        try:
+            # Test with valid key (starts with sk-, length > 20)
+            valid_key = "sk-1234567890abcdefghijklmnop"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-openai-key",
+                json={"api_key": valid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("valid"):
+                    print(f"✅ Successfully validated valid OpenAI API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Valid OpenAI API key was incorrectly rejected")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate OpenAI API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+            
+            # Test with invalid key
+            invalid_key = "invalid-openai-key"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-openai-key",
+                json={"api_key": invalid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if not result.get("valid"):
+                    print(f"✅ Successfully rejected invalid OpenAI API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Invalid OpenAI API key was incorrectly accepted")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate OpenAI API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Exception in test_openai_key_validation: {str(e)}")
+    
+    def test_openrouter_key_validation(self):
+        """Test OpenRouter API key validation endpoint"""
+        try:
+            # Test with valid key (starts with sk-or-v1-, length > 25)
+            valid_key = "sk-or-v1-1234567890abcdefghijklmnop"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-openrouter-key",
+                json={"api_key": valid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("valid"):
+                    print(f"✅ Successfully validated valid OpenRouter API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Valid OpenRouter API key was incorrectly rejected")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate OpenRouter API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+            
+            # Test with invalid key
+            invalid_key = "sk-invalid-key"
+            response = requests.post(
+                f"{self.base_url}/settings/validate-openrouter-key",
+                json={"api_key": invalid_key},
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if not result.get("valid"):
+                    print(f"✅ Successfully rejected invalid OpenRouter API key")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                else:
+                    print(f"❌ Invalid OpenRouter API key was incorrectly accepted")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+            else:
+                print(f"❌ Failed to validate OpenRouter API key: {response.status_code}")
+                print(f"   Response: {response.text}")
+                
+        except Exception as e:
+            print(f"❌ Exception in test_openrouter_key_validation: {str(e)}")
 
 # Test class for UI action endpoints with Pydantic models
 class TestUIActionEndpoints:
