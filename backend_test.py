@@ -5,6 +5,7 @@ import sys
 import time
 import uuid
 from datetime import datetime
+from bson import ObjectId
 
 class AICloserAPITester:
     def __init__(self, base_url="http://localhost:8001"):
@@ -12,7 +13,7 @@ class AICloserAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.org_id = "test_org_" + str(uuid.uuid4())[:8]  # Generate a unique test org ID
-        self.lead_id = "test_lead_" + str(uuid.uuid4())[:8]  # Generate a unique test lead ID
+        self.lead_id = str(ObjectId())  # Generate a valid MongoDB ObjectId
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
