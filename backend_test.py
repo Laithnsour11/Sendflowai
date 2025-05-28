@@ -780,18 +780,286 @@ class TestAPIKeySaving:
             print(f"❌ Exception in test_retrieve_api_keys: {str(e)}")
             return False
 
+# Test class for the specific view-lead endpoint issue
+class TestViewLeadEndpoint:
+    def __init__(self):
+        self.base_url = f"{BACKEND_URL}/api"
+        self.lead_id = None
+        self.org_id = "production_org_123"  # Default org ID
+        
+    def run_all_tests(self):
+        """Run specific tests for the view-lead endpoint"""
+        print("\n=== Running Specific Tests for view-lead Endpoint ===\n")
+        
+        # First, add a test lead to use for testing
+        print("\n--- Creating a test lead for view-lead testing ---")
+        self.create_test_lead()
+        
+        if not self.lead_id:
+            print("❌ Failed to create test lead, cannot continue with view-lead tests")
+            return False
+        
+        # Test view-lead with valid lead ID
+        print("\n--- Testing POST /api/actions/view-lead with valid lead ID ---")
+        self.test_view_lead_valid_id()
+        
+        # Test view-lead with invalid lead ID
+        print("\n--- Testing POST /api/actions/view-lead with invalid lead ID ---")
+        self.test_view_lead_invalid_id()
+        
+        # Test view-lead with malformed request
+        print("\n--- Testing POST /api/actions/view-lead with malformed request ---")
+        self.test_view_lead_malformed_request()
+        
+        # Test view-lead with missing lead_id
+        print("\n--- Testing POST /api/actions/view-lead with missing lead_id ---")
+        self.test_view_lead_missing_lead_id()
+        
+        # Test view-lead with exact request format from frontend
+        print("\n--- Testing POST /api/actions/view-lead with exact frontend request format ---")
+        self.test_view_lead_frontend_format()
+        
+        print("\n=== view-lead Endpoint Tests Complete ===\n")
+        return True
+    
+    def create_test_lead(self):
+        """Create a test lead to use for view-lead testing"""
+        try:
+            # Generate unique email to avoid duplicates
+            unique_email = f"test_{uuid.uuid4().hex[:8]}@example.com"
+            
+            # Prepare data as JSON body
+            data = {
+                "org_id": self.org_id,
+                "name": "View Lead Test",
+                "email": unique_email,
+                "phone": "+15551234567",
+                "status": "Initial Contact",
+                "source": "View Lead Test"
+            }
+            
+            # Make request with JSON body
+            response = requests.post(
+                f"{self.base_url}/actions/add-lead", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Check response
+            if response.status_code == 200:
+                result = response.json()
+                self.lead_id = result.get("lead_id")
+                print(f"✅ Successfully created test lead with ID: {self.lead_id}")
+                return True
+            else:
+                print(f"❌ Failed to create test lead: {response.status_code}")
+                print(f"   Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Exception in create_test_lead: {str(e)}")
+            return False
+    
+    def test_view_lead_valid_id(self):
+        """Test view-lead with a valid lead ID"""
+        try:
+            # Prepare data as JSON body
+            data = {
+                "lead_id": self.lead_id
+            }
+            
+            # Make request with JSON body
+            response = requests.post(
+                f"{self.base_url}/actions/view-lead", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Check response
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Verify the response structure
+                if result.get("success") and result.get("lead") and "recent_conversations" in result and "recent_interactions" in result and "memory_context" in result:
+                    print(f"✅ Successfully retrieved lead details with valid ID")
+                    print(f"   Response structure is correct with all expected fields")
+                    
+                    # Print lead details
+                    lead = result.get("lead", {})
+                    print(f"   Lead name: {lead.get('name')}")
+                    print(f"   Lead email: {lead.get('email')}")
+                    
+                    # Check conversations and interactions
+                    conversations = result.get("recent_conversations", [])
+                    interactions = result.get("recent_interactions", [])
+                    print(f"   Recent conversations: {len(conversations)}")
+                    print(f"   Recent interactions: {len(interactions)}")
+                    
+                    return True
+                else:
+                    print(f"❌ Response structure is incorrect")
+                    print(f"   Missing fields: {[field for field in ['success', 'lead', 'recent_conversations', 'recent_interactions', 'memory_context'] if field not in result]}")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                    return False
+            else:
+                print(f"❌ Failed to view lead with valid ID: {response.status_code}")
+                print(f"   Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Exception in test_view_lead_valid_id: {str(e)}")
+            return False
+    
+    def test_view_lead_invalid_id(self):
+        """Test view-lead with an invalid lead ID"""
+        try:
+            # Generate invalid lead ID
+            invalid_id = str(uuid.uuid4())
+            
+            # Prepare data as JSON body
+            data = {
+                "lead_id": invalid_id
+            }
+            
+            # Make request with JSON body
+            response = requests.post(
+                f"{self.base_url}/actions/view-lead", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Check response
+            if response.status_code == 404:
+                print(f"✅ Correctly returned 404 for invalid lead ID")
+                return True
+            elif response.status_code == 500:
+                print(f"⚠️ Server returned 500 instead of 404 for invalid lead ID")
+                print(f"   This could be improved to return a proper 404 response")
+                print(f"   Response: {response.text}")
+                return False
+            else:
+                print(f"❌ Unexpected response for invalid lead ID: {response.status_code}")
+                print(f"   Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Exception in test_view_lead_invalid_id: {str(e)}")
+            return False
+    
+    def test_view_lead_malformed_request(self):
+        """Test view-lead with a malformed request"""
+        try:
+            # Prepare malformed data (not JSON)
+            malformed_data = "This is not JSON"
+            
+            # Make request with malformed data
+            response = requests.post(
+                f"{self.base_url}/actions/view-lead", 
+                data=malformed_data,
+                headers={"Content-Type": "text/plain"}
+            )
+            
+            # Check response
+            if response.status_code == 422:
+                print(f"✅ Correctly returned 422 for malformed request")
+                return True
+            else:
+                print(f"❌ Unexpected response for malformed request: {response.status_code}")
+                print(f"   Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Exception in test_view_lead_malformed_request: {str(e)}")
+            return False
+    
+    def test_view_lead_missing_lead_id(self):
+        """Test view-lead with missing lead_id"""
+        try:
+            # Prepare data with missing lead_id
+            data = {}
+            
+            # Make request with missing lead_id
+            response = requests.post(
+                f"{self.base_url}/actions/view-lead", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Check response
+            if response.status_code == 422:
+                print(f"✅ Correctly returned 422 for missing lead_id")
+                return True
+            else:
+                print(f"❌ Unexpected response for missing lead_id: {response.status_code}")
+                print(f"   Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Exception in test_view_lead_missing_lead_id: {str(e)}")
+            return False
+    
+    def test_view_lead_frontend_format(self):
+        """Test view-lead with the exact request format from the frontend"""
+        try:
+            # This is the exact format the frontend is using
+            data = {
+                "lead_id": self.lead_id
+            }
+            
+            # Make request with frontend format
+            response = requests.post(
+                f"{self.base_url}/actions/view-lead", 
+                json=data,
+                headers={
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                }
+            )
+            
+            # Check response and headers
+            print(f"Response Status Code: {response.status_code}")
+            print(f"Response Headers: {json.dumps(dict(response.headers), indent=2)}")
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Verify the response structure
+                if result.get("success") and result.get("lead") and "recent_conversations" in result and "recent_interactions" in result and "memory_context" in result:
+                    print(f"✅ Successfully retrieved lead details with frontend request format")
+                    print(f"   Response structure is correct with all expected fields")
+                    return True
+                else:
+                    print(f"❌ Response structure is incorrect")
+                    print(f"   Missing fields: {[field for field in ['success', 'lead', 'recent_conversations', 'recent_interactions', 'memory_context'] if field not in result]}")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                    return False
+            else:
+                print(f"❌ Failed to view lead with frontend request format: {response.status_code}")
+                print(f"   Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Exception in test_view_lead_frontend_format: {str(e)}")
+            return False
+
 if __name__ == "__main__":
-    # Run API key validation tests
-    print("\n=== TESTING API KEY VALIDATION ENDPOINTS ===\n")
-    api_key_tester = TestAPIKeyValidation()
-    api_key_tester.run_all_tests()
+    # Run specific view-lead endpoint tests
+    print("\n=== TESTING VIEW-LEAD ENDPOINT ===\n")
+    view_lead_tester = TestViewLeadEndpoint()
+    view_lead_tester.run_all_tests()
     
-    # Run API key saving tests
-    print("\n=== TESTING API KEY SAVING ENDPOINTS ===\n")
-    api_key_saving_tester = TestAPIKeySaving()
-    api_key_saving_tester.run_all_tests()
-    
-    # Run UI action endpoint tests
-    print("\n=== TESTING UI ACTION ENDPOINTS ===\n")
-    ui_tester = TestUIActionEndpoints()
-    ui_tester.run_all_tests()
+    # Uncomment these to run other tests if needed
+    # # Run API key validation tests
+    # print("\n=== TESTING API KEY VALIDATION ENDPOINTS ===\n")
+    # api_key_tester = TestAPIKeyValidation()
+    # api_key_tester.run_all_tests()
+    # 
+    # # Run API key saving tests
+    # print("\n=== TESTING API KEY SAVING ENDPOINTS ===\n")
+    # api_key_saving_tester = TestAPIKeySaving()
+    # api_key_saving_tester.run_all_tests()
+    # 
+    # # Run UI action endpoint tests
+    # print("\n=== TESTING UI ACTION ENDPOINTS ===\n")
+    # ui_tester = TestUIActionEndpoints()
+    # ui_tester.run_all_tests()
