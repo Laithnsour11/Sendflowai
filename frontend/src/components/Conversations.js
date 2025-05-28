@@ -456,7 +456,7 @@ const Conversations = ({ currentOrg }) => {
                       
                       <div className="mt-3">
                         <div className="text-xs text-gray-500 mb-1">Sentiment:</div>
-                        <div>{renderSentimentIndicator(conversation.sentiment_analysis.overall)}</div>
+                        <div>{renderSentimentIndicator(conversation.sentiment_analysis?.overall || 'neutral')}</div>
                       </div>
                       
                       {conversation.channel === 'voice' && (
