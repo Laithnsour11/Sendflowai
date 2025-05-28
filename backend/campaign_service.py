@@ -25,10 +25,13 @@ try:
     from agent_orchestrator import AgentOrchestrator
 except ImportError:
     try:
-        from app.backend.agent_orchestrator import AgentOrchestrator
+        from backend.agent_orchestrator import AgentOrchestrator
     except ImportError:
-        AgentOrchestrator = None
-        print("Warning: AgentOrchestrator not available")
+        try:
+            from app.backend.agent_orchestrator import AgentOrchestrator
+        except ImportError:
+            AgentOrchestrator = None
+            print("Warning: AgentOrchestrator not available")
 
 # Import GHL integration with error handling
 try:
