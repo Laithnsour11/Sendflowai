@@ -23,9 +23,21 @@ const Settings = ({ currentOrg }) => {
   
   const [aiSettings, setAiSettings] = useState({
     model: 'gpt-4o',
+    provider: 'openrouter',
     temperature: 0.7,
-    voice_provider: 'elevenlabs',
-    voice_id: 'voice1'
+    voice_provider: 'vapi',
+    voice_id: 'professional_male',
+    speech_rate: 'normal',
+    response_style: 'professional',
+    max_response_length: 'medium',
+    objection_style: 'consultative',
+    // Agent-specific models
+    initial_contact_model: '',
+    qualifier_model: '',
+    nurturer_model: '',
+    objection_handler_model: '',
+    appointment_setter_model: '',
+    closer_model: ''
   });
   
   const [integrationStatus, setIntegrationStatus] = useState({
