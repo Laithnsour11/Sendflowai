@@ -102,9 +102,14 @@ db_instance = client[db_name]
 
 # Initialize campaign service
 try:
-    campaign_service = CampaignService()
-    use_campaign_service = True
-    print("✅ Campaign Service initialized successfully")
+    if CampaignService:
+        campaign_service = CampaignService()
+        use_campaign_service = True
+        print("✅ Campaign Service initialized successfully")
+    else:
+        campaign_service = None
+        use_campaign_service = False
+        print("⚠️ Campaign Service not available - import failed")
 except Exception as e:
     print(f"⚠️ Warning: Could not initialize Campaign Service: {e}")
     campaign_service = None
