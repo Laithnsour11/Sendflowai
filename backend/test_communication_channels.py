@@ -381,7 +381,7 @@ async def test_complete_communication_system():
         
         # Test GHL SMS Provider
         print("🔄 Testing GHL SMS Provider initialization...")
-        from ghl_integration import GHLIntegration
+        from ghl import GHLIntegration
         ghl = GHLIntegration()
         ghl_sms = GHLSMSProvider(ghl)
         print("✅ GHL SMS Provider initialized")
