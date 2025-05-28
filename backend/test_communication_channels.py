@@ -10,7 +10,7 @@ async def test_ghl_sms_integration():
     
     try:
         # Import GHL integration to access SMS functionality
-        from ghl_integration import GHLIntegration
+        from ghl import GHLIntegration
         
         # Initialize GHL integration
         ghl = GHLIntegration()
