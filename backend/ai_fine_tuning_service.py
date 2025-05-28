@@ -81,6 +81,9 @@ class AIFineTuningService:
             Created fine-tuning job object
         """
         try:
+            if db is None:
+                raise HTTPException(status_code=503, detail="Database service not available")
+            
             # Validate job configuration
             self._validate_job_config(job_config)
             
