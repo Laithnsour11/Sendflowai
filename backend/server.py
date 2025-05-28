@@ -1883,11 +1883,7 @@ async def action_send_message(request: SendMessageRequest):
         raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
 
 @app.post("/api/actions/initiate-call")
-async def action_initiate_call(
-    lead_id: str,
-    objective: Optional[str] = None,
-    org_id: Optional[str] = None
-):
+async def action_initiate_call(request: InitiateCallRequest):
     """
     Simplified endpoint for frontend Call buttons.
     Initiates an AI-powered voice call with a lead.
@@ -1897,23 +1893,23 @@ async def action_initiate_call(
         lead = None
         
         # Try to find lead by UUID first (for newly created leads)
-        if lead_id:
-            lead = await db.leads_collection.find_one({"id": lead_id})
+        if request.lead_id:
+            lead = await db.leads_collection.find_one({"id": request.lead_id})
         
         # If not found, try by ObjectId (for existing leads)
         if not lead:
             try:
-                lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+                lead = await db.leads_collection.find_one({"_id": ObjectId(request.lead_id)})
             except:
                 pass
                 
         if not lead:
             raise HTTPException(status_code=404, detail="Lead not found")
         
-        lead_org_id = org_id or lead.get("org_id", "production_org_123")
+        lead_org_id = request.org_id or lead.get("org_id", "production_org_123")
         
         # Auto-generate objective if none provided
-        if not objective:
+        if not request.objective:
             lead_status = lead.get("status", "Initial Contact")
             if lead_status == "Initial Contact":
                 objective = "Introduce services and qualify the lead"
