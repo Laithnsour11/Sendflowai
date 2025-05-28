@@ -1896,8 +1896,11 @@ async def action_initiate_call(
                 objective = "Follow up and assess current needs"
         
         # Initiate the voice call
+        # Get the MongoDB ObjectId from the lead document
+        mongo_lead_id = str(lead["_id"])
+        
         result = await initiate_voice_call(
-            lead_id=lead_id,
+            lead_id=mongo_lead_id,
             objective=objective,
             phone_number=None  # Use phone from lead data
         )
