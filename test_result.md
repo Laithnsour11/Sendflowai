@@ -304,6 +304,10 @@ metadata:
 test_plan:
   current_focus:
     - "GET /api/leads - Get leads list"
+    - "POST /api/actions/send-message - Send message to lead"
+    - "POST /api/actions/initiate-call - Initiate call to lead"
+    - "POST /api/actions/view-lead - View lead details"
+    - "POST /api/actions/add-lead - Add new lead"
   stuck_tasks:
     - "GET /api/campaigns - List campaigns for organization"
     - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
@@ -336,3 +340,5 @@ agent_communication:
     message: "Attempted to test the UI action button functionality in the LeadsList component, but encountered navigation issues. After successful login, when trying to navigate to the Leads page (/leads), the application redirects back to the landing page. This suggests there might be an issue with the routing or authentication for the Leads page. The LeadsList component code looks correct with proper implementation of Message, Call, and View buttons, but we couldn't access the page to test these features. This issue needs to be fixed before we can test the UI action button functionality."
   - agent: "testing"
     message: "Successfully tested the UI action button functionality after the authentication persistence fix. Authentication now persists across page refreshes and direct navigation to the Leads page. The Leads page loads correctly with the list of leads. All UI action buttons (Message, Call, View) are working as expected from a frontend perspective. The buttons show proper loading states and user feedback. However, there are backend API issues (422 status codes) when the buttons are clicked. Despite these backend errors, the frontend UI components are working correctly in terms of user interaction and feedback. The backend API issues need to be addressed separately."
+  - agent: "testing"
+    message: "Tested the fixed UI action endpoints with the new Pydantic models and improved error handling. The POST /api/actions/add-lead, POST /api/actions/view-lead, POST /api/actions/send-message, and POST /api/actions/initiate-call endpoints are now working correctly with JSON request bodies. The GET /api/leads endpoint is also working correctly. All endpoints return 200 status codes for valid requests, which means the Pydantic models are working correctly. However, there are still some issues with error handling for invalid lead IDs - they return 500 errors instead of 404 errors. The verification of conversation and interaction records is also not working as expected in some cases. Overall, the critical fix to resolve the 'Error sending message: [object Object]' issue has been successful, as the endpoints now accept JSON request bodies instead of query parameters."
