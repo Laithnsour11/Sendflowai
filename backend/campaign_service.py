@@ -384,6 +384,9 @@ class CampaignService:
             
             return campaigns
             
+        except HTTPException:
+            # Re-raise HTTP exceptions
+            raise
         except Exception as e:
             logger.error(f"Error listing campaigns for org {org_id}: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to list campaigns: {str(e)}")
