@@ -1165,11 +1165,13 @@ async def shutdown_db_client():
 
 # Include Phase B.2 analytics and RLHF endpoints
 try:
-    from analytics_rlhf_endpoints import include_phase_b2_routes
-    include_phase_b2_routes(app)
+    import analytics_rlhf_endpoints
+    analytics_rlhf_endpoints.include_phase_b2_routes(app)
     logger.info("Phase B.2 analytics and RLHF endpoints loaded successfully")
 except ImportError as e:
     logger.warning(f"Phase B.2 endpoints import failed: {e}")
+except Exception as e:
+    logger.error(f"Phase B.2 endpoints loading error: {e}")
 
 if __name__ == "__main__":
     import uvicorn
