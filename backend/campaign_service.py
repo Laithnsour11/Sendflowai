@@ -323,6 +323,9 @@ class CampaignService:
                 "message": "Campaign stopped successfully"
             }
             
+        except HTTPException:
+            # Re-raise HTTP exceptions
+            raise
         except Exception as e:
             logger.error(f"Error stopping campaign {campaign_id}: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to stop campaign: {str(e)}")
