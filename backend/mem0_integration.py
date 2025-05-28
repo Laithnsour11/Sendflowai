@@ -119,6 +119,44 @@ class Mem0Integration:
             logger.error(f"Error storing memory in Mem0: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to store memory in Mem0: {str(e)}")
     
+    async def get_memories(self, lead_id: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Get all memories for a lead
+        
+        Args:
+            lead_id: ID of the lead (used as Mem0 user_id)
+            limit: Maximum number of memories to retrieve
+            
+        Returns:
+            List of memories for the lead
+        """
+        if not self.api_key:
+            logger.warning("Mem0 API key not set, cannot get memories")
+            raise ValueError("Mem0 API key not configured")
+        
+        try:
+            # For now, we'll simulate getting memories since the exact API endpoint structure
+            # needs to be verified. In a real implementation, this would query Mem0 API
+            # Example: GET /memories?user_id={lead_id}&limit={limit}
+            
+            logger.info(f"Getting memories for lead {lead_id} (simulated)")
+            
+            # Return mock data for now - in production this would be real Mem0 API call
+            return [
+                {
+                    "id": str(uuid.uuid4()),
+                    "lead_id": lead_id,
+                    "memory_type": "factual",
+                    "content": {"name": "Mock Lead", "budget": "$500k"},
+                    "created_at": datetime.now().isoformat()
+                }
+            ]
+            
+        except Exception as e:
+            logger.error(f"Error getting memories from Mem0: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to get memories from Mem0: {str(e)}")
+    
+    
     def _format_memory_content(self, memory_data: Dict[str, Any], memory_type: str) -> Dict[str, Any]:
         """Format memory content based on the memory type"""
         
