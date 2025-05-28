@@ -49,12 +49,14 @@ try:
     try:
         from memory_manager import MemoryManager
         from api_endpoints import router as api_router
+        from campaign_service import CampaignService
         memory_manager = MemoryManager()
         use_memory_manager = True
     except ImportError:
         # Try with app prefix
         from app.backend.memory_manager import MemoryManager
         from app.backend.api_endpoints import router as api_router
+        from app.backend.campaign_service import CampaignService
         memory_manager = MemoryManager()
         use_memory_manager = True
 except ImportError as e:
