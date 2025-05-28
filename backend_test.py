@@ -743,27 +743,16 @@ class TestAPIKeySaving:
                     print(f"✅ Successfully retrieved API keys for organization: {self.org_id}")
                     print(f"   Retrieved keys: {', '.join(expected_keys)}")
                     
-                    # Verify the values match what we saved
-                    expected_values = {
-                        "mem0_api_key": "m0-1234567890abcdefghijklmnop",
-                        "vapi_api_key": "d14070eb-c48a-45d5-9a53-6115b8c4d517",
-                        "sendblue_api_key": "sendblue123456",
-                        "openai_api_key": "sk-1234567890abcdefghijklmnop",
-                        "openrouter_api_key": "sk-or-v1-1234567890abcdefghijklmnop"
-                    }
+                    # Check if values are masked (for security)
+                    masked_values = True
+                    for key in expected_keys:
+                        value = result.get(key, "")
+                        if not value.startswith("••••••••"):
+                            masked_values = False
+                            print(f"⚠️ API key {key} is not properly masked: {value}")
                     
-                    mismatched_values = []
-                    for key, expected_value in expected_values.items():
-                        actual_value = result.get(key)
-                        if actual_value != expected_value:
-                            mismatched_values.append(f"{key}: expected '{expected_value}', got '{actual_value}'")
-                    
-                    if not mismatched_values:
-                        print(f"✅ All API key values match what was saved")
-                    else:
-                        print(f"❌ Some API key values don't match what was saved:")
-                        for mismatch in mismatched_values:
-                            print(f"   - {mismatch}")
+                    if masked_values:
+                        print(f"✅ All API key values are properly masked for security")
                     
                     return True
                 else:
