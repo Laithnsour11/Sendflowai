@@ -147,6 +147,26 @@ class AICloserAPITester:
             404  # Expecting 404 because the lead doesn't exist
         )
 
+    def test_create_lead(self):
+        """Test creating a lead"""
+        test_data = {
+            "_id": self.lead_id,
+            "org_id": self.org_id,
+            "name": "Test Lead",
+            "email": "test@example.com",
+            "phone": "1234567890",
+            "source": "API Test",
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        }
+        return self.run_test(
+            "Create Lead",
+            "POST",
+            "api/leads",
+            200,
+            data=test_data
+        )
+
 def main():
     print("=" * 50)
     print("AI Closer API Test Suite")
@@ -165,6 +185,9 @@ def main():
     # Test GHL integration endpoints
     tester.test_ghl_webhook()
     tester.test_ghl_sync_leads()
+    
+    # Test lead creation
+    tester.test_create_lead()
     
     # Test agent orchestration endpoints
     tester.test_agent_selection()
