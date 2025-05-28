@@ -10,6 +10,7 @@ import Settings from './components/Settings';
 import LandingPage from './components/LandingPage';
 import KnowledgeBase from './components/KnowledgeBase';
 import AgentTraining from './components/AgentTraining';
+import Analytics from './components/Analytics';
 
 // Layouts
 import AppLayout from './layouts/AppLayout';
