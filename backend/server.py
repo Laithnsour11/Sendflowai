@@ -157,6 +157,21 @@ except Exception as e:
     fine_tuning_service = None
     use_fine_tuning_service = False
 
+# Initialize Advanced Analytics service
+try:
+    if AdvancedAnalyticsService:
+        advanced_analytics_service = AdvancedAnalyticsService()
+        use_advanced_analytics_service = True
+        print("✅ Advanced Analytics Service initialized successfully")
+    else:
+        advanced_analytics_service = None
+        use_advanced_analytics_service = False
+        print("⚠️ Advanced Analytics Service not available - import failed")
+except Exception as e:
+    print(f"⚠️ Warning: Could not initialize Advanced Analytics Service: {e}")
+    advanced_analytics_service = None
+    use_advanced_analytics_service = False
+
 # Create FastAPI app
 app = FastAPI(
     title="AI Closer API", 
