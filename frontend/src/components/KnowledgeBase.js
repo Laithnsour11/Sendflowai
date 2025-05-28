@@ -1,4 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Search,
+  Plus,
+  FileText,
+  MessageSquare,
+  GraduationCap,
+  HelpCircle,
+  AlertTriangle,
+  BookOpen,
+  Sparkles,
+  Brain,
+  TrendingUp,
+  Zap,
+  Upload,
+  Download,
+  Eye,
+  Edit,
+  Trash2,
+  Filter
+} from 'lucide-react';
 import axios from 'axios';
 
 const KnowledgeBase = ({ currentOrg }) => {
