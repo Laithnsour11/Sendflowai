@@ -1089,21 +1089,14 @@ class AICloserAPITester:
     
     def test_add_lead(self):
         """Test the add lead endpoint"""
-        test_data = {
-            "org_id": self.org_id,
-            "name": "Test UI Lead",
-            "email": f"test-ui-{uuid.uuid4()}@example.com",
-            "phone": "1234567890",
-            "status": "Initial Contact",
-            "source": "UI Test"
-        }
+        # Create endpoint URL with query parameters
+        endpoint = f"api/actions/add-lead?org_id={self.org_id}&name=Test%20UI%20Lead&email=test-ui-{uuid.uuid4()}@example.com&phone=1234567890&status=Initial%20Contact"
         
         success, response = self.run_test(
             "Add Lead",
             "POST",
-            "api/actions/add-lead",
-            200,
-            data=test_data
+            endpoint,
+            200
         )
         
         if success and "lead_id" in response:
