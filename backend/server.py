@@ -1726,30 +1726,339 @@ async def get_agent_performance(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/rlhf/feedback")
-async def submit_feedback(feedback_data: dict):
-    """Submit RLHF feedback for conversation improvement"""
+async def submit_rlhf_feedback(
+    org_id: str,
+    conversation_id: str,
+    feedback_type: str,
+    rating: Optional[int] = None,
+    category: Optional[str] = None,
+    suggestions: Optional[str] = None,
+    outcome: Optional[str] = None
+):
+    """
+    Submit RLHF feedback for a conversation.
+    """
+    # Validate feedback data
+    if feedback_type not in ["rating", "category", "outcome", "improvement"]:
+        raise HTTPException(status_code=400, detail="Invalid feedback type")
+    
+    if feedback_type == "rating" and (rating is None or rating < 1 or rating > 5):
+        raise HTTPException(status_code=400, detail="Rating must be between 1 and 5")
+    
+    # Create feedback record
+    feedback_id = str(uuid.uuid4())
+    feedback_data = {
+        "id": feedback_id,
+        "org_id": org_id,
+        "conversation_id": conversation_id,
+        "feedback_type": feedback_type,
+        "rating": rating,
+        "category": category,
+        "suggestions": suggestions,
+        "outcome": outcome,
+        "created_at": datetime.now().isoformat()
+    }
+    
+    # Store in feedback collection
+    await db.rlhf_feedback_collection.insert_one(feedback_data)
+    
+    return {
+        "success": True,
+        "feedback_id": feedback_id,
+        "message": "Feedback submitted successfully"
+    }
+
+# ================================
+# UI ACTION ENDPOINTS
+# ================================
+
+@app.post("/api/actions/send-message")
+async def action_send_message(
+    lead_id: str,
+    message: Optional[str] = None,
+    org_id: Optional[str] = None
+):
+    """
+    Simplified endpoint for frontend Message buttons.
+    Initiates an AI-powered SMS/MMS conversation with a lead.
+    """
     try:
-        processed_feedback = {
-            "id": f"feedback_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            "conversation_id": feedback_data.get("conversation_id"),
-            "feedback_type": feedback_data.get("feedback_type"),
-            "rating": feedback_data.get("rating"),
-            "feedback_text": feedback_data.get("feedback_text", ""),
-            "timestamp": datetime.now().isoformat(),
-            "processed": False
-        }
+        # Get lead data
+        from bson import ObjectId
+        lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+        if not lead:
+            raise HTTPException(status_code=404, detail="Lead not found")
         
-        logger.info(f"RLHF Feedback received: {processed_feedback['feedback_type']}")
+        lead_org_id = org_id or lead.get("org_id", "production_org_123")
+        
+        # Auto-generate an appropriate opening message if none provided
+        if not message:
+            agent_selection = await select_agent(lead_id, "initial contact", "sms", True)
+            message = f"Hi {lead.get('name', 'there')}, this is regarding your recent inquiry. I'd love to help answer any questions you might have!"
+        
+        # Process the message through the agent system
+        result = await process_message(
+            lead_id=lead_id,
+            message=message,
+            channel="sms",
+            agent_type=None,  # Let the system select
+            conversation_id=None
+        )
         
         return {
             "success": True,
-            "feedback_id": processed_feedback["id"],
-            "message": "Feedback received and will be used to improve AI performance"
+            "message": "Message sent successfully",
+            "conversation_id": result["conversation_id"],
+            "agent_response": result["response"],
+            "agent_type": result["agent_type"]
         }
         
     except Exception as e:
-        logger.error(f"Error processing RLHF feedback: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Error in action_send_message: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to send message: {str(e)}")
+
+@app.post("/api/actions/initiate-call")
+async def action_initiate_call(
+    lead_id: str,
+    objective: Optional[str] = None,
+    org_id: Optional[str] = None
+):
+    """
+    Simplified endpoint for frontend Call buttons.
+    Initiates an AI-powered voice call with a lead.
+    """
+    try:
+        # Get lead data
+        from bson import ObjectId
+        lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+        if not lead:
+            raise HTTPException(status_code=404, detail="Lead not found")
+        
+        lead_org_id = org_id or lead.get("org_id", "production_org_123")
+        
+        # Auto-generate objective if none provided
+        if not objective:
+            lead_status = lead.get("status", "Initial Contact")
+            if lead_status == "Initial Contact":
+                objective = "Introduce services and qualify the lead"
+            elif lead_status == "Qualified":
+                objective = "Present solution and move towards closing"
+            elif lead_status == "Nurturing":
+                objective = "Address concerns and build trust"
+            elif lead_status == "Closing":
+                objective = "Finalize details and close the deal"
+            else:
+                objective = "Follow up and assess current needs"
+        
+        # Initiate the voice call
+        result = await initiate_voice_call(
+            lead_id=lead_id,
+            objective=objective,
+            phone_number=None  # Use phone from lead data
+        )
+        
+        return {
+            "success": True,
+            "message": "Call initiated successfully",
+            "call_id": result["call_id"],
+            "conversation_id": result["conversation_id"],
+            "agent_type": result["agent_type"],
+            "status": result["status"]
+        }
+        
+    except Exception as e:
+        print(f"Error in action_initiate_call: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to initiate call: {str(e)}")
+
+@app.post("/api/actions/view-lead")
+async def action_view_lead(lead_id: str):
+    """
+    Get detailed lead information for frontend View buttons.
+    """
+    try:
+        # Get lead data
+        from bson import ObjectId
+        lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+        if not lead:
+            raise HTTPException(status_code=404, detail="Lead not found")
+        
+        # Get recent conversations
+        conversations = await db.conversations_collection.find(
+            {"lead_id": lead_id}
+        ).sort("created_at", -1).limit(10).to_list(10)
+        
+        # Get recent agent interactions
+        interactions = await db.agent_interactions_collection.find(
+            {"lead_id": lead_id}
+        ).sort("created_at", -1).limit(5).to_list(5)
+        
+        # Get memory context if available
+        memory_context = {}
+        if use_memory_manager:
+            try:
+                memory_context = await memory_manager.get_context_for_agent(lead_id, "general")
+            except Exception as e:
+                print(f"Memory context error: {e}")
+                memory_context = {"error": "Memory unavailable"}
+        
+        return {
+            "success": True,
+            "lead": {
+                "id": str(lead["_id"]),
+                "name": lead.get("name"),
+                "email": lead.get("email"),
+                "phone": lead.get("phone"),
+                "status": lead.get("status"),
+                "relationship_stage": lead.get("relationship_stage"),
+                "personality_type": lead.get("personality_type"),
+                "trust_level": lead.get("trust_level"),
+                "conversion_probability": lead.get("conversion_probability"),
+                "created_at": lead.get("created_at"),
+                "updated_at": lead.get("updated_at")
+            },
+            "recent_conversations": conversations,
+            "recent_interactions": interactions,
+            "memory_context": memory_context
+        }
+        
+    except Exception as e:
+        print(f"Error in action_view_lead: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get lead details: {str(e)}")
+
+@app.post("/api/actions/add-lead")
+async def action_add_lead(
+    org_id: str,
+    name: str,
+    email: str,
+    phone: Optional[str] = None,
+    status: Optional[str] = "Initial Contact",
+    source: Optional[str] = "Manual Entry"
+):
+    """
+    Add a new lead for frontend Add Lead buttons.
+    """
+    try:
+        # Create new lead
+        lead_id = str(uuid.uuid4())
+        lead_data = {
+            "_id": ObjectId(),
+            "id": lead_id,
+            "org_id": org_id,
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "status": status,
+            "relationship_stage": status.lower().replace(" ", "_"),
+            "personality_type": "unknown",  # Will be determined through interactions
+            "trust_level": 0.0,
+            "conversion_probability": 0.1,  # Default low probability for new leads
+            "source": source,
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
+        }
+        
+        # Insert into database
+        await db.leads_collection.insert_one(lead_data)
+        
+        return {
+            "success": True,
+            "message": "Lead added successfully",
+            "lead_id": lead_id,
+            "lead": {
+                "id": lead_id,
+                "name": name,
+                "email": email,
+                "phone": phone,
+                "status": status
+            }
+        }
+        
+    except Exception as e:
+        print(f"Error in action_add_lead: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to add lead: {str(e)}")
+
+@app.get("/api/leads")
+async def get_leads(org_id: str = "production_org_123", limit: int = 50):
+    """
+    Get leads list for frontend components.
+    """
+    try:
+        # Get leads from database
+        leads = await db.leads_collection.find(
+            {"org_id": org_id}
+        ).sort("created_at", -1).limit(limit).to_list(limit)
+        
+        # Convert ObjectId to string and format data
+        formatted_leads = []
+        for lead in leads:
+            formatted_leads.append({
+                "id": str(lead["_id"]),
+                "name": lead.get("name"),
+                "email": lead.get("email"),
+                "phone": lead.get("phone"),
+                "status": lead.get("status"),
+                "relationship_stage": lead.get("relationship_stage"),
+                "personality_type": lead.get("personality_type"),
+                "trust_level": lead.get("trust_level", 0.0),
+                "conversion_probability": lead.get("conversion_probability", 0.0),
+                "created_at": lead.get("created_at"),
+                "updated_at": lead.get("updated_at")
+            })
+        
+        return {
+            "success": True,
+            "leads": formatted_leads,
+            "total": len(formatted_leads)
+        }
+        
+    except Exception as e:
+        print(f"Error in get_leads: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get leads: {str(e)}")
+
+@app.get("/api/conversations")
+async def get_conversations(org_id: str = "production_org_123", limit: int = 50):
+    """
+    Get conversations list for frontend components.
+    """
+    try:
+        # Get conversations from database
+        conversations = await db.conversations_collection.find(
+            {}  # Could filter by org_id if needed
+        ).sort("created_at", -1).limit(limit).to_list(limit)
+        
+        # Get lead data for each conversation
+        formatted_conversations = []
+        for conversation in conversations:
+            lead_id = conversation.get("lead_id")
+            if lead_id:
+                try:
+                    lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+                    if lead:
+                        formatted_conversations.append({
+                            "id": conversation.get("id"),
+                            "lead": {
+                                "id": str(lead["_id"]),
+                                "name": lead.get("name"),
+                                "email": lead.get("email")
+                            },
+                            "channel": conversation.get("channel"),
+                            "agent_type": conversation.get("agent_type"),
+                            "created_at": conversation.get("created_at"),
+                            "status": conversation.get("status", "active")
+                        })
+                except Exception as e:
+                    print(f"Error getting lead for conversation: {e}")
+                    continue
+        
+        return {
+            "success": True,
+            "conversations": formatted_conversations,
+            "total": len(formatted_conversations)
+        }
+        
+    except Exception as e:
+        print(f"Error in get_conversations: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get conversations: {str(e)}")
 
 @app.get("/api/dashboard/real-time")
 async def get_real_time_dashboard_data(org_id: str):
