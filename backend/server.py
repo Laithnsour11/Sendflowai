@@ -882,6 +882,9 @@ async def initiate_voice_call(
     selection_result = await select_agent(lead_id, objective, "voice", True)
     
     # Initialize the voice call
+    if not use_agent_orchestrator:
+        raise HTTPException(status_code=503, detail="Agent orchestrator service unavailable")
+    
     call_result = await agent_orchestrator.initiate_voice_call(
         org_id=org_id,
         lead_id=lead_id,
