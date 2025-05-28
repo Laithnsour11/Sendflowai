@@ -132,6 +132,66 @@ backend:
         agent: "testing"
         comment: "Endpoint is working correctly. Successfully returns the exported report data for the given export_id."
 
+  - task: "POST /api/actions/add-lead - Add a new lead"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint is working correctly. Successfully adds a new lead and returns the lead ID and details."
+
+  - task: "POST /api/actions/view-lead - View lead details"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint is working correctly. Successfully retrieves lead details for a valid lead ID."
+
+  - task: "GET /api/leads - Get leads list"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Endpoint is failing with a 500 Internal Server Error. The error in the logs is: 'TypeError: 'ObjectId' object is not iterable'. This suggests there's still an issue with handling ObjectId in the leads list formatting."
+
+  - task: "POST /api/actions/send-message - Send message to lead"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Endpoint is failing with a 500 Internal Server Error. The error in the logs is: ''2d64bf4f-a274-4b3c-a034-2d1a8d4bad0d' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string'. This suggests the UUID to ObjectId conversion is not working correctly in the process_message function."
+
+  - task: "POST /api/actions/initiate-call - Initiate call to lead"
+    implemented: true
+    working: false
+    file: "/app/backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Endpoint is failing with a 500 Internal Server Error. The error in the logs is: ''2d64bf4f-a274-4b3c-a034-2d1a8d4bad0d' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string'. This suggests the UUID to ObjectId conversion is not working correctly in the initiate_voice_call function."
+
 frontend:
   - task: "Advanced Analytics Navigation"
     implemented: true
@@ -201,11 +261,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Advanced Analytics Navigation"
-    - "Comprehensive Dashboard Tab"
-    - "Campaign Intelligence Tab"
-    - "Agent Intelligence Tab"
-    - "Interactive Features"
+    - "GET /api/leads - Get leads list"
+    - "POST /api/actions/send-message - Send message to lead"
+    - "POST /api/actions/initiate-call - Initiate call to lead"
   stuck_tasks:
     - "GET /api/campaigns - List campaigns for organization"
     - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
@@ -213,6 +271,9 @@ test_plan:
     - "POST /api/campaigns/{campaign_id}/pause - Pause an active campaign"
     - "POST /api/campaigns/{campaign_id}/stop - Stop and complete a campaign"
     - "GET /api/campaigns/{campaign_id}/status - Get detailed campaign status and metrics"
+    - "GET /api/leads - Get leads list"
+    - "POST /api/actions/send-message - Send message to lead"
+    - "POST /api/actions/initiate-call - Initiate call to lead"
   test_all: false
   test_priority: "high_first"
 
@@ -223,3 +284,5 @@ agent_communication:
     message: "Successfully tested all Advanced Analytics System (Phase C.3) endpoints. All five endpoints are working correctly: comprehensive dashboard, campaign performance report, agent intelligence report, export report, and download exported report. The implementation provides comprehensive data with all required sections and properly handles different time periods and filtering options."
   - agent: "testing"
     message: "Starting frontend testing for the Advanced Analytics Dashboard. Will test navigation, all three tabs (Comprehensive Dashboard, Campaign Intelligence, Agent Intelligence), and interactive features including time period selector, auto-refresh, manual refresh, and export functionality."
+  - agent: "testing"
+    message: "Tested the UI action endpoints that were fixed for UUID vs ObjectId issues. Found that POST /api/actions/add-lead and POST /api/actions/view-lead are working correctly, but GET /api/leads, POST /api/actions/send-message, and POST /api/actions/initiate-call are still failing with 500 Internal Server Error. The logs show that the UUID to ObjectId conversion is not working correctly in the process_message and initiate_voice_call functions. The error is: ''2d64bf4f-a274-4b3c-a034-2d1a8d4bad0d' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string'."
