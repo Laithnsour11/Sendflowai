@@ -16,3 +16,6 @@ openai==1.12.0
 supabase==2.3.2
 h11>=0.16.0
 httpcore>=1.0.0
+sentence-transformers==2.6.1
+torch>=2.0.0
+transformers>=4.30.0
