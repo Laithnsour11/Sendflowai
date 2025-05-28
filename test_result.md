@@ -170,11 +170,11 @@ backend:
 
   - task: "GET /api/leads - Get leads list"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
-    stuck_count: 2
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
@@ -182,6 +182,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "Retested with the updated test script. Endpoint is still failing with a 500 Internal Server Error. This suggests there's still an issue with handling ObjectId in the leads list formatting."
+      - working: true
+        agent: "testing"
+        comment: "Tested the endpoint after the fixes to the UI action endpoints. The endpoint is now working correctly. Successfully returns a list of leads for the given org_id."
 
   - task: "POST /api/actions/send-message - Send message to lead"
     implemented: true
