@@ -1091,6 +1091,22 @@ def main():
     # Test complete fine-tuning job lifecycle
     tester.test_fine_tuning_lifecycle()
     
+    # Phase C.3 Tests - Advanced Analytics System
+    print("\n" + "=" * 50)
+    print("Phase C.3 Tests - Advanced Analytics System")
+    print("=" * 50)
+    
+    # Test Advanced Analytics endpoints
+    tester.test_comprehensive_dashboard()
+    tester.test_comprehensive_dashboard(time_period="7d")
+    tester.test_comprehensive_dashboard(time_period="90d")
+    tester.test_campaign_performance_report()
+    tester.test_campaign_performance_report(campaign_id="campaign_1")
+    tester.test_agent_intelligence_report()
+    tester.test_agent_intelligence_report(agent_type="initial_contact")
+    tester.test_export_analytics_report()
+    tester.test_download_analytics_export()
+    
     # Print results
     print("\n" + "=" * 50)
     print(f"Tests completed: {tester.tests_run}")
