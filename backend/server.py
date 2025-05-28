@@ -205,14 +205,7 @@ async def get_organizations():
         org["id"] = str(org["_id"])
     return orgs
 
-# Lead endpoints
-@app.get("/api/leads")
-async def get_leads(org_id: Optional[str] = None):
-    query = {"org_id": org_id} if org_id else {}
-    leads = await db.leads_collection.find(query).to_list(length=100)
-    for lead in leads:
-        lead["id"] = str(lead["_id"])
-    return leads
+# Lead endpoints - REMOVED OLD VERSION, USING NEW ONE AT LINE 2100
 
 # Conversation endpoints
 @app.get("/api/conversations")
