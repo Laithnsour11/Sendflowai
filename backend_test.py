@@ -658,5 +658,12 @@ class TestUIActionEndpoints:
 
 # Run the tests
 if __name__ == "__main__":
-    tester = TestUIActionEndpoints()
-    tester.run_all_tests()
+    # Run API key validation tests
+    print("\n=== TESTING API KEY VALIDATION ENDPOINTS ===\n")
+    api_key_tester = TestAPIKeyValidation()
+    api_key_tester.run_all_tests()
+    
+    # Run UI action endpoint tests
+    print("\n=== TESTING UI ACTION ENDPOINTS ===\n")
+    ui_tester = TestUIActionEndpoints()
+    ui_tester.run_all_tests()
