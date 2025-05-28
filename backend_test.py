@@ -1164,6 +1164,19 @@ def main():
     # Test complete fine-tuning job lifecycle
     tester.test_fine_tuning_lifecycle()
     
+    # UI Action Endpoints Tests
+    print("\n" + "=" * 50)
+    print("UI Action Endpoints Tests")
+    print("=" * 50)
+    
+    # Test UI action endpoints
+    tester.test_add_lead()
+    tester.test_view_lead()
+    tester.test_send_message()
+    tester.test_initiate_call()
+    tester.test_get_leads()
+    tester.test_get_conversations()
+    
     # Phase C.3 Tests - Advanced Analytics System
     print("\n" + "=" * 50)
     print("Phase C.3 Tests - Advanced Analytics System")
