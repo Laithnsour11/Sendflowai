@@ -73,8 +73,8 @@ class TestUIActionEndpoints:
             # Generate unique email to avoid duplicates
             unique_email = f"test_{uuid.uuid4().hex[:8]}@example.com"
             
-            # Prepare data
-            data = {
+            # Prepare data as query parameters
+            params = {
                 "org_id": self.org_id,
                 "name": "Test Lead",
                 "email": unique_email,
@@ -84,7 +84,7 @@ class TestUIActionEndpoints:
             }
             
             # Make request
-            response = requests.post(f"{self.base_url}/actions/add-lead", json=data)
+            response = requests.post(f"{self.base_url}/actions/add-lead", params=params)
             
             # Check response
             if response.status_code == 200:
