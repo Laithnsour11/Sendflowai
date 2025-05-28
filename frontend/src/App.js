@@ -46,20 +46,20 @@ function App() {
         } />
         
         {/* Protected routes */}
-        <Route path="/" element={
-          isAuthenticated 
-            ? <AppLayout currentOrg={currentOrg} onLogout={handleLogout} /> 
-            : <Navigate to="/" replace />
-        }>
-          <Route path="/dashboard" element={<Dashboard currentOrg={currentOrg} />} />
-          <Route path="/leads" element={<LeadsList currentOrg={currentOrg} />} />
-          <Route path="/conversations" element={<Conversations currentOrg={currentOrg} />} />
-          <Route path="/analytics" element={<Analytics currentOrg={currentOrg} />} />
-          <Route path="/campaigns" element={<Campaigns currentOrg={currentOrg} />} />
-          <Route path="/knowledge" element={<KnowledgeBase currentOrg={currentOrg} />} />
-          <Route path="/agent-training" element={<AgentTraining currentOrg={currentOrg} />} />
-          <Route path="/settings" element={<Settings currentOrg={currentOrg} />} />
-        </Route>
+        {isAuthenticated ? (
+          <Route path="/" element={<AppLayout currentOrg={currentOrg} onLogout={handleLogout} />}>
+            <Route path="dashboard" element={<Dashboard currentOrg={currentOrg} />} />
+            <Route path="leads" element={<LeadsList currentOrg={currentOrg} />} />
+            <Route path="conversations" element={<Conversations currentOrg={currentOrg} />} />
+            <Route path="analytics" element={<Analytics currentOrg={currentOrg} />} />
+            <Route path="campaigns" element={<Campaigns currentOrg={currentOrg} />} />
+            <Route path="knowledge" element={<KnowledgeBase currentOrg={currentOrg} />} />
+            <Route path="agent-training" element={<AgentTraining currentOrg={currentOrg} />} />
+            <Route path="settings" element={<Settings currentOrg={currentOrg} />} />
+          </Route>
+        ) : (
+          <Route path="*" element={<Navigate to="/" replace />} />
+        )}
       </Routes>
     </Router>
   );
