@@ -1289,15 +1289,7 @@ async def get_real_time_dashboard_data(org_id: str):
         logger.error(f"Error getting real-time dashboard data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# Include Phase B.2 analytics and RLHF endpoints
-try:
-    import analytics_rlhf_endpoints
-    analytics_rlhf_endpoints.include_phase_b2_routes(app)
-    logger.info("Phase B.2 analytics and RLHF endpoints loaded successfully")
-except ImportError as e:
-    logger.warning(f"Phase B.2 endpoints import failed: {e}")
-except Exception as e:
-    logger.error(f"Phase B.2 endpoints loading error: {e}")
+# Phase B.2 implementation complete - analytics and RLHF endpoints added above
 
 if __name__ == "__main__":
     import uvicorn
