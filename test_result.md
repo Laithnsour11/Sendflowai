@@ -278,13 +278,16 @@ frontend:
     implemented: true
     working: false
     file: "/app/frontend/src/components/LeadsList.js"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
       - working: false
         agent: "testing"
         comment: "Unable to test the UI action button functionality due to navigation issues. When attempting to navigate to the Leads page (/leads) after login, the application redirects back to the landing page. This suggests there might be an issue with the routing or authentication for the Leads page. The LeadsList component code looks correct with proper implementation of Message, Call, and View buttons, but we couldn't access the page to test these features."
+      - working: false
+        agent: "testing"
+        comment: "Despite the routing fix in App.js, we're still experiencing navigation issues. When attempting to navigate to the Leads page (/leads) after login, either by clicking the Leads link in the sidebar or by directly navigating to the URL, the application redirects back to the landing page. The routing structure in App.js looks correct with proper nested routes, but there might be an issue with the authentication logic or route protection that's preventing access to the Leads page. The LeadsList component code itself looks correct with proper implementation of Message, Call, and View buttons, but we still can't access the page to test these features."
 
 metadata:
   created_by: "testing_agent"
