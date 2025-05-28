@@ -654,8 +654,14 @@ async def sync_leads_from_ghl(org_id: str):
         raise HTTPException(status_code=500, detail=f"Error syncing leads from GHL: {str(e)}")
 
 # Agent Orchestration endpoints
-from agent_orchestrator import AgentOrchestrator
-agent_orchestrator = AgentOrchestrator()
+try:
+    from agent_orchestrator import AgentOrchestrator
+    agent_orchestrator = AgentOrchestrator()
+    use_agent_orchestrator = True
+except ImportError as e:
+    logger.warning(f"Agent orchestrator import failed: {e}, agent features will be limited")
+    agent_orchestrator = None
+    use_agent_orchestrator = False
 
 @app.post("/api/agents/select")
 async def select_agent(
