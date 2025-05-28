@@ -318,11 +318,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "GET /api/leads - Get leads list"
-    - "POST /api/actions/send-message - Send message to lead"
-    - "POST /api/actions/initiate-call - Initiate call to lead"
-    - "POST /api/actions/view-lead - View lead details"
-    - "POST /api/actions/add-lead - Add new lead"
+    - "GET /api/campaigns - List campaigns for organization"
+    - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
+    - "POST /api/campaigns/{campaign_id}/start - Start an active campaign"
+    - "POST /api/campaigns/{campaign_id}/pause - Pause an active campaign"
+    - "POST /api/campaigns/{campaign_id}/stop - Stop and complete a campaign"
+    - "GET /api/campaigns/{campaign_id}/status - Get detailed campaign status and metrics"
   stuck_tasks:
     - "GET /api/campaigns - List campaigns for organization"
     - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
@@ -330,7 +331,6 @@ test_plan:
     - "POST /api/campaigns/{campaign_id}/pause - Pause an active campaign"
     - "POST /api/campaigns/{campaign_id}/stop - Stop and complete a campaign"
     - "GET /api/campaigns/{campaign_id}/status - Get detailed campaign status and metrics"
-    - "GET /api/leads - Get leads list"
   test_all: false
   test_priority: "high_first"
 
