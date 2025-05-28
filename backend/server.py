@@ -2051,14 +2051,7 @@ async def action_view_lead(request: ViewLeadRequest):
         raise HTTPException(status_code=500, detail=f"Failed to get lead details: {str(e)}")
 
 @app.post("/api/actions/add-lead")
-async def action_add_lead(
-    org_id: str,
-    name: str,
-    email: str,
-    phone: Optional[str] = None,
-    status: Optional[str] = "Initial Contact",
-    source: Optional[str] = "Manual Entry"
-):
+async def action_add_lead(request: AddLeadRequest):
     """
     Add a new lead for frontend Add Lead buttons.
     """
@@ -2068,16 +2061,16 @@ async def action_add_lead(
         lead_data = {
             "_id": ObjectId(),
             "id": lead_id,
-            "org_id": org_id,
-            "name": name,
-            "email": email,
-            "phone": phone,
-            "status": status,
-            "relationship_stage": status.lower().replace(" ", "_"),
+            "org_id": request.org_id,
+            "name": request.name,
+            "email": request.email,
+            "phone": request.phone,
+            "status": request.status,
+            "relationship_stage": request.status.lower().replace(" ", "_"),
             "personality_type": "unknown",  # Will be determined through interactions
             "trust_level": 0.0,
             "conversion_probability": 0.1,  # Default low probability for new leads
-            "source": source,
+            "source": request.source,
             "created_at": datetime.now().isoformat(),
             "updated_at": datetime.now().isoformat()
         }
@@ -2091,10 +2084,10 @@ async def action_add_lead(
             "lead_id": lead_id,
             "lead": {
                 "id": lead_id,
-                "name": name,
-                "email": email,
-                "phone": phone,
-                "status": status
+                "name": request.name,
+                "email": request.email,
+                "phone": request.phone,
+                "status": request.status
             }
         }
         
