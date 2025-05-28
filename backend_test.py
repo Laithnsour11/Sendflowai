@@ -169,7 +169,7 @@ class TestUIActionEndpoints:
             return False
     
     def test_send_message(self):
-        """Test sending a message to a lead"""
+        """Test sending a message to a lead using the simplified implementation"""
         if not self.lead_id:
             print("❌ No lead ID available for testing")
             return False
@@ -190,9 +190,21 @@ class TestUIActionEndpoints:
                 result = response.json()
                 
                 if result.get("success"):
-                    print(f"✅ Successfully sent message to lead")
+                    print(f"✅ Successfully sent message to lead using simplified implementation")
                     print(f"   Conversation ID: {result.get('conversation_id')}")
                     print(f"   Agent type: {result.get('agent_type')}")
+                    
+                    # Verify that a conversation record was created
+                    time.sleep(1)  # Give the server a moment to process
+                    view_response = requests.post(f"{self.base_url}/actions/view-lead?lead_id={self.lead_id}")
+                    if view_response.status_code == 200:
+                        view_result = view_response.json()
+                        conversations = view_result.get("recent_conversations", [])
+                        if conversations:
+                            print(f"✅ Verified conversation record was created")
+                        else:
+                            print(f"⚠️ Could not verify conversation record creation")
+                    
                     return True
                 else:
                     print(f"❌ Message sending reported failure")
