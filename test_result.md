@@ -399,6 +399,7 @@ test_plan:
     - "POST /api/settings/validate-openai-key - Validate OpenAI API key"
     - "POST /api/settings/validate-openrouter-key - Validate OpenRouter API key"
     - "Conversations Component - Fix for undefined sentiment_analysis"
+    - "POST /api/actions/view-lead - View lead details"
   stuck_tasks:
     - "GET /api/campaigns - List campaigns for organization"
     - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
