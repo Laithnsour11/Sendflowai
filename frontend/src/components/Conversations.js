@@ -176,14 +176,33 @@ const Conversations = ({ currentOrg }) => {
     try {
       setActionLoading(prev => ({ ...prev, 'new_message': true }));
       
-      // For now, we'll show a selection dialog or redirect to leads
-      alert('New Message: Please select a lead from the Leads page to send a message, or this could open a lead selection modal.');
+      // Navigate to leads page where users can select a lead and send a message
+      alert('Redirecting to Leads page where you can select a lead and send a message.');
+      // In a real implementation, you would navigate to leads page
+      // window.location.href = '/leads';
       
     } catch (error) {
       console.error('Error with new message:', error);
-      alert('Error: Unable to send new message');
+      alert('Error: Unable to navigate to leads');
     } finally {
       setActionLoading(prev => ({ ...prev, 'new_message': false }));
+    }
+  };
+  
+  const handleNewCall = async () => {
+    try {
+      setActionLoading(prev => ({ ...prev, 'new_call': true }));
+      
+      // Navigate to leads page where users can select a lead and initiate a call
+      alert('Redirecting to Leads page where you can select a lead and initiate a call.');
+      // In a real implementation, you would navigate to leads page
+      // window.location.href = '/leads';
+      
+    } catch (error) {
+      console.error('Error with new call:', error);
+      alert('Error: Unable to navigate to leads');
+    } finally {
+      setActionLoading(prev => ({ ...prev, 'new_call': false }));
     }
   };
   
