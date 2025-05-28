@@ -1115,7 +1115,107 @@ async def search_knowledge_base(
     
     return search_results
 
-# ===== AI FINE-TUNING ENDPOINTS (Phase C.2) =====
+# ===== ADVANCED ANALYTICS ENDPOINTS (Phase C.3) =====
+
+@app.get("/api/analytics/comprehensive-dashboard")
+async def get_comprehensive_dashboard(
+    org_id: str = "production_org_123",
+    time_period: str = "30d"
+):
+    """Get comprehensive dashboard data with all key metrics"""
+    if not use_advanced_analytics_service:
+        raise HTTPException(status_code=503, detail="Advanced Analytics service not available")
+    
+    try:
+        result = await advanced_analytics_service.get_comprehensive_dashboard(org_id, time_period)
+        return result
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error getting comprehensive dashboard: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/campaign-performance-report")
+async def get_campaign_performance_report(
+    org_id: str = "production_org_123",
+    campaign_id: str = None,
+    time_period: str = "30d"
+):
+    """Get detailed campaign performance report"""
+    if not use_advanced_analytics_service:
+        raise HTTPException(status_code=503, detail="Advanced Analytics service not available")
+    
+    try:
+        result = await advanced_analytics_service.get_campaign_performance_report(org_id, campaign_id, time_period)
+        return result
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error getting campaign performance report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/agent-intelligence-report")
+async def get_agent_intelligence_report(
+    org_id: str = "production_org_123",
+    agent_type: str = None,
+    time_period: str = "30d"
+):
+    """Get detailed agent intelligence and learning report"""
+    if not use_advanced_analytics_service:
+        raise HTTPException(status_code=503, detail="Advanced Analytics service not available")
+    
+    try:
+        result = await advanced_analytics_service.get_agent_intelligence_report(org_id, agent_type, time_period)
+        return result
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error getting agent intelligence report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/analytics/export-report")
+async def export_analytics_report(request: dict):
+    """Export analytics report in various formats"""
+    if not use_advanced_analytics_service:
+        raise HTTPException(status_code=503, detail="Advanced Analytics service not available")
+    
+    try:
+        org_id = request.get("org_id", "production_org_123")
+        report_type = request.get("report_type", "dashboard")
+        time_period = request.get("time_period", "30d")
+        format_type = request.get("format_type", "json")
+        
+        result = await advanced_analytics_service.export_analytics_report(org_id, report_type, time_period, format_type)
+        return result
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error exporting analytics report: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/analytics/exports/{export_id}/download")
+async def download_analytics_export(export_id: str):
+    """Download exported analytics report"""
+    if not use_advanced_analytics_service:
+        raise HTTPException(status_code=503, detail="Advanced Analytics service not available")
+    
+    try:
+        # For MVP, return a simulated download response
+        return {
+            "export_id": export_id,
+            "status": "ready",
+            "message": "Download would be available here in production",
+            "file_path": f"/exports/{export_id}",
+            "generated_at": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error downloading analytics export: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/fine-tuning/create")
 async def create_fine_tuning_job(request: dict):
