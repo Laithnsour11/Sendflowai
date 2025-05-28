@@ -238,12 +238,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Settings Page Mem0 API Key Validation"
-    - "Agent Performance Analytics"
-    - "RLHF Feedback Collection System"
-    - "Real-time Analytics Dashboard"
+    - "Advanced Analytics Component"
+    - "Enhanced Navigation"
   stuck_tasks: 
-    - "Settings Page Mem0 API Key Validation"
+    - "Advanced Analytics Component"
+    - "Enhanced Navigation"
   test_all: true
   test_priority: "high_first"
 
