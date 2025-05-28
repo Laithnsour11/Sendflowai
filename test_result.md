@@ -295,6 +295,7 @@ metadata:
 test_plan:
   current_focus:
     - "GET /api/leads - Get leads list"
+    - "UI Action Button Functionality"
   stuck_tasks:
     - "GET /api/campaigns - List campaigns for organization"
     - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
@@ -303,6 +304,7 @@ test_plan:
     - "POST /api/campaigns/{campaign_id}/stop - Stop and complete a campaign"
     - "GET /api/campaigns/{campaign_id}/status - Get detailed campaign status and metrics"
     - "GET /api/leads - Get leads list"
+    - "UI Action Button Functionality"
   test_all: false
   test_priority: "high_first"
 
