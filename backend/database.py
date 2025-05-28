@@ -23,6 +23,11 @@ memory_snapshots_collection = db.memory_snapshots
 knowledge_base_collection = db.knowledge_base
 api_keys_collection = db.api_keys
 
+# Phase C.1: Campaign Management Collections
+campaigns_collection = db.campaigns
+campaign_leads_collection = db.campaign_leads
+campaign_interactions_collection = db.campaign_interactions
+
 # Helper functions
 async def create_document(collection, document_data):
     if "_id" not in document_data:
