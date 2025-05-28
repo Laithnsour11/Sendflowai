@@ -458,8 +458,31 @@ const LeadsList = ({ currentOrg }) => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <a href="#" className="text-indigo-600 hover:text-indigo-900 mr-4">View</a>
-                          <a href="#" className="text-indigo-600 hover:text-indigo-900">Contact</a>
+                          <div className="flex space-x-2">
+                          <button 
+                            onClick={() => handleSendMessage(lead.id, lead.name)}
+                            disabled={actionLoading[`message_${lead.id}`]}
+                            className="text-blue-600 hover:text-blue-900 text-sm font-medium disabled:opacity-50"
+                          >
+                            {actionLoading[`message_${lead.id}`] ? 'Sending...' : 'Message'}
+                          </button>
+                          <span className="text-gray-300">|</span>
+                          <button 
+                            onClick={() => handleInitiateCall(lead.id, lead.name)}
+                            disabled={actionLoading[`call_${lead.id}`]}
+                            className="text-green-600 hover:text-green-900 text-sm font-medium disabled:opacity-50"
+                          >
+                            {actionLoading[`call_${lead.id}`] ? 'Calling...' : 'Call'}
+                          </button>
+                          <span className="text-gray-300">|</span>
+                          <button 
+                            onClick={() => handleViewLead(lead.id)}
+                            disabled={actionLoading[`view_${lead.id}`]}
+                            className="text-indigo-600 hover:text-indigo-900 text-sm font-medium disabled:opacity-50"
+                          >
+                            {actionLoading[`view_${lead.id}`] ? 'Loading...' : 'View'}
+                          </button>
+                        </div>
                         </td>
                       </tr>
                     ))
