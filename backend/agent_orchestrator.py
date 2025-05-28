@@ -21,8 +21,19 @@ class AgentOrchestrator:
     """
     
     def __init__(self):
-        self.vapi_integration = VapiIntegration()
-        self.sendblue_integration = SendBlueIntegration()
+        # Initialize integrations with graceful failure handling
+        try:
+            self.vapi_integration = VapiIntegration()
+        except Exception as e:
+            logger.warning(f"Vapi integration initialization failed: {e}")
+            self.vapi_integration = None
+            
+        try:
+            self.sendblue_integration = SendBlueIntegration()
+        except Exception as e:
+            logger.warning(f"SendBlue integration initialization failed: {e}")
+            self.sendblue_integration = None
+            
         self.agent_types = self._initialize_agent_types()
         self.openai_api_key = None
         self.openrouter_api_key = None
