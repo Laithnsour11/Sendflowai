@@ -1189,47 +1189,27 @@ class AICloserAPITester:
             return True, {}
         
         # Test with explicit objective
-        test_data = {
-            "lead_id": lead_id,
-            "objective": "Qualify the lead and understand their needs",
-            "org_id": self.org_id
-        }
-        
         success1, response1 = self.run_test(
             "Initiate Call (with explicit objective)",
             "POST",
-            "api/actions/initiate-call",
-            200,
-            data=test_data
+            f"api/actions/initiate-call?lead_id={lead_id}&objective=Qualify%20the%20lead%20and%20understand%20their%20needs&org_id={self.org_id}",
+            200
         )
         
         # Test with auto-generated objective
-        test_data = {
-            "lead_id": lead_id,
-            "org_id": self.org_id
-        }
-        
         success2, response2 = self.run_test(
             "Initiate Call (with auto-generated objective)",
             "POST",
-            "api/actions/initiate-call",
-            200,
-            data=test_data
+            f"api/actions/initiate-call?lead_id={lead_id}&org_id={self.org_id}",
+            200
         )
         
         # Test with invalid lead ID
-        test_data = {
-            "lead_id": "invalid_lead_id",
-            "objective": "This should fail",
-            "org_id": self.org_id
-        }
-        
         success3, _ = self.run_test(
             "Initiate Call (with invalid lead ID)",
             "POST",
-            "api/actions/initiate-call",
-            404,  # Expecting 404 Not Found
-            data=test_data
+            f"api/actions/initiate-call?lead_id=invalid_lead_id&objective=This%20should%20fail&org_id={self.org_id}",
+            404  # Expecting 404 Not Found
         )
         
         return success1 and success2 and success3, response1
