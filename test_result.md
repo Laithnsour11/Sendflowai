@@ -179,6 +179,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "Endpoint is failing with a 500 Internal Server Error. The error in the logs is: ''2d64bf4f-a274-4b3c-a034-2d1a8d4bad0d' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string'. This suggests the UUID to ObjectId conversion is not working correctly in the process_message function."
+      - working: false
+        agent: "testing"
+        comment: "After examining the code, I found that the issue is in the action_send_message function (lines 1830-1836). It's using str(lead['_id']) to get the MongoDB ObjectId from the lead document and passing it to process_message. However, process_message is trying to find the lead again using this ID, first as a UUID and then as an ObjectId. This is causing the error because the ID is already an ObjectId, but it's being converted to a string and then back to an ObjectId. The fix would be to either pass the lead object directly to process_message or modify process_message to accept either UUID or ObjectId."
 
   - task: "POST /api/actions/initiate-call - Initiate call to lead"
     implemented: true
@@ -191,6 +194,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "Endpoint is failing with a 500 Internal Server Error. The error in the logs is: ''2d64bf4f-a274-4b3c-a034-2d1a8d4bad0d' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string'. This suggests the UUID to ObjectId conversion is not working correctly in the initiate_voice_call function."
+      - working: false
+        agent: "testing"
+        comment: "After examining the code, I found that the issue is in the action_initiate_call function (lines 1899-1906). It's using str(lead['_id']) to get the MongoDB ObjectId from the lead document and passing it to initiate_voice_call. The initiate_voice_call function is also trying to find the lead again using this ID. This is causing the error because the ID is already an ObjectId, but it's being converted to a string and then back to an ObjectId. The fix would be to either pass the lead object directly to initiate_voice_call or modify initiate_voice_call to accept either UUID or ObjectId."
 
 frontend:
   - task: "Advanced Analytics Navigation"
@@ -285,4 +291,6 @@ agent_communication:
   - agent: "testing"
     message: "Starting frontend testing for the Advanced Analytics Dashboard. Will test navigation, all three tabs (Comprehensive Dashboard, Campaign Intelligence, Agent Intelligence), and interactive features including time period selector, auto-refresh, manual refresh, and export functionality."
   - agent: "testing"
-    message: "Tested the UI action endpoints that were fixed for UUID vs ObjectId issues. Found that POST /api/actions/add-lead and POST /api/actions/view-lead are working correctly, but GET /api/leads, POST /api/actions/send-message, and POST /api/actions/initiate-call are still failing with 500 Internal Server Error. The logs show that the UUID to ObjectId conversion is not working correctly in the process_message and initiate_voice_call functions. The error is: ''2d64bf4f-a274-4b3c-a034-2d1a8d4bad0d' is not a valid ObjectId, it must be a 12-byte input or a 24-character hex string'."
+    message: "Tested the UI action endpoints that were fixed for UUID vs ObjectId issues. Found that POST /api/actions/add-lead and POST /api/actions/view-lead are working correctly, but GET /api/leads, POST /api/actions/send-message, and POST /api/actions/initiate-call are still failing with 500 Internal Server Error."
+  - agent: "testing"
+    message: "After examining the code, I found that the issue is in how the action_send_message and action_initiate_call functions are handling lead IDs. They're finding the lead correctly (using either UUID or ObjectId), but then they're passing str(lead['_id']) to process_message and initiate_voice_call, which are trying to find the lead again. This is causing the error because the ID is already an ObjectId, but it's being converted to a string and then back to an ObjectId. The fix would be to either pass the lead object directly to these functions or modify them to accept either UUID or ObjectId."
