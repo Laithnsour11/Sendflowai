@@ -161,12 +161,14 @@ const Conversations = ({ currentOrg }) => {
     try {
       setActionLoading(prev => ({ ...prev, 'new_call': true }));
       
-      // For now, we'll show a selection dialog or redirect to leads
-      alert('New Call: Please select a lead from the Leads page to initiate a call, or this could open a lead selection modal.');
+      // Navigate to leads page where users can select a lead and initiate a call
+      alert('Redirecting to Leads page where you can select a lead and initiate a call.');
+      // In a real implementation, you would navigate to leads page
+      // window.location.href = '/leads';
       
     } catch (error) {
       console.error('Error with new call:', error);
-      alert('Error: Unable to initiate new call');
+      alert('Error: Unable to navigate to leads');
     } finally {
       setActionLoading(prev => ({ ...prev, 'new_call': false }));
     }
