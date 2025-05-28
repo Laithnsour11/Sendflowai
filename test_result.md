@@ -152,9 +152,9 @@ backend:
 
   - task: "POST /api/actions/view-lead - View lead details"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/server.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -167,6 +167,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Tested the fixed endpoint with the new Pydantic model (ViewLeadRequest). The endpoint now accepts JSON request body instead of query parameters and returns a 200 status code for valid requests. Successfully retrieves lead details for a valid lead ID."
+      - working: false
+        agent: "testing"
+        comment: "Tested the view-lead endpoint specifically to diagnose the 'Network Error' in the Conversations component. Found that the endpoint works correctly with valid lead IDs created through the add-lead endpoint, but fails with a 500 Internal Server Error when using invalid or non-existent lead IDs. The error in the logs shows: 'ValueError: [TypeError(\"'ObjectId' object is not iterable\"), TypeError('vars() argument must have __dict__ attribute')]'. This is likely causing the 'Network Error' in the frontend when clicking 'View Details' in the Conversations component. The issue is related to how MongoDB ObjectId is being handled in the response serialization. The endpoint needs to properly handle ObjectId serialization and return a 404 status code for non-existent leads instead of a 500 error."
 
   - task: "GET /api/leads - Get leads list"
     implemented: true
