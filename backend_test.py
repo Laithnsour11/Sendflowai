@@ -18,7 +18,7 @@ if not BACKEND_URL:
 
 print(f"Using backend URL: {BACKEND_URL}")
 
-# Test class for UI action endpoints with simplified implementations
+# Test class for UI action endpoints with Pydantic models
 class TestUIActionEndpoints:
     def __init__(self):
         self.base_url = f"{BACKEND_URL}/api"
@@ -26,11 +26,11 @@ class TestUIActionEndpoints:
         self.org_id = "production_org_123"  # Default org ID
         
     def run_all_tests(self):
-        """Run all tests in sequence to verify simplified implementations"""
-        print("\n=== Running UI Action Endpoint Tests with Simplified Implementations ===\n")
+        """Run all tests in sequence to verify Pydantic model implementations"""
+        print("\n=== Running UI Action Endpoint Tests with Pydantic Models ===\n")
         
         # Test add lead
-        print("\n--- Testing POST /api/actions/add-lead ---")
+        print("\n--- Testing POST /api/actions/add-lead with JSON body ---")
         lead_result = self.test_add_lead()
         if not lead_result:
             print("❌ Failed to add lead, cannot continue with other tests")
@@ -43,19 +43,19 @@ class TestUIActionEndpoints:
             print("❌ Failed to get leads")
         
         # Test view lead
-        print("\n--- Testing POST /api/actions/view-lead ---")
+        print("\n--- Testing POST /api/actions/view-lead with JSON body ---")
         view_result = self.test_view_lead()
         if not view_result:
             print("❌ Failed to view lead")
         
-        # Test send message (simplified implementation)
-        print("\n--- Testing POST /api/actions/send-message (Simplified Implementation) ---")
+        # Test send message with JSON body
+        print("\n--- Testing POST /api/actions/send-message with JSON body ---")
         message_result = self.test_send_message()
         if not message_result:
             print("❌ Failed to send message")
         
-        # Test initiate call (simplified implementation)
-        print("\n--- Testing POST /api/actions/initiate-call (Simplified Implementation) ---")
+        # Test initiate call with JSON body
+        print("\n--- Testing POST /api/actions/initiate-call with JSON body ---")
         call_result = self.test_initiate_call()
         if not call_result:
             print("❌ Failed to initiate call")
@@ -68,13 +68,13 @@ class TestUIActionEndpoints:
         return True
         
     def test_add_lead(self):
-        """Test adding a new lead"""
+        """Test adding a new lead with JSON body"""
         try:
             # Generate unique email to avoid duplicates
             unique_email = f"test_{uuid.uuid4().hex[:8]}@example.com"
             
-            # Prepare data as query parameters
-            params = {
+            # Prepare data as JSON body
+            data = {
                 "org_id": self.org_id,
                 "name": "Test Lead",
                 "email": unique_email,
@@ -83,8 +83,12 @@ class TestUIActionEndpoints:
                 "source": "API Test"
             }
             
-            # Make request
-            response = requests.post(f"{self.base_url}/actions/add-lead", params=params)
+            # Make request with JSON body
+            response = requests.post(
+                f"{self.base_url}/actions/add-lead", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
             
             # Check response
             if response.status_code == 200:
@@ -137,14 +141,23 @@ class TestUIActionEndpoints:
             return False
     
     def test_view_lead(self):
-        """Test viewing a lead"""
+        """Test viewing a lead with JSON body"""
         if not self.lead_id:
             print("❌ No lead ID available for testing")
             return False
             
         try:
-            # Make request
-            response = requests.post(f"{self.base_url}/actions/view-lead?lead_id={self.lead_id}")
+            # Prepare data as JSON body
+            data = {
+                "lead_id": self.lead_id
+            }
+            
+            # Make request with JSON body
+            response = requests.post(
+                f"{self.base_url}/actions/view-lead", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
             
             # Check response
             if response.status_code == 200:
@@ -169,34 +182,42 @@ class TestUIActionEndpoints:
             return False
     
     def test_send_message(self):
-        """Test sending a message to a lead using the simplified implementation"""
+        """Test sending a message to a lead with JSON body"""
         if not self.lead_id:
             print("❌ No lead ID available for testing")
             return False
             
         try:
-            # Prepare data as query parameters
-            params = {
+            # Prepare data as JSON body
+            data = {
                 "lead_id": self.lead_id,
                 "message": "This is a test message from the API test",
                 "org_id": self.org_id
             }
             
-            # Make request
-            response = requests.post(f"{self.base_url}/actions/send-message", params=params)
+            # Make request with JSON body
+            response = requests.post(
+                f"{self.base_url}/actions/send-message", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
             
             # Check response
             if response.status_code == 200:
                 result = response.json()
                 
                 if result.get("success"):
-                    print(f"✅ Successfully sent message to lead using simplified implementation")
+                    print(f"✅ Successfully sent message to lead using JSON body")
                     print(f"   Conversation ID: {result.get('conversation_id')}")
                     print(f"   Agent type: {result.get('agent_type')}")
                     
                     # Verify that a conversation record was created
                     time.sleep(1)  # Give the server a moment to process
-                    view_response = requests.post(f"{self.base_url}/actions/view-lead?lead_id={self.lead_id}")
+                    view_response = requests.post(
+                        f"{self.base_url}/actions/view-lead", 
+                        json={"lead_id": self.lead_id},
+                        headers={"Content-Type": "application/json"}
+                    )
                     if view_response.status_code == 200:
                         view_result = view_response.json()
                         conversations = view_result.get("recent_conversations", [])
@@ -219,35 +240,43 @@ class TestUIActionEndpoints:
             return False
     
     def test_initiate_call(self):
-        """Test initiating a call to a lead using the simplified implementation"""
+        """Test initiating a call to a lead with JSON body"""
         if not self.lead_id:
             print("❌ No lead ID available for testing")
             return False
             
         try:
-            # Prepare data as query parameters
-            params = {
+            # Prepare data as JSON body
+            data = {
                 "lead_id": self.lead_id,
                 "objective": "Test call from API test",
                 "org_id": self.org_id
             }
             
-            # Make request
-            response = requests.post(f"{self.base_url}/actions/initiate-call", params=params)
+            # Make request with JSON body
+            response = requests.post(
+                f"{self.base_url}/actions/initiate-call", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
             
             # Check response
             if response.status_code == 200:
                 result = response.json()
                 
                 if result.get("success"):
-                    print(f"✅ Successfully initiated call to lead using simplified implementation")
+                    print(f"✅ Successfully initiated call to lead using JSON body")
                     print(f"   Call ID: {result.get('call_id')}")
                     print(f"   Conversation ID: {result.get('conversation_id')}")
                     print(f"   Agent type: {result.get('agent_type')}")
                     
                     # Verify that a conversation record was created
                     time.sleep(1)  # Give the server a moment to process
-                    view_response = requests.post(f"{self.base_url}/actions/view-lead?lead_id={self.lead_id}")
+                    view_response = requests.post(
+                        f"{self.base_url}/actions/view-lead", 
+                        json={"lead_id": self.lead_id},
+                        headers={"Content-Type": "application/json"}
+                    )
                     if view_response.status_code == 200:
                         view_result = view_response.json()
                         conversations = view_result.get("recent_conversations", [])
@@ -277,14 +306,18 @@ class TestUIActionEndpoints:
             return False
     
     def test_error_handling(self):
-        """Test error handling with invalid lead ID"""
+        """Test error handling with invalid lead ID using JSON body"""
         try:
             # Generate invalid lead ID
             invalid_id = str(uuid.uuid4())
             
             # Test view lead with invalid ID
             print("\n--- Testing view-lead with invalid ID ---")
-            response = requests.post(f"{self.base_url}/actions/view-lead?lead_id={invalid_id}")
+            response = requests.post(
+                f"{self.base_url}/actions/view-lead", 
+                json={"lead_id": invalid_id},
+                headers={"Content-Type": "application/json"}
+            )
             if response.status_code == 404:
                 print(f"✅ Correctly returned 404 for invalid lead ID in view-lead")
             else:
@@ -293,12 +326,16 @@ class TestUIActionEndpoints:
             
             # Test send message with invalid ID
             print("\n--- Testing send-message with invalid ID ---")
-            params = {
+            data = {
                 "lead_id": invalid_id,
                 "message": "Test message with invalid ID",
                 "org_id": self.org_id
             }
-            response = requests.post(f"{self.base_url}/actions/send-message", params=params)
+            response = requests.post(
+                f"{self.base_url}/actions/send-message", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
             if response.status_code == 404:
                 print(f"✅ Correctly returned 404 for invalid lead ID in send-message")
             else:
@@ -307,12 +344,16 @@ class TestUIActionEndpoints:
             
             # Test initiate call with invalid ID
             print("\n--- Testing initiate-call with invalid ID ---")
-            params = {
+            data = {
                 "lead_id": invalid_id,
                 "objective": "Test call with invalid ID",
                 "org_id": self.org_id
             }
-            response = requests.post(f"{self.base_url}/actions/initiate-call", params=params)
+            response = requests.post(
+                f"{self.base_url}/actions/initiate-call", 
+                json=data,
+                headers={"Content-Type": "application/json"}
+            )
             if response.status_code == 404:
                 print(f"✅ Correctly returned 404 for invalid lead ID in initiate-call")
             else:
@@ -322,11 +363,28 @@ class TestUIActionEndpoints:
             # Test with malformed ObjectId
             print("\n--- Testing with malformed ObjectId ---")
             malformed_id = "not-a-valid-objectid"
-            response = requests.post(f"{self.base_url}/actions/view-lead?lead_id={malformed_id}")
+            response = requests.post(
+                f"{self.base_url}/actions/view-lead", 
+                json={"lead_id": malformed_id},
+                headers={"Content-Type": "application/json"}
+            )
             if response.status_code == 404:
                 print(f"✅ Correctly handled malformed ObjectId")
             else:
                 print(f"❌ Unexpected response for malformed ObjectId: {response.status_code}")
+                print(f"   Response: {response.text}")
+            
+            # Test with missing required fields
+            print("\n--- Testing with missing required fields ---")
+            response = requests.post(
+                f"{self.base_url}/actions/view-lead", 
+                json={},  # Missing lead_id
+                headers={"Content-Type": "application/json"}
+            )
+            if response.status_code == 422:
+                print(f"✅ Correctly returned 422 for missing required fields")
+            else:
+                print(f"❌ Unexpected response for missing required fields: {response.status_code}")
                 print(f"   Response: {response.text}")
             
             return True
