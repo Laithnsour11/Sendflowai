@@ -38,10 +38,16 @@ try:
     from ghl_integration import GHLIntegration
 except ImportError:
     try:
-        from ghl_enhanced import GHLIntegrationService as GHLIntegration
+        from backend.ghl_integration import GHLIntegration
     except ImportError:
-        GHLIntegration = None
-        print("Warning: GHLIntegration not available")
+        try:
+            from backend.ghl_enhanced import GHLIntegrationService as GHLIntegration
+        except ImportError:
+            try:
+                from app.backend.ghl_enhanced import GHLIntegrationService as GHLIntegration
+            except ImportError:
+                GHLIntegration = None
+                print("Warning: GHLIntegration not available")
 
 logger = logging.getLogger(__name__)
 
