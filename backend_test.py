@@ -147,25 +147,36 @@ class AICloserAPITester:
             404  # Expecting 404 because the lead doesn't exist
         )
 
-    def test_create_lead(self):
-        """Test creating a lead"""
+    def test_create_lead_via_webhook(self):
+        """Test creating a lead via GHL webhook"""
+        contact_id = str(uuid.uuid4())
         test_data = {
-            "_id": self.lead_id,
-            "org_id": self.org_id,
-            "name": "Test Lead",
-            "email": "test@example.com",
-            "phone": "1234567890",
-            "source": "API Test",
-            "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat()
+            "event": "ContactCreate",
+            "companyId": self.org_id,
+            "contact": {
+                "id": contact_id,
+                "firstName": "Test",
+                "lastName": "Lead",
+                "email": "test@example.com",
+                "phone": "1234567890",
+                "source": "API Test",
+                "tags": ["test", "api"]
+            }
         }
-        return self.run_test(
-            "Create Lead",
+        result = self.run_test(
+            "Create Lead via Webhook",
             "POST",
-            "api/leads",
+            "api/webhooks/ghl",
             200,
             data=test_data
         )
+        
+        # If successful, update the lead_id to use the contact_id
+        if result:
+            self.contact_id = contact_id
+            print(f"✅ Created lead with contact ID: {contact_id}")
+        
+        return result
 
 def main():
     print("=" * 50)
@@ -187,7 +198,7 @@ def main():
     tester.test_ghl_sync_leads()
     
     # Test lead creation
-    tester.test_create_lead()
+    tester.test_create_lead_via_webhook()
     
     # Test agent orchestration endpoints
     tester.test_agent_selection()
