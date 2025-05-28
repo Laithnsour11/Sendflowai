@@ -1045,6 +1045,108 @@ async def search_knowledge_base(
     
     return search_results
 
+# ===== CAMPAIGN MANAGEMENT ENDPOINTS (Phase C.1) =====
+
+@app.post("/api/campaigns/create")
+async def create_campaign(request: dict):
+    """Create a new AI-driven outreach campaign"""
+    if not use_campaign_service:
+        raise HTTPException(status_code=503, detail="Campaign service not available")
+    
+    try:
+        org_id = request.get("org_id", "production_org_123")
+        campaign_data = request.get("campaign_data", {})
+        
+        result = await campaign_service.create_campaign(org_id, campaign_data)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error creating campaign: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/campaigns/{campaign_id}/start")
+async def start_campaign(campaign_id: str, request: dict):
+    """Start an active campaign"""
+    if not use_campaign_service:
+        raise HTTPException(status_code=503, detail="Campaign service not available")
+    
+    try:
+        org_id = request.get("org_id", "production_org_123")
+        
+        result = await campaign_service.start_campaign(org_id, campaign_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error starting campaign: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/campaigns/{campaign_id}/pause")
+async def pause_campaign(campaign_id: str, request: dict):
+    """Pause an active campaign"""
+    if not use_campaign_service:
+        raise HTTPException(status_code=503, detail="Campaign service not available")
+    
+    try:
+        org_id = request.get("org_id", "production_org_123")
+        
+        result = await campaign_service.pause_campaign(org_id, campaign_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error pausing campaign: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/campaigns/{campaign_id}/stop")
+async def stop_campaign(campaign_id: str, request: dict):
+    """Stop and complete a campaign"""
+    if not use_campaign_service:
+        raise HTTPException(status_code=503, detail="Campaign service not available")
+    
+    try:
+        org_id = request.get("org_id", "production_org_123")
+        
+        result = await campaign_service.stop_campaign(org_id, campaign_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error stopping campaign: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/campaigns/{campaign_id}/status")
+async def get_campaign_status(campaign_id: str, org_id: str = "production_org_123"):
+    """Get detailed campaign status and metrics"""
+    if not use_campaign_service:
+        raise HTTPException(status_code=503, detail="Campaign service not available")
+    
+    try:
+        result = await campaign_service.get_campaign_status(org_id, campaign_id)
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting campaign status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/campaigns")
+async def list_campaigns(
+    org_id: str = "production_org_123",
+    status_filter: str = None,
+    limit: int = 50
+):
+    """List campaigns for an organization"""
+    if not use_campaign_service:
+        raise HTTPException(status_code=503, detail="Campaign service not available")
+    
+    try:
+        result = await campaign_service.list_campaigns(org_id, status_filter, limit)
+        return {
+            "campaigns": result,
+            "total": len(result)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listing campaigns: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # GHL OAuth endpoints
 @app.post("/api/ghl/initiate-oauth")
 async def initiate_ghl_oauth(
