@@ -86,6 +86,18 @@ except ImportError:
             print(f"Warning: Could not import AIFineTuningService: {e}")
             AIFineTuningService = None
 
+try:
+    from advanced_analytics_service import AdvancedAnalyticsService
+except ImportError:
+    try:
+        from app.backend.advanced_analytics_service import AdvancedAnalyticsService
+    except ImportError:
+        try:
+            from backend.advanced_analytics_service import AdvancedAnalyticsService
+        except ImportError as e:
+            print(f"Warning: Could not import AdvancedAnalyticsService: {e}")
+            AdvancedAnalyticsService = None
+
 # Try different import strategies for database module
 try:
     import database as db
