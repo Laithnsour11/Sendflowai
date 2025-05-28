@@ -294,7 +294,7 @@ const LeadsList = ({ currentOrg }) => {
   
   return (
     <>
-    <div>
+      <div>
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-900">Leads</h1>
         <div className="flex space-x-2">
