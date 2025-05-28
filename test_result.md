@@ -278,7 +278,7 @@ frontend:
     implemented: true
     working: false
     file: "/app/frontend/src/components/LeadsList.js"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: true
     status_history:
@@ -288,6 +288,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "Despite the routing fix in App.js, we're still experiencing navigation issues. When attempting to navigate to the Leads page (/leads) after login, either by clicking the Leads link in the sidebar or by directly navigating to the URL, the application redirects back to the landing page. The routing structure in App.js looks correct with proper nested routes, but there might be an issue with the authentication logic or route protection that's preventing access to the Leads page. The LeadsList component code itself looks correct with proper implementation of Message, Call, and View buttons, but we still can't access the page to test these features."
+      - working: false
+        agent: "testing"
+        comment: "After examining App.js more closely, I found that the issue is with how the authentication state is handled. The isAuthenticated state is set to false by default and only set to true when the handleLogin function is called. However, this state is not persisted across page refreshes or direct URL navigation. When we navigate directly to the /leads URL or click on the Leads link in the sidebar, the isAuthenticated state is lost, causing the application to redirect to the landing page. The fix would be to implement persistent authentication using localStorage, sessionStorage, or a more robust authentication solution like JWT tokens."
 
 metadata:
   created_by: "testing_agent"
