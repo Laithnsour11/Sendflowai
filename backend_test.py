@@ -668,6 +668,25 @@ def main():
     # Test complete campaign lifecycle
     tester.test_campaign_lifecycle()
     
+    # Phase C.2 Tests - AI Fine-Tuning System
+    print("\n" + "=" * 50)
+    print("Phase C.2 Tests - AI Fine-Tuning System")
+    print("=" * 50)
+    
+    # Test AI fine-tuning endpoints
+    tester.test_list_fine_tuning_jobs()
+    tester.test_create_fine_tuning_job()
+    tester.test_get_fine_tuning_job_status()
+    tester.test_start_fine_tuning_job()
+    tester.test_monitor_fine_tuning_progress()
+    tester.test_deploy_fine_tuned_model()
+    tester.test_cancel_fine_tuning_job()
+    tester.test_get_rlhf_analytics_for_fine_tuning()
+    tester.test_fine_tuning_error_handling()
+    
+    # Test complete fine-tuning job lifecycle
+    tester.test_fine_tuning_lifecycle()
+    
     # Print results
     print("\n" + "=" * 50)
     print(f"Tests completed: {tester.tests_run}")
