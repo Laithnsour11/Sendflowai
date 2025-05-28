@@ -18,7 +18,7 @@ if not BACKEND_URL:
 
 print(f"Using backend URL: {BACKEND_URL}")
 
-# Test class for UI action endpoints
+# Test class for UI action endpoints with simplified implementations
 class TestUIActionEndpoints:
     def __init__(self):
         self.base_url = f"{BACKEND_URL}/api"
