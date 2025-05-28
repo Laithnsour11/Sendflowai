@@ -159,19 +159,6 @@ class AICloserAPITester:
             data=test_data
         )
 
-    def test_validate_mem0_key(self):
-        """Test validating a Mem0 API key"""
-        test_data = {
-            "api_key": "m0-TTwLd8awIP6aFAixLPn1lgkIUR2DJlDTzApPil8E"
-        }
-        return self.run_test(
-            "Validate Mem0 API Key",
-            "POST",
-            "api/settings/validate-mem0-key",
-            200,
-            data=test_data
-        )
-
 def main():
     print("=" * 50)
     print("AI Closer API Test Suite")
@@ -190,9 +177,6 @@ def main():
     # Test GHL integration endpoints
     tester.test_ghl_webhook()
     tester.test_ghl_sync_leads()
-    
-    # Test Mem0 API key validation
-    tester.test_validate_mem0_key()
     
     # Test agent orchestration endpoints
     tester.test_agent_selection()
