@@ -459,7 +459,7 @@ const Conversations = ({ currentOrg }) => {
                         <div>{renderSentimentIndicator(conversation.sentiment_analysis?.overall || 'neutral')}</div>
                       </div>
                       
-                      {conversation.channel === 'voice' && (
+                      {conversation.channel === 'voice' && conversation.duration_seconds && (
                         <div className="mt-3">
                           <div className="text-xs text-gray-500 mb-1">Duration:</div>
                           <div className="text-sm text-gray-900">{formatDuration(conversation.duration_seconds)}</div>
