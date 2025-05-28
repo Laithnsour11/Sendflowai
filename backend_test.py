@@ -1151,47 +1151,27 @@ class AICloserAPITester:
             return True, {}
         
         # Test with explicit message
-        test_data = {
-            "lead_id": lead_id,
-            "message": "Hello from the UI test! How can I help you today?",
-            "org_id": self.org_id
-        }
-        
         success1, response1 = self.run_test(
             "Send Message (with explicit message)",
             "POST",
-            "api/actions/send-message",
-            200,
-            data=test_data
+            f"api/actions/send-message?lead_id={lead_id}&message=Hello%20from%20the%20UI%20test!%20How%20can%20I%20help%20you%20today?&org_id={self.org_id}",
+            200
         )
         
         # Test with auto-generated message
-        test_data = {
-            "lead_id": lead_id,
-            "org_id": self.org_id
-        }
-        
         success2, response2 = self.run_test(
             "Send Message (with auto-generated message)",
             "POST",
-            "api/actions/send-message",
-            200,
-            data=test_data
+            f"api/actions/send-message?lead_id={lead_id}&org_id={self.org_id}",
+            200
         )
         
         # Test with invalid lead ID
-        test_data = {
-            "lead_id": "invalid_lead_id",
-            "message": "This should fail",
-            "org_id": self.org_id
-        }
-        
         success3, _ = self.run_test(
             "Send Message (with invalid lead ID)",
             "POST",
-            "api/actions/send-message",
-            404,  # Expecting 404 Not Found
-            data=test_data
+            f"api/actions/send-message?lead_id=invalid_lead_id&message=This%20should%20fail&org_id={self.org_id}",
+            404  # Expecting 404 Not Found
         )
         
         return success1 and success2 and success3, response1
