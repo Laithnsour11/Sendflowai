@@ -33,6 +33,9 @@ fine_tuning_jobs_collection = db.fine_tuning_jobs
 training_examples_collection = db.training_examples
 rlhf_feedback_collection = db.rlhf_feedback
 
+# Phase C.3: Advanced Analytics Collections
+analytics_exports_collection = db.analytics_exports
+
 # Helper functions
 async def create_document(collection, document_data):
     if "_id" not in document_data:
