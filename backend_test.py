@@ -222,6 +222,82 @@ class AICloserAPITester:
             print(f"✅ Created lead with contact ID: {contact_id}")
         
         return result
+        
+    # Phase B.2 Test Methods
+    
+    def test_agent_performance_analytics(self):
+        """Test the agent performance analytics endpoint"""
+        return self.run_test(
+            "Agent Performance Analytics",
+            "GET",
+            f"api/analytics/agent-performance?org_id={self.org_id}&time_period=30_days",
+            200
+        )
+    
+    def test_rlhf_feedback_submission(self):
+        """Test the RLHF feedback submission endpoint"""
+        # Create test feedback data
+        test_data = {
+            "conversation_id": str(uuid.uuid4()),
+            "feedback_type": "agent_selection",
+            "rating": 4,
+            "feedback_text": "The agent was very helpful but could have been more specific about pricing options."
+        }
+        
+        return self.run_test(
+            "RLHF Feedback Submission",
+            "POST",
+            "api/rlhf/feedback",
+            200,
+            data=test_data
+        )
+    
+    def test_real_time_dashboard(self):
+        """Test the real-time dashboard endpoint"""
+        return self.run_test(
+            "Real-time Dashboard",
+            "GET",
+            f"api/dashboard/real-time?org_id={self.org_id}",
+            200
+        )
+        
+    def test_rlhf_feedback_types(self):
+        """Test different types of RLHF feedback submissions"""
+        feedback_types = [
+            {
+                "conversation_id": str(uuid.uuid4()),
+                "feedback_type": "response_effectiveness",
+                "rating": 5,
+                "feedback_text": "The response was very effective at addressing my concerns."
+            },
+            {
+                "conversation_id": str(uuid.uuid4()),
+                "feedback_type": "learning_opportunity",
+                "rating": 3,
+                "feedback_text": "The agent could learn more about our specific product features."
+            },
+            {
+                "conversation_id": str(uuid.uuid4()),
+                "feedback_type": "conversation_rating",
+                "rating": 4,
+                "feedback_text": "Good conversation flow but took a bit too long to get to the point."
+            }
+        ]
+        
+        all_passed = True
+        for i, feedback in enumerate(feedback_types):
+            print(f"\nTesting RLHF feedback type {i+1}: {feedback['feedback_type']}")
+            result, _ = self.run_test(
+                f"RLHF Feedback - {feedback['feedback_type']}",
+                "POST",
+                "api/rlhf/feedback",
+                200,
+                data=feedback
+            )
+            if not result:
+                all_passed = False
+                
+        return all_passed
 
 def main():
     print("=" * 50)
