@@ -1990,38 +1990,74 @@ async def action_view_lead(request: ViewLeadRequest):
     Get detailed lead information for frontend View buttons.
     """
     try:
-        # Get lead data
-        from bson import ObjectId
+        # Get lead data - try both UUID and ObjectId formats  
+        lead = None
         
-        # Try to find lead by UUID first
-        lead = await db.leads_collection.find_one({"id": request.lead_id})
+        # Try to find lead by UUID first (for newly created leads)
+        if request.lead_id:
+            lead = await db.leads_collection.find_one({"id": request.lead_id})
         
-        # If not found, try by ObjectId
+        # If not found, try by ObjectId (for existing leads)
         if not lead:
             try:
                 lead = await db.leads_collection.find_one({"_id": ObjectId(request.lead_id)})
             except:
-                # If lead_id is not a valid ObjectId, this will fail
                 pass
                 
         if not lead:
             raise HTTPException(status_code=404, detail="Lead not found")
         
-        # Get recent conversations
+        # Get recent conversations with proper serialization
         conversations = await db.conversations_collection.find(
-            {"lead_id": request.lead_id}
+            {"lead_id": str(lead.get("_id"))}
         ).sort("created_at", -1).limit(10).to_list(10)
         
-        # Get recent agent interactions
+        # Convert conversations to serializable format
+        serialized_conversations = []
+        for conv in conversations:
+            try:
+                serialized_conversations.append({
+                    "id": conv.get("id", str(conv.get("_id", ""))),
+                    "lead_id": conv.get("lead_id"),
+                    "channel": conv.get("channel"),
+                    "agent_type": conv.get("agent_type"),
+                    "status": conv.get("status", "active"),
+                    "created_at": conv.get("created_at"),
+                    "updated_at": conv.get("updated_at")
+                })
+            except Exception as e:
+                print(f"Error serializing conversation: {e}")
+                continue
+        
+        # Get recent agent interactions with proper serialization
         interactions = await db.agent_interactions_collection.find(
-            {"lead_id": request.lead_id}
+            {"lead_id": str(lead.get("_id"))}
         ).sort("created_at", -1).limit(5).to_list(5)
+        
+        # Convert interactions to serializable format
+        serialized_interactions = []
+        for interaction in interactions:
+            try:
+                serialized_interactions.append({
+                    "id": interaction.get("id", str(interaction.get("_id", ""))),
+                    "conversation_id": interaction.get("conversation_id"),
+                    "lead_id": interaction.get("lead_id"),
+                    "agent_type": interaction.get("agent_type"),
+                    "message": interaction.get("message"),
+                    "channel": interaction.get("channel"),
+                    "direction": interaction.get("direction"),
+                    "confidence_score": interaction.get("confidence_score", 0.0),
+                    "created_at": interaction.get("created_at")
+                })
+            except Exception as e:
+                print(f"Error serializing interaction: {e}")
+                continue
         
         # Get memory context if available
         memory_context = {}
         if use_memory_manager:
             try:
-                memory_context = await memory_manager.get_context_for_agent(request.lead_id, "general")
+                memory_context = await memory_manager.get_context_for_agent(str(lead.get("_id")), "general")
             except Exception as e:
                 print(f"Memory context error: {e}")
                 memory_context = {"error": "Memory unavailable"}
@@ -2036,16 +2072,19 @@ async def action_view_lead(request: ViewLeadRequest):
                 "status": lead.get("status"),
                 "relationship_stage": lead.get("relationship_stage"),
                 "personality_type": lead.get("personality_type"),
-                "trust_level": lead.get("trust_level"),
-                "conversion_probability": lead.get("conversion_probability"),
+                "trust_level": lead.get("trust_level", 0.0),
+                "conversion_probability": lead.get("conversion_probability", 0.0),
                 "created_at": lead.get("created_at"),
                 "updated_at": lead.get("updated_at")
             },
-            "recent_conversations": conversations,
-            "recent_interactions": interactions,
+            "recent_conversations": serialized_conversations,
+            "recent_interactions": serialized_interactions,
             "memory_context": memory_context
         }
         
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 404)
+        raise
     except Exception as e:
         print(f"Error in action_view_lead: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get lead details: {str(e)}")
