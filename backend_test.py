@@ -130,20 +130,33 @@ class AICloserAPITester:
 
     def test_agent_selection(self):
         """Test the agent selection endpoint"""
+        test_data = {
+            "lead_id": self.lead_id,
+            "objective": "initial_contact",
+            "channel": "chat",
+            "conversation_history": True
+        }
         return self.run_test(
             "Agent Selection",
-            "GET",
-            f"api/agents/select?lead_id={self.lead_id}&objective=initial_contact&channel=chat&conversation_history=true",
-            404  # Expecting 404 because the lead doesn't exist
+            "POST",
+            "api/agents/select",
+            404,  # Expecting 404 because the lead doesn't exist
+            data=test_data
         )
         
     def test_process_message(self):
         """Test the message processing endpoint"""
+        test_data = {
+            "lead_id": self.lead_id,
+            "message": "Hello, I'm interested in buying a house",
+            "channel": "chat"
+        }
         return self.run_test(
             "Process Message",
-            "GET",
-            f"api/agents/process-message?lead_id={self.lead_id}&message=Hello&channel=chat",
-            404  # Expecting 404 because the lead doesn't exist
+            "POST",
+            "api/agents/process-message",
+            404,  # Expecting 404 because the lead doesn't exist
+            data=test_data
         )
 
     def test_memory_store(self):
