@@ -92,6 +92,16 @@ db_instance = client[db_name]
 # Initialize services
 # memory_manager already initialized above if imports succeeded
 
+# Initialize campaign service
+try:
+    campaign_service = CampaignService()
+    use_campaign_service = True
+    print("✅ Campaign Service initialized successfully")
+except Exception as e:
+    print(f"⚠️ Warning: Could not initialize Campaign Service: {e}")
+    campaign_service = None
+    use_campaign_service = False
+
 # Create FastAPI app
 app = FastAPI(
     title="AI Closer API", 
