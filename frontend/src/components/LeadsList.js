@@ -668,6 +668,7 @@ const LeadsList = ({ currentOrg }) => {
       </div>
     )}
   </div>
+  </>
   );
 };
 
