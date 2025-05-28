@@ -657,11 +657,138 @@ class TestUIActionEndpoints:
             return False
 
 # Run the tests
+# Test class for API key saving endpoints
+class TestAPIKeySaving:
+    def __init__(self):
+        self.base_url = f"{BACKEND_URL}/api"
+        self.org_id = "test_org_" + str(uuid.uuid4())[:8]
+        
+    def run_all_tests(self):
+        """Run all API key saving endpoint tests"""
+        print("\n=== Running API Key Saving Endpoint Tests ===\n")
+        
+        # Test saving API keys
+        print("\n--- Testing PUT /api/settings/api-keys/{org_id} ---")
+        save_result = self.test_save_api_keys()
+        if not save_result:
+            print("❌ Failed to save API keys, cannot continue with retrieval test")
+            return False
+            
+        # Test retrieving API keys
+        print("\n--- Testing GET /api/settings/api-keys/{org_id} ---")
+        retrieve_result = self.test_retrieve_api_keys()
+        if not retrieve_result:
+            print("❌ Failed to retrieve API keys")
+            
+        print("\n=== API Key Saving Endpoint Tests Complete ===\n")
+        return True
+    
+    def test_save_api_keys(self):
+        """Test saving API keys for an organization"""
+        try:
+            # Prepare API keys data
+            api_keys = {
+                "mem0_api_key": "m0-1234567890abcdefghijklmnop",
+                "vapi_api_key": "d14070eb-c48a-45d5-9a53-6115b8c4d517",
+                "sendblue_api_key": "sendblue123456",
+                "openai_api_key": "sk-1234567890abcdefghijklmnop",
+                "openrouter_api_key": "sk-or-v1-1234567890abcdefghijklmnop"
+            }
+            
+            # Make request to save API keys
+            response = requests.put(
+                f"{self.base_url}/settings/api-keys/{self.org_id}",
+                json=api_keys,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Check response
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    print(f"✅ Successfully saved API keys for organization: {self.org_id}")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                    return True
+                else:
+                    print(f"❌ API key saving reported failure")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                    return False
+            else:
+                print(f"❌ Failed to save API keys: {response.status_code}")
+                print(f"   Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Exception in test_save_api_keys: {str(e)}")
+            return False
+    
+    def test_retrieve_api_keys(self):
+        """Test retrieving API keys for an organization"""
+        try:
+            # Make request to retrieve API keys
+            response = requests.get(
+                f"{self.base_url}/settings/api-keys/{self.org_id}",
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Check response
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Check if all API keys are present
+                expected_keys = ["mem0_api_key", "vapi_api_key", "sendblue_api_key", "openai_api_key", "openrouter_api_key"]
+                missing_keys = [key for key in expected_keys if key not in result]
+                
+                if not missing_keys:
+                    print(f"✅ Successfully retrieved API keys for organization: {self.org_id}")
+                    print(f"   Retrieved keys: {', '.join(expected_keys)}")
+                    
+                    # Verify the values match what we saved
+                    expected_values = {
+                        "mem0_api_key": "m0-1234567890abcdefghijklmnop",
+                        "vapi_api_key": "d14070eb-c48a-45d5-9a53-6115b8c4d517",
+                        "sendblue_api_key": "sendblue123456",
+                        "openai_api_key": "sk-1234567890abcdefghijklmnop",
+                        "openrouter_api_key": "sk-or-v1-1234567890abcdefghijklmnop"
+                    }
+                    
+                    mismatched_values = []
+                    for key, expected_value in expected_values.items():
+                        actual_value = result.get(key)
+                        if actual_value != expected_value:
+                            mismatched_values.append(f"{key}: expected '{expected_value}', got '{actual_value}'")
+                    
+                    if not mismatched_values:
+                        print(f"✅ All API key values match what was saved")
+                    else:
+                        print(f"❌ Some API key values don't match what was saved:")
+                        for mismatch in mismatched_values:
+                            print(f"   - {mismatch}")
+                    
+                    return True
+                else:
+                    print(f"❌ Some API keys are missing from the response: {', '.join(missing_keys)}")
+                    print(f"   Response: {json.dumps(result, indent=2)}")
+                    return False
+            else:
+                print(f"❌ Failed to retrieve API keys: {response.status_code}")
+                print(f"   Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Exception in test_retrieve_api_keys: {str(e)}")
+            return False
+
 if __name__ == "__main__":
     # Run API key validation tests
     print("\n=== TESTING API KEY VALIDATION ENDPOINTS ===\n")
     api_key_tester = TestAPIKeyValidation()
     api_key_tester.run_all_tests()
+    
+    # Run API key saving tests
+    print("\n=== TESTING API KEY SAVING ENDPOINTS ===\n")
+    api_key_saving_tester = TestAPIKeySaving()
+    api_key_saving_tester.run_all_tests()
     
     # Run UI action endpoint tests
     print("\n=== TESTING UI ACTION ENDPOINTS ===\n")
