@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { 
+  Users, 
+  MessageSquare, 
+  Settings as SettingsIcon, 
+  Brain, 
+  BarChart3, 
+  BookOpen, 
+  Home,
+  Target
+} from 'lucide-react';
 
 const AppLayout = ({ currentOrg, onLogout }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
