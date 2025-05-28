@@ -56,6 +56,10 @@ class AIFineTuningService:
     def __init__(self):
         self.active_jobs = {}  # In-memory tracking for active fine-tuning jobs
         
+        # Check if database is available
+        if db is None:
+            print("Warning: Database not available for AIFineTuningService")
+        
         # Get API keys from environment
         self.openai_api_key = os.getenv('OPENAI_API_KEY')
         self.openrouter_api_key = os.getenv('OPENROUTER_API_KEY')
