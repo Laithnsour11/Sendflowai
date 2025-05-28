@@ -1866,17 +1866,101 @@ async def action_send_message(request: SendMessageRequest):
         # Store interaction
         await db.agent_interactions_collection.insert_one(interaction_data)
         
-        # Simulate sending the message (in a real implementation, this would use SendBlue or GHL SMS)
-        print(f"📱 SMS Message sent to {lead.get('name', 'Unknown')} ({lead.get('phone', 'No phone')}): {message}")
+        # Import the orchestrator here to avoid circular imports
+        from agent_orchestrator import AgentOrchestrator
         
-        return {
-            "success": True,
-            "message": "Message sent successfully",
-            "conversation_id": conversation_id,
-            "agent_response": message,
-            "agent_type": "initial_contact",
-            "channel": "sms"
-        }
+        # Initialize agent orchestrator
+        orchestrator = AgentOrchestrator()
+        
+        # Process the message through the agent system to get AI response
+        try:
+            ai_response = await orchestrator.process_message(
+                org_id=lead_org_id,
+                lead_id=str(lead.get("_id")),
+                message=f"Lead contacted via SMS. Objective: Initial contact",
+                channel="sms",
+                context={"objective": "Initial contact", "action_type": "send_message"}
+            )
+            
+            ai_message = ai_response.get("text", "Hello! I'm reaching out regarding your real estate inquiry.")
+            agent_type = ai_response.get("agent_type", "initial_contact")
+            
+        except Exception as e:
+            logger.error(f"Error getting AI response: {e}")
+            # Fallback message if AI fails
+            ai_message = "Hello! I'm reaching out regarding your real estate inquiry. How can I help you today?"
+            agent_type = "initial_contact"
+        
+        # Actually send the SMS via GHL Lead Connector
+        try:
+            from ghl_sms_provider import GHLSMSProvider
+            from ghl_enhanced import GHLIntegrationService
+            
+            # Initialize GHL services
+            ghl_service = GHLIntegrationService()
+            ghl_sms = GHLSMSProvider(ghl_service)
+            
+            # Send SMS via GHL
+            sms_result = await ghl_sms.send_sms(
+                org_id=lead_org_id,
+                to_number=lead.get('phone'),
+                message=ai_message
+            )
+            
+            if sms_result.get("success"):
+                print(f"📱 SMS sent successfully via GHL to {lead.get('name', 'Unknown')} ({lead.get('phone', 'No phone')}): {ai_message}")
+                
+                # Store the sent message in agent interactions
+                await db.agent_interactions_collection.insert_one({
+                    "id": str(uuid.uuid4()),
+                    "conversation_id": conversation_id,
+                    "lead_id": str(lead.get("_id")),
+                    "agent_type": agent_type,
+                    "message": ai_message,
+                    "channel": "sms",
+                    "direction": "outbound",
+                    "confidence_score": 0.85,
+                    "message_id": sms_result.get("message_id"),
+                    "provider": "ghl_native",
+                    "created_at": datetime.now().isoformat()
+                })
+                
+                return {
+                    "success": True,
+                    "message": "Message sent successfully via GHL SMS",
+                    "lead_id": str(lead.get("_id")),
+                    "conversation_id": conversation_id,
+                    "message": ai_message,
+                    "agent_type": agent_type,
+                    "status": "sent",
+                    "provider": "ghl_native",
+                    "message_id": sms_result.get("message_id")
+                }
+            else:
+                raise Exception(f"GHL SMS send failed: {sms_result}")
+                
+        except Exception as sms_error:
+            logger.error(f"Error sending SMS via GHL: {sms_error}")
+            
+            # Store as failed message
+            await db.agent_interactions_collection.insert_one({
+                "id": str(uuid.uuid4()),
+                "conversation_id": conversation_id,
+                "lead_id": str(lead.get("_id")),
+                "agent_type": agent_type,
+                "message": ai_message,
+                "channel": "sms",
+                "direction": "outbound",
+                "confidence_score": 0.85,
+                "status": "failed",
+                "error": str(sms_error),
+                "created_at": datetime.now().isoformat()
+            })
+            
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Failed to send SMS: {str(sms_error)}"
+            )
         
     except Exception as e:
         print(f"Error in action_send_message: {str(e)}")
