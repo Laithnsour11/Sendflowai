@@ -219,7 +219,7 @@ class TestUIActionEndpoints:
             return False
     
     def test_initiate_call(self):
-        """Test initiating a call to a lead"""
+        """Test initiating a call to a lead using the simplified implementation"""
         if not self.lead_id:
             print("❌ No lead ID available for testing")
             return False
@@ -240,10 +240,29 @@ class TestUIActionEndpoints:
                 result = response.json()
                 
                 if result.get("success"):
-                    print(f"✅ Successfully initiated call to lead")
+                    print(f"✅ Successfully initiated call to lead using simplified implementation")
                     print(f"   Call ID: {result.get('call_id')}")
                     print(f"   Conversation ID: {result.get('conversation_id')}")
                     print(f"   Agent type: {result.get('agent_type')}")
+                    
+                    # Verify that a conversation record was created
+                    time.sleep(1)  # Give the server a moment to process
+                    view_response = requests.post(f"{self.base_url}/actions/view-lead?lead_id={self.lead_id}")
+                    if view_response.status_code == 200:
+                        view_result = view_response.json()
+                        conversations = view_result.get("recent_conversations", [])
+                        interactions = view_result.get("recent_interactions", [])
+                        
+                        if conversations:
+                            print(f"✅ Verified conversation record was created")
+                        else:
+                            print(f"⚠️ Could not verify conversation record creation")
+                            
+                        if interactions:
+                            print(f"✅ Verified interaction record was created")
+                        else:
+                            print(f"⚠️ Could not verify interaction record creation")
+                    
                     return True
                 else:
                     print(f"❌ Call initiation reported failure")
