@@ -143,6 +143,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Endpoint is working correctly. Successfully adds a new lead and returns the lead ID and details."
+      - working: true
+        agent: "testing"
+        comment: "Retested with the updated test script. Endpoint is still working correctly. Successfully adds a new lead with UUID and returns the lead ID and details."
 
   - task: "POST /api/actions/view-lead - View lead details"
     implemented: true
@@ -155,26 +158,32 @@ backend:
       - working: true
         agent: "testing"
         comment: "Endpoint is working correctly. Successfully retrieves lead details for a valid lead ID."
+      - working: true
+        agent: "testing"
+        comment: "Retested with the updated test script. Endpoint is still working correctly. Successfully retrieves lead details for a valid lead ID."
 
   - task: "GET /api/leads - Get leads list"
     implemented: true
     working: false
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: true
     status_history:
       - working: false
         agent: "testing"
         comment: "Endpoint is failing with a 500 Internal Server Error. The error in the logs is: 'TypeError: 'ObjectId' object is not iterable'. This suggests there's still an issue with handling ObjectId in the leads list formatting."
+      - working: false
+        agent: "testing"
+        comment: "Retested with the updated test script. Endpoint is still failing with a 500 Internal Server Error. This suggests there's still an issue with handling ObjectId in the leads list formatting."
 
   - task: "POST /api/actions/send-message - Send message to lead"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
@@ -182,14 +191,17 @@ backend:
       - working: false
         agent: "testing"
         comment: "After examining the code, I found that the issue is in the action_send_message function (lines 1830-1836). It's using str(lead['_id']) to get the MongoDB ObjectId from the lead document and passing it to process_message. However, process_message is trying to find the lead again using this ID, first as a UUID and then as an ObjectId. This is causing the error because the ID is already an ObjectId, but it's being converted to a string and then back to an ObjectId. The fix would be to either pass the lead object directly to process_message or modify process_message to accept either UUID or ObjectId."
+      - working: true
+        agent: "testing"
+        comment: "Retested with the updated test script. The simplified implementation is now working correctly. The endpoint successfully creates a conversation record and returns a success response with conversation_id and agent_type."
 
   - task: "POST /api/actions/initiate-call - Initiate call to lead"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
@@ -197,6 +209,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "After examining the code, I found that the issue is in the action_initiate_call function (lines 1899-1906). It's using str(lead['_id']) to get the MongoDB ObjectId from the lead document and passing it to initiate_voice_call. The initiate_voice_call function is also trying to find the lead again using this ID. This is causing the error because the ID is already an ObjectId, but it's being converted to a string and then back to an ObjectId. The fix would be to either pass the lead object directly to initiate_voice_call or modify initiate_voice_call to accept either UUID or ObjectId."
+      - working: true
+        agent: "testing"
+        comment: "Retested with the updated test script. The simplified implementation is now working correctly. The endpoint successfully creates a conversation record and returns a success response with call_id, conversation_id, and agent_type."
 
 frontend:
   - task: "Advanced Analytics Navigation"
@@ -262,14 +277,12 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
     - "GET /api/leads - Get leads list"
-    - "POST /api/actions/send-message - Send message to lead"
-    - "POST /api/actions/initiate-call - Initiate call to lead"
   stuck_tasks:
     - "GET /api/campaigns - List campaigns for organization"
     - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
@@ -278,8 +291,6 @@ test_plan:
     - "POST /api/campaigns/{campaign_id}/stop - Stop and complete a campaign"
     - "GET /api/campaigns/{campaign_id}/status - Get detailed campaign status and metrics"
     - "GET /api/leads - Get leads list"
-    - "POST /api/actions/send-message - Send message to lead"
-    - "POST /api/actions/initiate-call - Initiate call to lead"
   test_all: false
   test_priority: "high_first"
 
@@ -294,3 +305,5 @@ agent_communication:
     message: "Tested the UI action endpoints that were fixed for UUID vs ObjectId issues. Found that POST /api/actions/add-lead and POST /api/actions/view-lead are working correctly, but GET /api/leads, POST /api/actions/send-message, and POST /api/actions/initiate-call are still failing with 500 Internal Server Error."
   - agent: "testing"
     message: "After examining the code, I found that the issue is in how the action_send_message and action_initiate_call functions are handling lead IDs. They're finding the lead correctly (using either UUID or ObjectId), but then they're passing str(lead['_id']) to process_message and initiate_voice_call, which are trying to find the lead again. This is causing the error because the ID is already an ObjectId, but it's being converted to a string and then back to an ObjectId. The fix would be to either pass the lead object directly to these functions or modify them to accept either UUID or ObjectId."
+  - agent: "testing"
+    message: "Tested the simplified implementations of the UI action endpoints. The POST /api/actions/add-lead and POST /api/actions/view-lead endpoints are working correctly. The simplified POST /api/actions/send-message and POST /api/actions/initiate-call endpoints are now working correctly - they successfully create conversation records and return success responses. However, the GET /api/leads endpoint is still failing with a 500 Internal Server Error. Error handling for invalid lead IDs also needs improvement as it's returning 500 errors instead of 404 errors."
