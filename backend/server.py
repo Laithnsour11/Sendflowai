@@ -2185,6 +2185,132 @@ async def get_conversations(org_id: str = "production_org_123", limit: int = 50)
         print(f"Error in get_conversations: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get conversations: {str(e)}")
 
+# ================================
+# API KEY VALIDATION ENDPOINTS
+# ================================
+
+@app.post("/api/settings/validate-mem0-key")
+async def validate_mem0_key(request: dict):
+    """
+    Validate Mem0 API key.
+    """
+    try:
+        api_key = request.get("api_key")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        # Basic format validation for Mem0 keys
+        if not api_key.startswith("m0-"):
+            return {"valid": False, "message": "Invalid Mem0 API key format (should start with 'm0-')"}
+        
+        if len(api_key) < 20:
+            return {"valid": False, "message": "API key is too short"}
+        
+        # For now, we'll do basic validation. In production, you'd make an actual API call to Mem0
+        # to verify the key works
+        return {"valid": True, "message": "API key format is valid"}
+        
+    except Exception as e:
+        print(f"Error validating Mem0 API key: {str(e)}")
+        return {"valid": False, "message": "Error validating API key"}
+
+@app.post("/api/settings/validate-vapi-key")
+async def validate_vapi_key(request: dict):
+    """
+    Validate Vapi.ai API key.
+    """
+    try:
+        api_key = request.get("api_key")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        # Basic format validation for Vapi keys (UUIDs)
+        import re
+        uuid_pattern = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
+        
+        if not uuid_pattern.match(api_key):
+            return {"valid": False, "message": "Invalid Vapi API key format (should be UUID format)"}
+        
+        # For now, we'll do basic validation. In production, you'd make an actual API call to Vapi
+        # to verify the key works
+        return {"valid": True, "message": "API key format is valid"}
+        
+    except Exception as e:
+        print(f"Error validating Vapi API key: {str(e)}")
+        return {"valid": False, "message": "Error validating API key"}
+
+@app.post("/api/settings/validate-sendblue-key")
+async def validate_sendblue_key(request: dict):
+    """
+    Validate SendBlue API key.
+    """
+    try:
+        api_key = request.get("api_key")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        # Basic format validation for SendBlue keys
+        if len(api_key) < 10:
+            return {"valid": False, "message": "API key is too short"}
+        
+        # For now, we'll do basic validation. In production, you'd make an actual API call to SendBlue
+        # to verify the key works
+        return {"valid": True, "message": "API key format is valid"}
+        
+    except Exception as e:
+        print(f"Error validating SendBlue API key: {str(e)}")
+        return {"valid": False, "message": "Error validating API key"}
+
+@app.post("/api/settings/validate-openai-key")
+async def validate_openai_key(request: dict):
+    """
+    Validate OpenAI API key.
+    """
+    try:
+        api_key = request.get("api_key")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        # Basic format validation for OpenAI keys
+        if not api_key.startswith("sk-"):
+            return {"valid": False, "message": "Invalid OpenAI API key format (should start with 'sk-')"}
+        
+        if len(api_key) < 20:
+            return {"valid": False, "message": "API key is too short"}
+        
+        # For now, we'll do basic validation. In production, you'd make an actual API call to OpenAI
+        # to verify the key works
+        return {"valid": True, "message": "API key format is valid"}
+        
+    except Exception as e:
+        print(f"Error validating OpenAI API key: {str(e)}")
+        return {"valid": False, "message": "Error validating API key"}
+
+@app.post("/api/settings/validate-openrouter-key")
+async def validate_openrouter_key(request: dict):
+    """
+    Validate OpenRouter API key.
+    """
+    try:
+        api_key = request.get("api_key")
+        if not api_key:
+            return {"valid": False, "message": "API key is required"}
+        
+        # Basic format validation for OpenRouter keys
+        if not api_key.startswith("sk-or-v1-"):
+            return {"valid": False, "message": "Invalid OpenRouter API key format (should start with 'sk-or-v1-')"}
+        
+        if len(api_key) < 25:
+            return {"valid": False, "message": "API key is too short"}
+        
+        # For now, we'll do basic validation. In production, you'd make an actual API call to OpenRouter
+        # to verify the key works
+        return {"valid": True, "message": "API key format is valid"}
+        
+    except Exception as e:
+        print(f"Error validating OpenRouter API key: {str(e)}")
+        return {"valid": False, "message": "Error validating API key"}
+
 @app.get("/api/dashboard/real-time")
 async def get_real_time_dashboard_data(org_id: str):
     """Get real-time dashboard data"""
