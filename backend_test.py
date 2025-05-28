@@ -14,6 +14,7 @@ class AICloserAPITester:
         self.tests_passed = 0
         self.org_id = "test_org_" + str(uuid.uuid4())[:8]  # Generate a unique test org ID
         self.lead_id = str(ObjectId())  # Generate a valid MongoDB ObjectId
+        self.contact_id = None  # Will be set after creating a lead via webhook
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
