@@ -26,8 +26,8 @@ class TestUIActionEndpoints:
         self.org_id = "production_org_123"  # Default org ID
         
     def run_all_tests(self):
-        """Run all tests in sequence"""
-        print("\n=== Running UI Action Endpoint Tests ===\n")
+        """Run all tests in sequence to verify simplified implementations"""
+        print("\n=== Running UI Action Endpoint Tests with Simplified Implementations ===\n")
         
         # Test add lead
         print("\n--- Testing POST /api/actions/add-lead ---")
@@ -48,14 +48,14 @@ class TestUIActionEndpoints:
         if not view_result:
             print("❌ Failed to view lead")
         
-        # Test send message
-        print("\n--- Testing POST /api/actions/send-message ---")
+        # Test send message (simplified implementation)
+        print("\n--- Testing POST /api/actions/send-message (Simplified Implementation) ---")
         message_result = self.test_send_message()
         if not message_result:
             print("❌ Failed to send message")
         
-        # Test initiate call
-        print("\n--- Testing POST /api/actions/initiate-call ---")
+        # Test initiate call (simplified implementation)
+        print("\n--- Testing POST /api/actions/initiate-call (Simplified Implementation) ---")
         call_result = self.test_initiate_call()
         if not call_result:
             print("❌ Failed to initiate call")
