@@ -1921,6 +1921,8 @@ async def action_initiate_call(request: InitiateCallRequest):
                 objective = "Finalize details and close the deal"
             else:
                 objective = "Follow up and assess current needs"
+        else:
+            objective = request.objective
         
         # Create a conversation record
         conversation_id = str(uuid.uuid4())
