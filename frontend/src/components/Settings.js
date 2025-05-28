@@ -683,11 +683,11 @@ const Settings = ({ currentOrg }) => {
         </div>
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
           <dl className="sm:divide-y sm:divide-gray-200">
-            {/* LLM Model */}
+            {/* AI Configuration - Updated Structure */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
-                LLM Model
-                <p className="mt-1 text-xs text-gray-400">Select the AI model to use</p>
+                Primary LLM Model
+                <p className="mt-1 text-xs text-gray-400">Select the primary AI model for agents</p>
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
                 <select
@@ -696,11 +696,75 @@ const Settings = ({ currentOrg }) => {
                   onChange={handleAiSettingChange}
                   className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 >
-                  <option value="gpt-4o">GPT-4o (Default)</option>
-                  <option value="gpt-4o-mini">GPT-4o Mini</option>
-                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet</option>
-                  <option value="claude-3-haiku">Claude 3 Haiku</option>
+                  <option value="gpt-4o">GPT-4o (OpenAI)</option>
+                  <option value="gpt-4o-mini">GPT-4o Mini (OpenAI)</option>
+                  <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Latest)</option>
+                  <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Latest)</option>
+                  <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                  <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                  <option value="llama-3.1-405b-instruct">Llama 3.1 405B</option>
+                  <option value="llama-3.1-70b-instruct">Llama 3.1 70B</option>
                 </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  Latest models available through OpenRouter integration for best performance.
+                </p>
+              </dd>
+            </div>
+            
+            {/* Model Provider Selection */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Model Provider
+                <p className="mt-1 text-xs text-gray-400">Route through specific provider</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <select
+                  name="provider"
+                  value={aiSettings.provider || 'openrouter'}
+                  onChange={handleAiSettingChange}
+                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                >
+                  <option value="openrouter">OpenRouter (Multi-Model Access)</option>
+                  <option value="openai">OpenAI Direct</option>
+                  <option value="anthropic">Anthropic Direct</option>
+                  <option value="google">Google AI Direct</option>
+                </select>
+              </dd>
+            </div>
+
+            {/* Agent-Specific Model Selection */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Agent-Specific Models
+                <p className="mt-1 text-xs text-gray-400">Configure different models for different agent types</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <div className="space-y-3">
+                  {[
+                    { key: 'initial_contact_model', label: 'Initial Contact Agent' },
+                    { key: 'qualifier_model', label: 'Qualifier Agent' },
+                    { key: 'nurturer_model', label: 'Nurturer Agent' },
+                    { key: 'objection_handler_model', label: 'Objection Handler Agent' },
+                    { key: 'appointment_setter_model', label: 'Appointment Setter Agent' },
+                    { key: 'closer_model', label: 'Closer Agent' }
+                  ].map(agent => (
+                    <div key={agent.key} className="flex items-center space-x-3">
+                      <label className="text-sm text-gray-600 w-40">{agent.label}:</label>
+                      <select
+                        name={agent.key}
+                        value={aiSettings[agent.key] || aiSettings.model}
+                        onChange={handleAiSettingChange}
+                        className="flex-1 text-sm border border-gray-300 rounded px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="">Use Primary Model</option>
+                        <option value="gpt-4o">GPT-4o (OpenAI)</option>
+                        <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                        <option value="llama-3.1-405b-instruct">Llama 3.1 405B</option>
+                      </select>
+                    </div>
+                  ))}
+                </div>
               </dd>
             </div>
             
