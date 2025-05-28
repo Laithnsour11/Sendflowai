@@ -4,12 +4,26 @@ import json
 import sys
 import time
 import uuid
+import os
 from datetime import datetime
 from bson import ObjectId
 
 class AICloserAPITester:
-    def __init__(self, base_url="http://localhost:8001"):
+    def __init__(self, base_url=None):
+        # Use the REACT_APP_BACKEND_URL from frontend/.env if available
+        if not base_url:
+            try:
+                with open('/app/frontend/.env', 'r') as f:
+                    for line in f:
+                        if line.startswith('REACT_APP_BACKEND_URL='):
+                            base_url = line.strip().split('=')[1].strip('"\'')
+                            break
+            except Exception as e:
+                print(f"Error reading frontend/.env: {e}")
+                base_url = "http://localhost:8001"
+        
         self.base_url = base_url
+        print(f"Using backend URL: {self.base_url}")
         self.tests_run = 0
         self.tests_passed = 0
         self.org_id = "test_org_" + str(uuid.uuid4())[:8]  # Generate a unique test org ID
