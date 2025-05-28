@@ -152,9 +152,9 @@ backend:
 
   - task: "POST /api/actions/view-lead - View lead details"
     implemented: true
-    working: false
+    working: true
     file: "/app/backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
@@ -170,6 +170,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "Tested the view-lead endpoint specifically to diagnose the 'Network Error' in the Conversations component. Found that the endpoint works correctly with valid lead IDs created through the add-lead endpoint, but fails with a 500 Internal Server Error when using invalid or non-existent lead IDs. The error in the logs shows: 'ValueError: [TypeError(\"'ObjectId' object is not iterable\"), TypeError('vars() argument must have __dict__ attribute')]'. This is likely causing the 'Network Error' in the frontend when clicking 'View Details' in the Conversations component. The issue is related to how MongoDB ObjectId is being handled in the response serialization. The endpoint needs to properly handle ObjectId serialization and return a 404 status code for non-existent leads instead of a 500 error."
+      - working: true
+        agent: "testing"
+        comment: "Tested the fixed view-lead endpoint to verify the ObjectId serialization issue is resolved. The endpoint now correctly handles ObjectId serialization for conversations and interactions, returns proper 404 responses for invalid lead IDs, and includes all expected fields in the response. Tests with valid lead IDs, invalid lead IDs, malformed requests, and missing lead_id all returned the expected responses. The endpoint now properly serializes conversations and interactions, and includes default values for trust_level and conversion_probability fields. This fix should resolve the 'Network Error' in the Conversations component when clicking 'View Details'."
 
   - task: "GET /api/leads - Get leads list"
     implemented: true
