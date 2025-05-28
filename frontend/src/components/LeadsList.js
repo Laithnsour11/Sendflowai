@@ -172,7 +172,17 @@ const LeadsList = ({ currentOrg }) => {
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      alert('Error sending message: ' + (error.response?.data?.detail || error.message));
+      let errorMessage = 'Unknown error occurred';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error.response?.data === 'string') {
+        errorMessage = error.response.data;
+      }
+      alert(`Error sending message: ${errorMessage}`);
     } finally {
       setActionLoading(prev => ({ ...prev, [`message_${leadId}`]: false }));
     }
@@ -194,7 +204,17 @@ const LeadsList = ({ currentOrg }) => {
       }
     } catch (error) {
       console.error('Error initiating call:', error);
-      alert('Error initiating call: ' + (error.response?.data?.detail || error.message));
+      let errorMessage = 'Unknown error occurred';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error.response?.data === 'string') {
+        errorMessage = error.response.data;
+      }
+      alert(`Error initiating call: ${errorMessage}`);
     } finally {
       setActionLoading(prev => ({ ...prev, [`call_${leadId}`]: false }));
     }
@@ -215,7 +235,17 @@ const LeadsList = ({ currentOrg }) => {
       }
     } catch (error) {
       console.error('Error viewing lead:', error);
-      alert('Error loading lead details: ' + (error.response?.data?.detail || error.message));
+      let errorMessage = 'Unknown error occurred';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error.response?.data === 'string') {
+        errorMessage = error.response.data;
+      }
+      alert(`Error loading lead details: ${errorMessage}`);
     } finally {
       setActionLoading(prev => ({ ...prev, [`view_${leadId}`]: false }));
     }
@@ -244,7 +274,17 @@ const LeadsList = ({ currentOrg }) => {
       }
     } catch (error) {
       console.error('Error adding lead:', error);
-      alert('Error adding lead: ' + (error.response?.data?.detail || error.message));
+      let errorMessage = 'Unknown error occurred';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error.response?.data === 'string') {
+        errorMessage = error.response.data;
+      }
+      alert(`Error adding lead: ${errorMessage}`);
     } finally {
       setActionLoading(prev => ({ ...prev, 'add_lead': false }));
     }
