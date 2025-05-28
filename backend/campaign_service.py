@@ -19,7 +19,15 @@ except ImportError:
         AgentOrchestrator = None
         print("Warning: AgentOrchestrator not available")
 
-from ghl_integration import GHLIntegration
+# Import GHL integration with error handling
+try:
+    from ghl_integration import GHLIntegration
+except ImportError:
+    try:
+        from ghl_enhanced import GHLIntegrationService as GHLIntegration
+    except ImportError:
+        GHLIntegration = None
+        print("Warning: GHLIntegration not available")
 
 logger = logging.getLogger(__name__)
 
