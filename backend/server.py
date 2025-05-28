@@ -1138,6 +1138,9 @@ async def get_campaign_status(campaign_id: str, org_id: str = "production_org_12
         result = await campaign_service.get_campaign_status(org_id, campaign_id)
         return result
         
+    except HTTPException as he:
+        # Pass through HTTP exceptions from the service
+        raise he
     except Exception as e:
         logger.error(f"Error getting campaign status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
