@@ -17,8 +17,8 @@ async def test_agent_orchestrator():
         
         # Test agent selection with context
         org_id = "test_org_123"
+        lead_id = "test_lead_456"
         context = {
-            "lead_id": "test_lead_456",
             "lead_name": "John Smith",
             "phone": "+15550123456",
             "email": "john.smith@email.com",
@@ -33,7 +33,7 @@ async def test_agent_orchestrator():
         }
         
         print("🔄 Testing agent selection with rich context...")
-        selection_result = await orchestrator.select_agent(org_id, context)
+        selection_result = await orchestrator.select_agent(org_id, lead_id, context)
         
         print(f"✅ Agent selected: {selection_result['agent_type']}")
         print(f"   🎯 Confidence: {selection_result['confidence']}")
