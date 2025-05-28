@@ -67,9 +67,12 @@ try:
 except ImportError:
     try:
         from app.backend.campaign_service import CampaignService
-    except ImportError as e:
-        print(f"Warning: Could not import CampaignService: {e}")
-        CampaignService = None
+    except ImportError:
+        try:
+            from backend.campaign_service import CampaignService
+        except ImportError as e:
+            print(f"Warning: Could not import CampaignService: {e}")
+            CampaignService = None
 
 # Try different import strategies for database module
 try:
