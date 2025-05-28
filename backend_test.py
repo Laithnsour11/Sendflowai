@@ -137,24 +137,44 @@ class AICloserAPITester:
             print("⚠️ Skipping Agent Selection test - no contact ID available")
             return True
             
+        # We need to get the MongoDB _id for the lead
+        response = requests.get(f"{self.base_url}/api/leads?org_id={self.org_id}")
+        if response.status_code != 200:
+            print(f"❌ Failed to get leads - Status: {response.status_code}")
+            return False
+            
+        leads = response.json()
+        lead_id = None
+        for lead in leads:
+            if lead.get("ghl_contact_id") == self.contact_id:
+                lead_id = lead.get("id")
+                break
+                
+        if not lead_id:
+            print("❌ Failed to find lead with matching contact ID")
+            return False
+            
+        print(f"✅ Found lead with ID: {lead_id}")
+        self.lead_id = lead_id
+            
         return self.run_test(
             "Agent Selection",
             "POST",
-            f"api/agents/select?lead_id={self.contact_id}&objective=initial_contact&channel=chat&conversation_history=true",
+            f"api/agents/select?lead_id={self.lead_id}&objective=initial_contact&channel=chat&conversation_history=true",
             200
         )
         
     def test_process_message(self):
         """Test the message processing endpoint"""
-        # Skip if no contact_id is available
-        if not self.contact_id:
-            print("⚠️ Skipping Process Message test - no contact ID available")
+        # Skip if no lead_id is available
+        if not hasattr(self, 'lead_id') or not self.lead_id:
+            print("⚠️ Skipping Process Message test - no lead ID available")
             return True
             
         return self.run_test(
             "Process Message",
             "POST",
-            f"api/agents/process-message?lead_id={self.contact_id}&message=Hello&channel=chat",
+            f"api/agents/process-message?lead_id={self.lead_id}&message=Hello&channel=chat",
             200
         )
 
