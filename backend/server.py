@@ -718,6 +718,9 @@ async def select_agent(
         context["conversation_history"] = conversations
     
     # Select the agent
+    if not use_agent_orchestrator:
+        raise HTTPException(status_code=503, detail="Agent orchestrator service unavailable")
+    
     selection_result = await agent_orchestrator.select_agent(org_id, context)
     
     return {
