@@ -130,6 +130,21 @@ except Exception as e:
     campaign_service = None
     use_campaign_service = False
 
+# Initialize AI Fine-Tuning service
+try:
+    if AIFineTuningService:
+        fine_tuning_service = AIFineTuningService()
+        use_fine_tuning_service = True
+        print("✅ AI Fine-Tuning Service initialized successfully")
+    else:
+        fine_tuning_service = None
+        use_fine_tuning_service = False
+        print("⚠️ AI Fine-Tuning Service not available - import failed")
+except Exception as e:
+    print(f"⚠️ Warning: Could not initialize AI Fine-Tuning Service: {e}")
+    fine_tuning_service = None
+    use_fine_tuning_service = False
+
 # Create FastAPI app
 app = FastAPI(
     title="AI Closer API", 
