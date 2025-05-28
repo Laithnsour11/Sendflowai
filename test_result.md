@@ -194,6 +194,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Retested with the updated test script. The simplified implementation is now working correctly. The endpoint successfully creates a conversation record and returns a success response with conversation_id and agent_type."
+      - working: true
+        agent: "testing"
+        comment: "Tested the fixed endpoint with the new Pydantic model (SendMessageRequest). The endpoint now accepts JSON request body instead of query parameters and returns a 200 status code for valid requests. The endpoint successfully creates a conversation record and returns a success response with conversation_id and agent_type."
 
   - task: "POST /api/actions/initiate-call - Initiate call to lead"
     implemented: true
