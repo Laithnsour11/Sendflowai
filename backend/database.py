@@ -28,6 +28,11 @@ campaigns_collection = db.campaigns
 campaign_leads_collection = db.campaign_leads
 campaign_interactions_collection = db.campaign_interactions
 
+# Phase C.2: AI Fine-Tuning Collections
+fine_tuning_jobs_collection = db.fine_tuning_jobs
+training_examples_collection = db.training_examples
+rlhf_feedback_collection = db.rlhf_feedback
+
 # Helper functions
 async def create_document(collection, document_data):
     if "_id" not in document_data:
