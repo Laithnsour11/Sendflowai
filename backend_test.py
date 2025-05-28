@@ -175,15 +175,15 @@ class TestUIActionEndpoints:
             return False
             
         try:
-            # Prepare data
-            data = {
+            # Prepare data as query parameters
+            params = {
                 "lead_id": self.lead_id,
                 "message": "This is a test message from the API test",
                 "org_id": self.org_id
             }
             
             # Make request
-            response = requests.post(f"{self.base_url}/actions/send-message", json=data)
+            response = requests.post(f"{self.base_url}/actions/send-message", params=params)
             
             # Check response
             if response.status_code == 200:
