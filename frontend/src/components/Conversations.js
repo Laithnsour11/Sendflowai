@@ -549,14 +549,14 @@ const Conversations = ({ currentOrg }) => {
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="text-md font-medium text-gray-900 mb-3">Sentiment Analysis</h4>
                     <div className="space-y-2">
-                      <p><span className="font-medium">Overall Sentiment:</span> {renderSentimentIndicator(viewConversation.conversation.sentiment_analysis.overall)}</p>
-                      {viewConversation.conversation.sentiment_analysis.changes && (
+                      <p><span className="font-medium">Overall Sentiment:</span> {renderSentimentIndicator(viewConversation.conversation?.sentiment_analysis?.overall || 'neutral')}</p>
+                      {viewConversation.conversation?.sentiment_analysis?.changes && (
                         <div>
                           <p className="font-medium mb-2">Sentiment Changes:</p>
                           <div className="space-y-1 max-h-32 overflow-y-auto">
                             {viewConversation.conversation.sentiment_analysis.changes.map((change, index) => (
                               <div key={index} className="text-sm bg-white p-2 rounded">
-                                <span className="font-medium">Time {Math.floor(change.time / 60)}:{(change.time % 60).toString().padStart(2, '0')}:</span> {renderSentimentIndicator(change.sentiment)}
+                                <span className="font-medium">Time {Math.floor(change.time / 60)}:{(change.time % 60).toString().padStart(2, '0')}:</span> {renderSentimentIndicator(change.sentiment || 'neutral')}
                               </div>
                             ))}
                           </div>
