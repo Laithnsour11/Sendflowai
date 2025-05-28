@@ -13,6 +13,29 @@ import uuid
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from pathlib import Path
+from pydantic import BaseModel
+
+# Request models for action endpoints
+class SendMessageRequest(BaseModel):
+    lead_id: str
+    message: Optional[str] = None
+    org_id: Optional[str] = None
+
+class InitiateCallRequest(BaseModel):
+    lead_id: str
+    objective: Optional[str] = None
+    org_id: Optional[str] = None
+
+class ViewLeadRequest(BaseModel):
+    lead_id: str
+
+class AddLeadRequest(BaseModel):
+    org_id: str
+    name: str
+    email: str
+    phone: Optional[str] = None
+    status: Optional[str] = "Initial Contact"
+    source: Optional[str] = "Manual Entry"
 
 # Custom JSON encoder for MongoDB ObjectId
 class ObjectIdJSONEncoder(json.JSONEncoder):
