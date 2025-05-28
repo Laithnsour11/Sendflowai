@@ -325,6 +325,23 @@ def main():
     tester.test_agent_selection()
     tester.test_process_message()
     
+    # Phase B.2 Tests
+    print("\n" + "=" * 50)
+    print("Phase B.2 Tests - Analytics and RLHF")
+    print("=" * 50)
+    
+    # Test agent performance analytics
+    tester.test_agent_performance_analytics()
+    
+    # Test RLHF feedback submission
+    tester.test_rlhf_feedback_submission()
+    
+    # Test different RLHF feedback types
+    tester.test_rlhf_feedback_types()
+    
+    # Test real-time dashboard
+    tester.test_real_time_dashboard()
+    
     # Print results
     print("\n" + "=" * 50)
     print(f"Tests completed: {tester.tests_run}")
