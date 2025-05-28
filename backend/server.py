@@ -1162,3 +1162,15 @@ async def ghl_oauth_callback(
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+# Include Phase B.2 analytics and RLHF endpoints
+try:
+    from analytics_rlhf_endpoints import include_phase_b2_routes
+    include_phase_b2_routes(app)
+    logger.info("Phase B.2 analytics and RLHF endpoints loaded successfully")
+except ImportError as e:
+    logger.warning(f"Phase B.2 endpoints import failed: {e}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
