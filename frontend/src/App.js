@@ -55,6 +55,7 @@ function App() {
           <Route path="/leads" element={<LeadsList currentOrg={currentOrg} />} />
           <Route path="/conversations" element={<Conversations currentOrg={currentOrg} />} />
           <Route path="/analytics" element={<Analytics currentOrg={currentOrg} />} />
+          <Route path="/campaigns" element={<Campaigns currentOrg={currentOrg} />} />
           <Route path="/knowledge" element={<KnowledgeBase currentOrg={currentOrg} />} />
           <Route path="/agent-training" element={<AgentTraining currentOrg={currentOrg} />} />
           <Route path="/settings" element={<Settings currentOrg={currentOrg} />} />
