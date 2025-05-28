@@ -7,7 +7,18 @@ import uuid
 from fastapi import HTTPException
 from enum import Enum
 
-import database as db
+# Import database with error handling
+try:
+    import database as db
+except ImportError:
+    try:
+        from backend import database as db
+    except ImportError:
+        try:
+            from app.backend import database as db
+        except ImportError as e:
+            print(f"Error importing database module: {e}")
+            raise ImportError(f"Could not import database module: {e}")
 
 # Import agent orchestrator with error handling  
 try:
