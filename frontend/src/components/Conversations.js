@@ -189,23 +189,7 @@ const Conversations = ({ currentOrg }) => {
     }
   };
   
-  const handleNewCall = async () => {
-    try {
-      setActionLoading(prev => ({ ...prev, 'new_call': true }));
-      
-      // Navigate to leads page where users can select a lead and initiate a call
-      alert('Redirecting to Leads page where you can select a lead and initiate a call.');
-      // In a real implementation, you would navigate to leads page
-      // window.location.href = '/leads';
-      
-    } catch (error) {
-      console.error('Error with new call:', error);
-      alert('Error: Unable to navigate to leads');
-    } finally {
-      setActionLoading(prev => ({ ...prev, 'new_call': false }));
-    }
-  };
-  
+
   const handleViewDetails = async (conversationId, leadId) => {
     try {
       setActionLoading(prev => ({ ...prev, [`view_${conversationId}`]: true }));
