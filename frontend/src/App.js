@@ -11,6 +11,7 @@ import LandingPage from './components/LandingPage';
 import KnowledgeBase from './components/KnowledgeBase';
 import AgentTraining from './components/AgentTraining';
 import Analytics from './components/Analytics';
+import Campaigns from './components/Campaigns';
 
 // Layouts
 import AppLayout from './layouts/AppLayout';
