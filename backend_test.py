@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 
 class AICloserAPITester:
-    def __init__(self, base_url="https://c6389e22-dfcf-45ee-9232-2ab0b7c3be66.preview.emergentagent.com"):
+    def __init__(self, base_url="https://f1ceeb48-cd97-4cc1-8875-28a0e80ecb20.preview.emergentagent.com"):
         self.base_url = base_url
         self.tests_run = 0
         self.tests_passed = 0
