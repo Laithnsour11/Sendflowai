@@ -2051,18 +2051,117 @@ async def action_initiate_call(request: InitiateCallRequest):
             "created_at": datetime.now().isoformat()
         })
         
-        # Simulate initiating the call (in a real implementation, this would use Vapi)
-        print(f"📞 Voice call initiated to {lead.get('name', 'Unknown')} ({lead.get('phone', 'No phone')}) with objective: {objective}")
+        # Import the orchestrator here to avoid circular imports
+        from agent_orchestrator import AgentOrchestrator
         
-        return {
-            "success": True,
-            "message": "Call initiated successfully",
-            "call_id": call_id,
-            "conversation_id": conversation_id,
-            "agent_type": "initial_contact",
-            "status": "initiated",
-            "objective": objective
-        }
+        # Initialize agent orchestrator
+        orchestrator = AgentOrchestrator()
+        
+        # Process through the agent system to get AI assistant configuration
+        try:
+            ai_response = await orchestrator.process_message(
+                org_id=lead_org_id,
+                lead_id=str(lead.get("_id")),
+                message=f"Voice call initiated. Objective: {objective}",
+                channel="voice",
+                context={"objective": objective, "action_type": "initiate_call"}
+            )
+            
+            agent_type = ai_response.get("agent_type", "initial_contact")
+            
+        except Exception as e:
+            logger.error(f"Error getting AI agent configuration: {e}")
+            agent_type = "initial_contact"
+        
+        # Actually initiate the call via Vapi
+        try:
+            from vapi_integration import VapiIntegration
+            
+            # Initialize Vapi integration with API key from environment
+            vapi_key = os.environ.get('VAPI_API_KEY')
+            if not vapi_key:
+                raise ValueError("Vapi API key not configured")
+                
+            vapi = VapiIntegration(vapi_key)
+            
+            # Configure the assistant for this specific call and agent type
+            assistant_config = {
+                "firstMessage": f"Hello {lead.get('name', '')}! This is AI Closer calling about your real estate inquiry. How are you today?",
+                "model": {
+                    "provider": "openai",
+                    "model": "gpt-4o",
+                    "temperature": 0.7 if agent_type == "initial_contact" else 0.5,
+                    "systemPrompt": f"You are a professional real estate agent assistant calling {lead.get('name', 'the lead')}. {objective}. Be friendly, professional, and helpful. Keep responses concise for voice conversation.",
+                    "functions": []
+                },
+                "voice": {
+                    "provider": "elevenlabs",
+                    "voiceId": "11labs_amy",  # Professional female voice
+                    "stability": 0.7,
+                    "similarityBoost": 0.7
+                },
+                "recordingEnabled": True,
+                "transcriptEnabled": True,
+                "maxDurationSeconds": 600,  # 10 minute max
+                "responseDelaySeconds": 0.5,
+                "silenceTimeoutSeconds": 10
+            }
+            
+            # Create the call via Vapi
+            call_result = await vapi.create_call(
+                phone_number=lead.get('phone'),
+                assistant_config=assistant_config,
+                webhook_url=f"{os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:8001')}/api/vapi/webhook"
+            )
+            
+            # Update call record with Vapi call ID
+            vapi_call_id = call_result.get("id")
+            
+            if vapi_call_id:
+                print(f"📞 Vapi call initiated successfully to {lead.get('name', 'Unknown')} ({lead.get('phone', 'No phone')}) - Vapi Call ID: {vapi_call_id}")
+                
+                # Update the agent interaction with Vapi call ID
+                await db.agent_interactions_collection.update_one(
+                    {"call_id": call_id},
+                    {"$set": {
+                        "vapi_call_id": vapi_call_id,
+                        "status": "active",
+                        "agent_type": agent_type,
+                        "updated_at": datetime.now().isoformat()
+                    }}
+                )
+                
+                return {
+                    "success": True,
+                    "message": "Call initiated successfully via Vapi",
+                    "call_id": call_id,
+                    "vapi_call_id": vapi_call_id,
+                    "conversation_id": conversation_id,
+                    "agent_type": agent_type,
+                    "status": "active",
+                    "objective": objective,
+                    "phone_number": lead.get('phone')
+                }
+            else:
+                raise Exception(f"Vapi call creation failed: {call_result}")
+                
+        except Exception as call_error:
+            logger.error(f"Error initiating Vapi call: {call_error}")
+            
+            # Update agent interaction with failure status
+            await db.agent_interactions_collection.update_one(
+                {"call_id": call_id},
+                {"$set": {
+                    "status": "failed",
+                    "error": str(call_error),
+                    "updated_at": datetime.now().isoformat()
+                }}
+            )
+            
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Failed to initiate call: {str(call_error)}"
+            )
         
     except Exception as e:
         print(f"Error in action_initiate_call: {str(e)}")
