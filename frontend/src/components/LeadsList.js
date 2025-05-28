@@ -5,128 +5,250 @@ const LeadsList = ({ currentOrg }) => {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [actionLoading, setActionLoading] = useState({});
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [viewLead, setViewLead] = useState(null);
+  
+  // Add Lead form state
+  const [newLead, setNewLead] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    status: 'Initial Contact'
+  });
   
   useEffect(() => {
-    // Simulated data loading for demo
-    const loadLeads = async () => {
-      try {
-        setLoading(true);
-        
-        // In a real app, we would fetch this data from the API
-        // const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/leads?org_id=${currentOrg.id}`);
-        
-        // Mock data for demo
-        setTimeout(() => {
-          const mockLeads = [
-            {
-              id: '1',
-              name: 'John Smith',
-              email: 'john.smith@example.com',
-              phone: '(555) 123-4567',
-              status: 'Qualified',
-              relationship_stage: 'qualification',
-              personality_type: 'analytical',
-              trust_level: 0.75,
-              conversion_probability: 0.75,
-              created_at: '2023-01-15T10:30:00Z'
-            },
-            {
-              id: '2',
-              name: 'Sarah Johnson',
-              email: 'sarah.j@example.com',
-              phone: '(555) 234-5678',
-              status: 'Nurturing',
-              relationship_stage: 'nurturing',
-              personality_type: 'expressive',
-              trust_level: 0.55,
-              conversion_probability: 0.55,
-              created_at: '2023-02-20T14:45:00Z'
-            },
-            {
-              id: '3',
-              name: 'Michael Brown',
-              email: 'michael.b@example.com',
-              phone: '(555) 345-6789',
-              status: 'Initial Contact',
-              relationship_stage: 'initial_contact',
-              personality_type: 'driver',
-              trust_level: 0.30,
-              conversion_probability: 0.30,
-              created_at: '2023-03-05T09:15:00Z'
-            },
-            {
-              id: '4',
-              name: 'Emily Davis',
-              email: 'emily.d@example.com',
-              phone: '(555) 456-7890',
-              status: 'Closing',
-              relationship_stage: 'closing',
-              personality_type: 'amiable',
-              trust_level: 0.90,
-              conversion_probability: 0.90,
-              created_at: '2023-01-10T16:20:00Z'
-            },
-            {
-              id: '5',
-              name: 'Robert Wilson',
-              email: 'robert.w@example.com',
-              phone: '(555) 567-8901',
-              status: 'Qualified',
-              relationship_stage: 'qualification',
-              personality_type: 'analytical',
-              trust_level: 0.65,
-              conversion_probability: 0.65,
-              created_at: '2023-02-28T11:10:00Z'
-            },
-            {
-              id: '6',
-              name: 'Jennifer Lee',
-              email: 'jennifer.l@example.com',
-              phone: '(555) 678-9012',
-              status: 'Nurturing',
-              relationship_stage: 'nurturing',
-              personality_type: 'expressive',
-              trust_level: 0.40,
-              conversion_probability: 0.40,
-              created_at: '2023-03-15T13:50:00Z'
-            },
-            {
-              id: '7',
-              name: 'William Taylor',
-              email: 'william.t@example.com',
-              phone: '(555) 789-0123',
-              status: 'Initial Contact',
-              relationship_stage: 'initial_contact',
-              personality_type: 'driver',
-              trust_level: 0.25,
-              conversion_probability: 0.25,
-              created_at: '2023-03-20T10:05:00Z'
-            },
-            {
-              id: '8',
-              name: 'Olivia Martin',
-              email: 'olivia.m@example.com',
-              phone: '(555) 890-1234',
-              status: 'Closing',
-              relationship_stage: 'closing',
-              personality_type: 'amiable',
-              trust_level: 0.85,
-              conversion_probability: 0.85,
-              created_at: '2023-01-25T15:30:00Z'
-            }
-          ];
-          
-          setLeads(mockLeads);
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Error loading leads:', error);
-        setLoading(false);
-      }
-    };
-    
     loadLeads();
   }, [currentOrg]);
+  
+  const loadLeads = async () => {
+    try {
+      setLoading(true);
+      
+      // Try to fetch real data from API
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/leads?org_id=${currentOrg?.id || 'production_org_123'}`);
+      
+      if (response.data.success && response.data.leads.length > 0) {
+        setLeads(response.data.leads);
+      } else {
+        // Fallback to mock data if no real leads
+        const mockLeads = [
+          {
+            id: '1',
+            name: 'John Smith',
+            email: 'john.smith@example.com',
+            phone: '(555) 123-4567',
+            status: 'Qualified',
+            relationship_stage: 'qualification',
+            personality_type: 'analytical',
+            trust_level: 0.75,
+            conversion_probability: 0.75,
+            created_at: '2023-01-15T10:30:00Z'
+          },
+          {
+            id: '2',
+            name: 'Sarah Johnson',
+            email: 'sarah.j@example.com',
+            phone: '(555) 234-5678',
+            status: 'Nurturing',
+            relationship_stage: 'nurturing',
+            personality_type: 'expressive',
+            trust_level: 0.55,
+            conversion_probability: 0.55,
+            created_at: '2023-02-20T14:45:00Z'
+          },
+          {
+            id: '3',
+            name: 'Michael Brown',
+            email: 'michael.b@example.com',
+            phone: '(555) 345-6789',
+            status: 'Initial Contact',
+            relationship_stage: 'initial_contact',
+            personality_type: 'driver',
+            trust_level: 0.30,
+            conversion_probability: 0.30,
+            created_at: '2023-03-05T09:15:00Z'
+          },
+          {
+            id: '4',
+            name: 'Emily Davis',
+            email: 'emily.d@example.com',
+            phone: '(555) 456-7890',
+            status: 'Closing',
+            relationship_stage: 'closing',
+            personality_type: 'amiable',
+            trust_level: 0.90,
+            conversion_probability: 0.90,
+            created_at: '2023-01-10T16:20:00Z'
+          },
+          {
+            id: '5',
+            name: 'Robert Wilson',
+            email: 'robert.w@example.com',
+            phone: '(555) 567-8901',
+            status: 'Qualified',
+            relationship_stage: 'qualification',
+            personality_type: 'analytical',
+            trust_level: 0.65,
+            conversion_probability: 0.65,
+            created_at: '2023-02-28T11:10:00Z'
+          },
+          {
+            id: '6',
+            name: 'Jennifer Lee',
+            email: 'jennifer.l@example.com',
+            phone: '(555) 678-9012',
+            status: 'Nurturing',
+            relationship_stage: 'nurturing',
+            personality_type: 'expressive',
+            trust_level: 0.40,
+            conversion_probability: 0.40,
+            created_at: '2023-03-15T13:50:00Z'
+          },
+          {
+            id: '7',
+            name: 'William Taylor',
+            email: 'william.t@example.com',
+            phone: '(555) 789-0123',
+            status: 'Initial Contact',
+            relationship_stage: 'initial_contact',
+            personality_type: 'driver',
+            trust_level: 0.25,
+            conversion_probability: 0.25,
+            created_at: '2023-03-20T10:05:00Z'
+          },
+          {
+            id: '8',
+            name: 'Olivia Martin',
+            email: 'olivia.m@example.com',
+            phone: '(555) 890-1234',
+            status: 'Closing',
+            relationship_stage: 'closing',
+            personality_type: 'amiable',
+            trust_level: 0.85,
+            conversion_probability: 0.85,
+            created_at: '2023-01-25T15:30:00Z'
+          }
+        ];
+        setLeads(mockLeads);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading leads:', error);
+      // Fallback to mock data on error
+      const mockLeads = [
+        {
+          id: '1',
+          name: 'John Smith',
+          email: 'john.smith@example.com',
+          phone: '(555) 123-4567',
+          status: 'Qualified',
+          relationship_stage: 'qualification',
+          personality_type: 'analytical',
+          trust_level: 0.75,
+          conversion_probability: 0.75,
+          created_at: '2023-01-15T10:30:00Z'
+        }
+      ];
+      setLeads(mockLeads);
+      setLoading(false);
+    }
+  };
+  
+  // Action handlers
+  const handleSendMessage = async (leadId, leadName) => {
+    try {
+      setActionLoading(prev => ({ ...prev, [`message_${leadId}`]: true }));
+      
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/actions/send-message`, {
+        lead_id: leadId,
+        org_id: currentOrg?.id || 'production_org_123'
+      });
+      
+      if (response.data.success) {
+        alert(`Message sent successfully to ${leadName}!\n\nAI Agent: ${response.data.agent_type}\nConversation ID: ${response.data.conversation_id}`);
+      } else {
+        alert('Failed to send message. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Error sending message: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`message_${leadId}`]: false }));
+    }
+  };
+  
+  const handleInitiateCall = async (leadId, leadName) => {
+    try {
+      setActionLoading(prev => ({ ...prev, [`call_${leadId}`]: true }));
+      
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/actions/initiate-call`, {
+        lead_id: leadId,
+        org_id: currentOrg?.id || 'production_org_123'
+      });
+      
+      if (response.data.success) {
+        alert(`Call initiated successfully to ${leadName}!\n\nCall ID: ${response.data.call_id}\nAgent: ${response.data.agent_type}\nStatus: ${response.data.status}`);
+      } else {
+        alert('Failed to initiate call. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error initiating call:', error);
+      alert('Error initiating call: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`call_${leadId}`]: false }));
+    }
+  };
+  
+  const handleViewLead = async (leadId) => {
+    try {
+      setActionLoading(prev => ({ ...prev, [`view_${leadId}`]: true }));
+      
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/actions/view-lead`, {
+        lead_id: leadId
+      });
+      
+      if (response.data.success) {
+        setViewLead(response.data);
+      } else {
+        alert('Failed to load lead details. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error viewing lead:', error);
+      alert('Error loading lead details: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`view_${leadId}`]: false }));
+    }
+  };
+  
+  const handleAddLead = async (e) => {
+    e.preventDefault();
+    try {
+      setActionLoading(prev => ({ ...prev, 'add_lead': true }));
+      
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/actions/add-lead`, {
+        org_id: currentOrg?.id || 'production_org_123',
+        name: newLead.name,
+        email: newLead.email,
+        phone: newLead.phone,
+        status: newLead.status
+      });
+      
+      if (response.data.success) {
+        alert(`Lead "${newLead.name}" added successfully!`);
+        setShowAddModal(false);
+        setNewLead({ name: '', email: '', phone: '', status: 'Initial Contact' });
+        loadLeads(); // Refresh the list
+      } else {
+        alert('Failed to add lead. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error adding lead:', error);
+      alert('Error adding lead: ' + (error.response?.data?.detail || error.message));
+    } finally {
+      setActionLoading(prev => ({ ...prev, 'add_lead': false }));
+    }
+  };
   
   const filteredLeads = leads.filter(lead => {
     if (filter === 'all') return true;
