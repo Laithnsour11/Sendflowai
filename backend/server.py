@@ -1130,6 +1130,9 @@ async def stop_campaign(campaign_id: str, request: dict):
         result = await campaign_service.stop_campaign(org_id, campaign_id)
         return result
         
+    except HTTPException as he:
+        # Pass through HTTP exceptions from the service
+        raise he
     except Exception as e:
         logger.error(f"Error stopping campaign: {e}")
         raise HTTPException(status_code=500, detail=str(e))
