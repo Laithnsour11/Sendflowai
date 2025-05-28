@@ -705,7 +705,7 @@ class TestAPIKeySaving:
             # Check response
             if response.status_code == 200:
                 result = response.json()
-                if result.get("success"):
+                if result.get("status") == "success":
                     print(f"✅ Successfully saved API keys for organization: {self.org_id}")
                     print(f"   Response: {json.dumps(result, indent=2)}")
                     return True
