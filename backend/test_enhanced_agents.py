@@ -208,8 +208,8 @@ async def test_end_to_end_workflow():
         print("🔄 Step 1: Intelligent agent selection...")
         
         # Build initial context
+        lead_id = "new_lead_789"
         initial_context = {
-            "lead_id": "new_lead_789",
             "phone": incoming_message["from"],
             "first_interaction": True,
             "interaction_channel": "sms",
@@ -222,7 +222,7 @@ async def test_end_to_end_workflow():
         from agent_orchestrator import AgentOrchestrator
         orchestrator = AgentOrchestrator()
         
-        selection_result = await orchestrator.select_agent("test_org_123", initial_context)
+        selection_result = await orchestrator.select_agent("test_org_123", lead_id, initial_context)
         selected_agent = selection_result["agent_type"]
         
         print(f"✅ Selected agent: {selected_agent} (confidence: {selection_result['confidence']})")
