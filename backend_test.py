@@ -299,6 +299,315 @@ class AICloserAPITester:
                 
         return all_passed
 
+    # Phase C.1 Test Methods - Campaign Management
+    
+    def test_list_campaigns(self):
+        """Test listing campaigns for an organization"""
+        return self.run_test(
+            "List Campaigns",
+            "GET",
+            f"api/campaigns?org_id=production_org_123",
+            200
+        )
+    
+    def test_create_campaign(self):
+        """Test creating a new campaign"""
+        test_data = {
+            "org_id": "production_org_123",
+            "campaign_data": {
+                "name": "Test SMS Campaign",
+                "description": "Initial lead qualification campaign",
+                "campaign_type": "outbound_sms",
+                "target_config": {
+                    "ghl_segment_criteria": {
+                        "tags": ["new_lead", "uncontacted"],
+                        "pipeline_stage": "Lead",
+                        "custom_fields": {}
+                    },
+                    "lead_filters": {}
+                },
+                "agent_config": {
+                    "initial_agent_type": "initial_contact",
+                    "campaign_objective": "Lead qualification and initial engagement",
+                    "communication_channels": ["sms"],
+                    "llm_model": "gpt-4o"
+                },
+                "schedule_config": {
+                    "daily_contact_limit": 25,
+                    "hourly_contact_limit": 5,
+                    "contact_hours": {
+                        "start": "09:00",
+                        "end": "17:00",
+                        "timezone": "America/New_York"
+                    },
+                    "contact_days": [1, 2, 3, 4, 5]
+                }
+            }
+        }
+        
+        success, response = self.run_test(
+            "Create Campaign",
+            "POST",
+            "api/campaigns/create",
+            200,
+            data=test_data
+        )
+        
+        if success and "_id" in response:
+            self.campaign_id = response["_id"]
+            print(f"✅ Created campaign with ID: {self.campaign_id}")
+        
+        return success, response
+    
+    def test_start_campaign(self):
+        """Test starting a campaign"""
+        if not hasattr(self, 'campaign_id'):
+            print("⚠️ Skipping Start Campaign test - no campaign ID available")
+            return True, {}
+            
+        test_data = {
+            "org_id": "production_org_123"
+        }
+        
+        return self.run_test(
+            "Start Campaign",
+            "POST",
+            f"api/campaigns/{self.campaign_id}/start",
+            200,
+            data=test_data
+        )
+    
+    def test_get_campaign_status(self):
+        """Test getting campaign status"""
+        if not hasattr(self, 'campaign_id'):
+            print("⚠️ Skipping Get Campaign Status test - no campaign ID available")
+            return True, {}
+            
+        return self.run_test(
+            "Get Campaign Status",
+            "GET",
+            f"api/campaigns/{self.campaign_id}/status?org_id=production_org_123",
+            200
+        )
+    
+    def test_pause_campaign(self):
+        """Test pausing a campaign"""
+        if not hasattr(self, 'campaign_id'):
+            print("⚠️ Skipping Pause Campaign test - no campaign ID available")
+            return True, {}
+            
+        test_data = {
+            "org_id": "production_org_123"
+        }
+        
+        return self.run_test(
+            "Pause Campaign",
+            "POST",
+            f"api/campaigns/{self.campaign_id}/pause",
+            200,
+            data=test_data
+        )
+    
+    def test_stop_campaign(self):
+        """Test stopping a campaign"""
+        if not hasattr(self, 'campaign_id'):
+            print("⚠️ Skipping Stop Campaign test - no campaign ID available")
+            return True, {}
+            
+        test_data = {
+            "org_id": "production_org_123"
+        }
+        
+        return self.run_test(
+            "Stop Campaign",
+            "POST",
+            f"api/campaigns/{self.campaign_id}/stop",
+            200,
+            data=test_data
+        )
+    
+    def test_campaign_error_handling(self):
+        """Test campaign error handling"""
+        # Test invalid campaign ID
+        invalid_id = "invalid_campaign_id"
+        success1, _ = self.run_test(
+            "Invalid Campaign ID",
+            "GET",
+            f"api/campaigns/{invalid_id}/status?org_id=production_org_123",
+            404
+        )
+        
+        # Test invalid status transition (stopping a draft campaign)
+        if hasattr(self, 'campaign_id'):
+            # Create a new campaign that will remain in draft status
+            test_data = {
+                "org_id": "production_org_123",
+                "campaign_data": {
+                    "name": "Draft Campaign for Error Testing",
+                    "description": "Testing invalid status transitions",
+                    "campaign_type": "outbound_sms",
+                    "target_config": {
+                        "ghl_segment_criteria": {
+                            "tags": ["test"],
+                            "pipeline_stage": "Lead",
+                            "custom_fields": {}
+                        },
+                        "lead_filters": {}
+                    },
+                    "agent_config": {
+                        "initial_agent_type": "initial_contact",
+                        "campaign_objective": "Testing error handling",
+                        "communication_channels": ["sms"],
+                        "llm_model": "gpt-4o"
+                    },
+                    "schedule_config": {
+                        "daily_contact_limit": 10,
+                        "hourly_contact_limit": 2,
+                        "contact_hours": {
+                            "start": "09:00",
+                            "end": "17:00",
+                            "timezone": "America/New_York"
+                        },
+                        "contact_days": [1, 2, 3, 4, 5]
+                    }
+                }
+            }
+            
+            success2, response = self.run_test(
+                "Create Draft Campaign",
+                "POST",
+                "api/campaigns/create",
+                200,
+                data=test_data
+            )
+            
+            if success2 and "_id" in response:
+                draft_campaign_id = response["_id"]
+                
+                # Try to pause a draft campaign (should fail)
+                success3, _ = self.run_test(
+                    "Invalid Status Transition - Pause Draft",
+                    "POST",
+                    f"api/campaigns/{draft_campaign_id}/pause",
+                    400,
+                    data={"org_id": "production_org_123"}
+                )
+                
+                return success1 and success2 and success3
+        
+        return success1
+    
+    def test_campaign_lifecycle(self):
+        """Test the complete campaign lifecycle"""
+        print("\n🔍 Testing Campaign Lifecycle...")
+        self.tests_run += 1
+        
+        try:
+            # 1. Create campaign
+            success1, create_response = self.test_create_campaign()
+            if not success1:
+                print("❌ Campaign lifecycle test failed at creation step")
+                return False
+                
+            campaign_id = create_response["_id"]
+            print(f"✅ 1. Created campaign: {campaign_id}")
+            
+            # 2. Verify campaign appears in list
+            success2, list_response = self.test_list_campaigns()
+            if not success2:
+                print("❌ Campaign lifecycle test failed at listing step")
+                return False
+                
+            found = False
+            for campaign in list_response.get("campaigns", []):
+                if campaign.get("_id") == campaign_id:
+                    found = True
+                    if campaign.get("status") == "draft":
+                        print(f"✅ 2. Campaign appears in list with 'draft' status")
+                    else:
+                        print(f"❌ Campaign has incorrect initial status: {campaign.get('status')}")
+                        return False
+            
+            if not found:
+                print("❌ Created campaign not found in campaign list")
+                return False
+            
+            # 3. Start the campaign
+            success3, start_response = self.test_start_campaign()
+            if not success3:
+                print("❌ Campaign lifecycle test failed at start step")
+                return False
+                
+            print(f"✅ 3. Started campaign successfully")
+            
+            # 4. Check campaign status
+            success4, status_response = self.test_get_campaign_status()
+            if not success4:
+                print("❌ Campaign lifecycle test failed at status check step")
+                return False
+                
+            if status_response.get("campaign", {}).get("status") != "active":
+                print(f"❌ Campaign has incorrect status after starting: {status_response.get('campaign', {}).get('status')}")
+                return False
+                
+            print(f"✅ 4. Campaign status is 'active' after starting")
+            
+            # 5. Pause the campaign
+            success5, pause_response = self.test_pause_campaign()
+            if not success5:
+                print("❌ Campaign lifecycle test failed at pause step")
+                return False
+                
+            print(f"✅ 5. Paused campaign successfully")
+            
+            # 6. Check status again
+            success6, status_response2 = self.test_get_campaign_status()
+            if not success6:
+                print("❌ Campaign lifecycle test failed at second status check")
+                return False
+                
+            if status_response2.get("campaign", {}).get("status") != "paused":
+                print(f"❌ Campaign has incorrect status after pausing: {status_response2.get('campaign', {}).get('status')}")
+                return False
+                
+            print(f"✅ 6. Campaign status is 'paused' after pausing")
+            
+            # 7. Resume the campaign
+            success7, resume_response = self.test_start_campaign()
+            if not success7:
+                print("❌ Campaign lifecycle test failed at resume step")
+                return False
+                
+            print(f"✅ 7. Resumed campaign successfully")
+            
+            # 8. Stop the campaign
+            success8, stop_response = self.test_stop_campaign()
+            if not success8:
+                print("❌ Campaign lifecycle test failed at stop step")
+                return False
+                
+            print(f"✅ 8. Stopped campaign successfully")
+            
+            # 9. Final status check
+            success9, final_status = self.test_get_campaign_status()
+            if not success9:
+                print("❌ Campaign lifecycle test failed at final status check")
+                return False
+                
+            if final_status.get("campaign", {}).get("status") != "completed":
+                print(f"❌ Campaign has incorrect status after stopping: {final_status.get('campaign', {}).get('status')}")
+                return False
+                
+            print(f"✅ 9. Campaign status is 'completed' after stopping")
+            
+            self.tests_passed += 1
+            print("✅ Campaign lifecycle test passed successfully")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Campaign lifecycle test failed with error: {str(e)}")
+            return False
+
 def main():
     print("=" * 50)
     print("AI Closer API Test Suite")
@@ -341,6 +650,23 @@ def main():
     
     # Test real-time dashboard
     tester.test_real_time_dashboard()
+    
+    # Phase C.1 Tests - Campaign Management
+    print("\n" + "=" * 50)
+    print("Phase C.1 Tests - Campaign Management")
+    print("=" * 50)
+    
+    # Test campaign management endpoints
+    tester.test_list_campaigns()
+    tester.test_create_campaign()
+    tester.test_start_campaign()
+    tester.test_get_campaign_status()
+    tester.test_pause_campaign()
+    tester.test_stop_campaign()
+    tester.test_campaign_error_handling()
+    
+    # Test complete campaign lifecycle
+    tester.test_campaign_lifecycle()
     
     # Print results
     print("\n" + "=" * 50)
