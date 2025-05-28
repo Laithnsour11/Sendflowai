@@ -355,6 +355,9 @@ class CampaignService:
                 "is_processing": campaign_id in self.active_campaigns
             }
             
+        except HTTPException:
+            # Re-raise HTTP exceptions
+            raise
         except Exception as e:
             logger.error(f"Error getting campaign status {campaign_id}: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to get campaign status: {str(e)}")
