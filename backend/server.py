@@ -207,14 +207,7 @@ async def get_organizations():
 
 # Lead endpoints - REMOVED OLD VERSION, USING NEW ONE AT LINE 2100
 
-# Conversation endpoints
-@app.get("/api/conversations")
-async def get_conversations(lead_id: Optional[str] = None):
-    query = {"lead_id": lead_id} if lead_id else {}
-    conversations = await db.conversations_collection.find(query).to_list(length=100)
-    for convo in conversations:
-        convo["id"] = str(convo["_id"])
-    return conversations
+# Conversation endpoints - REMOVED OLD VERSION, USING NEW ONE AT END OF FILE
 
 # API Keys management
 @app.get("/api/settings/api-keys/{org_id}")
