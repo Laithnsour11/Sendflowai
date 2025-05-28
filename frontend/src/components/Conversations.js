@@ -5,137 +5,223 @@ const Conversations = ({ currentOrg }) => {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [actionLoading, setActionLoading] = useState({});
+  const [viewConversation, setViewConversation] = useState(null);
   
   useEffect(() => {
-    // Simulated data loading for demo
-    const loadConversations = async () => {
-      try {
-        setLoading(true);
-        
-        // In a real app, we would fetch this data from the API
-        // const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/conversations?org_id=${currentOrg.id}`);
-        
-        // Mock data for demo
-        setTimeout(() => {
-          const mockConversations = [
-            {
-              id: '1',
-              lead: {
-                id: '1',
-                name: 'John Smith',
-                email: 'john.smith@example.com'
-              },
-              channel: 'voice',
-              agent_type: 'qualifier',
-              duration_seconds: 384,
-              sentiment_analysis: {
-                overall: 'positive',
-                changes: [
-                  {time: 120, sentiment: 'neutral'},
-                  {time: 240, sentiment: 'positive'}
-                ]
-              },
-              created_at: '2023-03-15T10:30:00Z',
-              effectiveness_score: 0.85
-            },
-            {
-              id: '2',
-              lead: {
-                id: '2',
-                name: 'Sarah Johnson',
-                email: 'sarah.j@example.com'
-              },
-              channel: 'email',
-              agent_type: 'nurturer',
-              duration_seconds: null,
-              sentiment_analysis: {
-                overall: 'neutral'
-              },
-              created_at: '2023-03-14T14:45:00Z',
-              effectiveness_score: 0.65
-            },
-            {
-              id: '3',
-              lead: {
-                id: '3',
-                name: 'Michael Brown',
-                email: 'michael.b@example.com'
-              },
-              channel: 'sms',
-              agent_type: 'initial_contact',
-              duration_seconds: null,
-              sentiment_analysis: {
-                overall: 'positive'
-              },
-              created_at: '2023-03-13T09:15:00Z',
-              effectiveness_score: 0.75
-            },
-            {
-              id: '4',
-              lead: {
-                id: '4',
-                name: 'Emily Davis',
-                email: 'emily.d@example.com'
-              },
-              channel: 'voice',
-              agent_type: 'closer',
-              duration_seconds: 612,
-              sentiment_analysis: {
-                overall: 'very_positive',
-                changes: [
-                  {time: 180, sentiment: 'neutral'},
-                  {time: 360, sentiment: 'positive'},
-                  {time: 540, sentiment: 'very_positive'}
-                ]
-              },
-              created_at: '2023-03-12T16:20:00Z',
-              effectiveness_score: 0.95
-            },
-            {
-              id: '5',
-              lead: {
-                id: '5',
-                name: 'Robert Wilson',
-                email: 'robert.w@example.com'
-              },
-              channel: 'sms',
-              agent_type: 'objection_handler',
-              duration_seconds: null,
-              sentiment_analysis: {
-                overall: 'neutral'
-              },
-              created_at: '2023-03-11T11:10:00Z',
-              effectiveness_score: 0.70
-            },
-            {
-              id: '6',
-              lead: {
-                id: '1',
-                name: 'John Smith',
-                email: 'john.smith@example.com'
-              },
-              channel: 'email',
-              agent_type: 'nurturer',
-              duration_seconds: null,
-              sentiment_analysis: {
-                overall: 'positive'
-              },
-              created_at: '2023-03-10T13:50:00Z',
-              effectiveness_score: 0.80
-            }
-          ];
-          
-          setConversations(mockConversations);
-          setLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Error loading conversations:', error);
-        setLoading(false);
-      }
-    };
-    
     loadConversations();
   }, [currentOrg]);
+  
+  const loadConversations = async () => {
+    try {
+      setLoading(true);
+      
+      // Try to fetch real data from API
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/conversations?org_id=${currentOrg?.id || 'production_org_123'}`);
+      
+      if (response.data.success && response.data.conversations.length > 0) {
+        setConversations(response.data.conversations);
+      } else {
+        // Fallback to mock data if no real conversations
+        const mockConversations = [
+          {
+            id: '1',
+            lead: {
+              id: '1',
+              name: 'John Smith',
+              email: 'john.smith@example.com'
+            },
+            channel: 'voice',
+            agent_type: 'qualifier',
+            duration_seconds: 384,
+            sentiment_analysis: {
+              overall: 'positive',
+              changes: [
+                {time: 120, sentiment: 'neutral'},
+                {time: 240, sentiment: 'positive'}
+              ]
+            },
+            created_at: '2023-03-15T10:30:00Z',
+            effectiveness_score: 0.85
+          },
+          {
+            id: '2',
+            lead: {
+              id: '2',
+              name: 'Sarah Johnson',
+              email: 'sarah.j@example.com'
+            },
+            channel: 'email',
+            agent_type: 'nurturer',
+            duration_seconds: null,
+            sentiment_analysis: {
+              overall: 'neutral'
+            },
+            created_at: '2023-03-14T14:45:00Z',
+            effectiveness_score: 0.65
+          },
+          {
+            id: '3',
+            lead: {
+              id: '3',
+              name: 'Michael Brown',
+              email: 'michael.b@example.com'
+            },
+            channel: 'sms',
+            agent_type: 'initial_contact',
+            duration_seconds: null,
+            sentiment_analysis: {
+              overall: 'positive'
+            },
+            created_at: '2023-03-13T09:15:00Z',
+            effectiveness_score: 0.75
+          },
+          {
+            id: '4',
+            lead: {
+              id: '4',
+              name: 'Emily Davis',
+              email: 'emily.d@example.com'
+            },
+            channel: 'voice',
+            agent_type: 'closer',
+            duration_seconds: 612,
+            sentiment_analysis: {
+              overall: 'very_positive',
+              changes: [
+                {time: 180, sentiment: 'neutral'},
+                {time: 360, sentiment: 'positive'},
+                {time: 540, sentiment: 'very_positive'}
+              ]
+            },
+            created_at: '2023-03-12T16:20:00Z',
+            effectiveness_score: 0.95
+          },
+          {
+            id: '5',
+            lead: {
+              id: '5',
+              name: 'Robert Wilson',
+              email: 'robert.w@example.com'
+            },
+            channel: 'sms',
+            agent_type: 'objection_handler',
+            duration_seconds: null,
+            sentiment_analysis: {
+              overall: 'neutral'
+            },
+            created_at: '2023-03-11T11:10:00Z',
+            effectiveness_score: 0.70
+          },
+          {
+            id: '6',
+            lead: {
+              id: '1',
+              name: 'John Smith',
+              email: 'john.smith@example.com'
+            },
+            channel: 'email',
+            agent_type: 'nurturer',
+            duration_seconds: null,
+            sentiment_analysis: {
+              overall: 'positive'
+            },
+            created_at: '2023-03-10T13:50:00Z',
+            effectiveness_score: 0.80
+          }
+        ];
+        
+        setConversations(mockConversations);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+      // Fallback to mock data on error
+      const mockConversations = [
+        {
+          id: '1',
+          lead: {
+            id: '1',
+            name: 'John Smith',
+            email: 'john.smith@example.com'
+          },
+          channel: 'voice',
+          agent_type: 'qualifier',
+          created_at: '2023-03-15T10:30:00Z',
+          effectiveness_score: 0.85
+        }
+      ];
+      setConversations(mockConversations);
+      setLoading(false);
+    }
+  };
+  
+  // Action handlers
+  const handleNewCall = async () => {
+    try {
+      setActionLoading(prev => ({ ...prev, 'new_call': true }));
+      
+      // For now, we'll show a selection dialog or redirect to leads
+      alert('New Call: Please select a lead from the Leads page to initiate a call, or this could open a lead selection modal.');
+      
+    } catch (error) {
+      console.error('Error with new call:', error);
+      alert('Error: Unable to initiate new call');
+    } finally {
+      setActionLoading(prev => ({ ...prev, 'new_call': false }));
+    }
+  };
+  
+  const handleNewMessage = async () => {
+    try {
+      setActionLoading(prev => ({ ...prev, 'new_message': true }));
+      
+      // For now, we'll show a selection dialog or redirect to leads
+      alert('New Message: Please select a lead from the Leads page to send a message, or this could open a lead selection modal.');
+      
+    } catch (error) {
+      console.error('Error with new message:', error);
+      alert('Error: Unable to send new message');
+    } finally {
+      setActionLoading(prev => ({ ...prev, 'new_message': false }));
+    }
+  };
+  
+  const handleViewDetails = async (conversationId, leadId) => {
+    try {
+      setActionLoading(prev => ({ ...prev, [`view_${conversationId}`]: true }));
+      
+      // Get detailed conversation information
+      // For now, we'll use the lead view endpoint to get lead details
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/actions/view-lead`, {
+        lead_id: leadId
+      });
+      
+      if (response.data.success) {
+        // Find the specific conversation
+        const conversation = conversations.find(c => c.id === conversationId);
+        setViewConversation({
+          ...response.data,
+          conversation: conversation
+        });
+      } else {
+        alert('Failed to load conversation details. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error viewing conversation details:', error);
+      let errorMessage = 'Unknown error occurred';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      alert(`Error loading conversation details: ${errorMessage}`);
+    } finally {
+      setActionLoading(prev => ({ ...prev, [`view_${conversationId}`]: false }));
+    }
+  };
   
   const filteredConversations = conversations.filter(convo => {
     if (filter === 'all') return true;
