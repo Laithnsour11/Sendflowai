@@ -807,36 +807,119 @@ const Settings = ({ currentOrg }) => {
                   onChange={handleAiSettingChange}
                   className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 >
+                  <option value="vapi">Vapi.ai (Recommended)</option>
                   <option value="elevenlabs">ElevenLabs (Premium quality)</option>
                   <option value="openai">OpenAI TTS</option>
                   <option value="google">Google Cloud TTS</option>
+                  <option value="azure">Azure Speech Services</option>
                 </select>
               </dd>
             </div>
             
-            {/* Voice ID */}
+            {/* Voice Configuration */}
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">
-                Voice ID
-                <p className="mt-1 text-xs text-gray-400">Select the voice to use</p>
+                Voice Configuration
+                <p className="mt-1 text-xs text-gray-400">Configure voice settings for each agent type</p>
               </dt>
               <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                <select
-                  name="voice_id"
-                  value={aiSettings.voice_id}
-                  onChange={handleAiSettingChange}
-                  className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                >
-                  <option value="voice1">Professional Male (Default)</option>
-                  <option value="voice2">Professional Female</option>
-                  <option value="voice3">Friendly Male</option>
-                  <option value="voice4">Friendly Female</option>
-                </select>
-                <p className="mt-2 text-xs text-gray-500">
-                  <button className="text-indigo-600 hover:text-indigo-900">
-                    Preview voice sample
-                  </button>
-                </p>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">Default Voice</label>
+                      <select
+                        name="voice_id"
+                        value={aiSettings.voice_id}
+                        onChange={handleAiSettingChange}
+                        className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="professional_male">Professional Male</option>
+                        <option value="professional_female">Professional Female</option>
+                        <option value="friendly_male">Friendly Male</option>
+                        <option value="friendly_female">Friendly Female</option>
+                        <option value="authoritative_male">Authoritative Male</option>
+                        <option value="warm_female">Warm Female</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-600 mb-1">Speech Rate</label>
+                      <select
+                        name="speech_rate"
+                        value={aiSettings.speech_rate || 'normal'}
+                        onChange={handleAiSettingChange}
+                        className="w-full text-sm border border-gray-300 rounded px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500"
+                      >
+                        <option value="slow">Slow</option>
+                        <option value="normal">Normal</option>
+                        <option value="fast">Fast</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <button 
+                      type="button"
+                      className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+                    >
+                      🎵 Preview voice sample
+                    </button>
+                  </div>
+                </div>
+              </dd>
+            </div>
+            
+            {/* Advanced AI Settings */}
+            <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+              <dt className="text-sm font-medium text-gray-500">
+                Advanced AI Settings
+                <p className="mt-1 text-xs text-gray-400">Fine-tune AI behavior and responses</p>
+              </dt>
+              <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Response Style</label>
+                    <select
+                      name="response_style"
+                      value={aiSettings.response_style || 'professional'}
+                      onChange={handleAiSettingChange}
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="professional">Professional & Direct</option>
+                      <option value="conversational">Conversational & Friendly</option>
+                      <option value="consultative">Consultative & Advisory</option>
+                      <option value="aggressive">Aggressive Sales</option>
+                      <option value="empathetic">Empathetic & Understanding</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Response Length</label>
+                    <select
+                      name="max_response_length"
+                      value={aiSettings.max_response_length || 'medium'}
+                      onChange={handleAiSettingChange}
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="short">Short (1-2 sentences)</option>
+                      <option value="medium">Medium (2-4 sentences)</option>
+                      <option value="long">Long (4-6 sentences)</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Objection Handling Style</label>
+                    <select
+                      name="objection_style"
+                      value={aiSettings.objection_style || 'consultative'}
+                      onChange={handleAiSettingChange}
+                      className="w-full border border-gray-300 rounded px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="consultative">Consultative Approach</option>
+                      <option value="direct">Direct & Factual</option>
+                      <option value="empathetic">Empathetic & Understanding</option>
+                      <option value="educational">Educational & Informative</option>
+                    </select>
+                  </div>
+                </div>
               </dd>
             </div>
           </dl>
