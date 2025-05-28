@@ -74,6 +74,18 @@ except ImportError:
             print(f"Warning: Could not import CampaignService: {e}")
             CampaignService = None
 
+try:
+    from ai_fine_tuning_service import AIFineTuningService
+except ImportError:
+    try:
+        from app.backend.ai_fine_tuning_service import AIFineTuningService
+    except ImportError:
+        try:
+            from backend.ai_fine_tuning_service import AIFineTuningService
+        except ImportError as e:
+            print(f"Warning: Could not import AIFineTuningService: {e}")
+            AIFineTuningService = None
+
 # Try different import strategies for database module
 try:
     import database as db
