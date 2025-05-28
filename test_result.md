@@ -273,6 +273,18 @@ frontend:
       - working: "NA"
         agent: "testing"
         comment: "Initial entry for testing interactive features like time period selector, auto-refresh, manual refresh, and export functionality"
+        
+  - task: "UI Action Button Functionality"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/components/LeadsList.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Unable to test the UI action button functionality due to navigation issues. When attempting to navigate to the Leads page (/leads) after login, the application redirects back to the landing page. This suggests there might be an issue with the routing or authentication for the Leads page. The LeadsList component code looks correct with proper implementation of Message, Call, and View buttons, but we couldn't access the page to test these features."
 
 metadata:
   created_by: "testing_agent"
