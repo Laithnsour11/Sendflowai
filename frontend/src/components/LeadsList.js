@@ -494,6 +494,178 @@ const LeadsList = ({ currentOrg }) => {
         </div>
       </div>
     </div>
+    
+    {/* Add Lead Modal */}
+    {showAddModal && (
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="mt-3">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Lead</h3>
+            <form onSubmit={handleAddLead}>
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name *</label>
+                <input
+                  type="text"
+                  id="name"
+                  required
+                  value={newLead.name}
+                  onChange={(e) => setNewLead(prev => ({ ...prev, name: e.target.value }))}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email *</label>
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  value={newLead.email}
+                  onChange={(e) => setNewLead(prev => ({ ...prev, email: e.target.value }))}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  value={newLead.phone}
+                  onChange={(e) => setNewLead(prev => ({ ...prev, phone: e.target.value }))}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
+                <select
+                  id="status"
+                  value={newLead.status}
+                  onChange={(e) => setNewLead(prev => ({ ...prev, status: e.target.value }))}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                >
+                  <option value="Initial Contact">Initial Contact</option>
+                  <option value="Qualified">Qualified</option>
+                  <option value="Nurturing">Nurturing</option>
+                  <option value="Closing">Closing</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionLoading['add_lead']}
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  {actionLoading['add_lead'] ? 'Adding...' : 'Add Lead'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    {/* View Lead Modal */}
+    {viewLead && (
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="relative top-10 mx-auto p-5 border w-4/5 max-w-4xl shadow-lg rounded-md bg-white">
+          <div className="mt-3">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium text-gray-900">Lead Details</h3>
+              <button
+                onClick={() => setViewLead(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Lead Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium text-gray-900 mb-3">Lead Information</h4>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Name:</span> {viewLead.lead?.name}</p>
+                  <p><span className="font-medium">Email:</span> {viewLead.lead?.email}</p>
+                  <p><span className="font-medium">Phone:</span> {viewLead.lead?.phone}</p>
+                  <p><span className="font-medium">Status:</span> {viewLead.lead?.status}</p>
+                  <p><span className="font-medium">Trust Level:</span> {Math.round((viewLead.lead?.trust_level || 0) * 100)}%</p>
+                  <p><span className="font-medium">Conversion Probability:</span> {Math.round((viewLead.lead?.conversion_probability || 0) * 100)}%</p>
+                </div>
+              </div>
+              
+              {/* Recent Conversations */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium text-gray-900 mb-3">Recent Conversations</h4>
+                {viewLead.recent_conversations?.length > 0 ? (
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {viewLead.recent_conversations.map((conv, index) => (
+                      <div key={index} className="text-sm bg-white p-2 rounded">
+                        <p><span className="font-medium">Channel:</span> {conv.channel}</p>
+                        <p><span className="font-medium">Agent:</span> {conv.agent_type}</p>
+                        <p><span className="font-medium">Date:</span> {new Date(conv.created_at).toLocaleDateString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No conversations yet</p>
+                )}
+              </div>
+              
+              {/* Memory Context */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium text-gray-900 mb-3">AI Memory Context</h4>
+                {viewLead.memory_context && Object.keys(viewLead.memory_context).length > 0 ? (
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {Object.entries(viewLead.memory_context).map(([key, value], index) => (
+                      <div key={index} className="text-sm">
+                        <span className="font-medium">{key}:</span> {typeof value === 'object' ? JSON.stringify(value) : value}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No memory context available</p>
+                )}
+              </div>
+              
+              {/* Recent Agent Interactions */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-medium text-gray-900 mb-3">Recent AI Interactions</h4>
+                {viewLead.recent_interactions?.length > 0 ? (
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {viewLead.recent_interactions.map((interaction, index) => (
+                      <div key={index} className="text-sm bg-white p-2 rounded">
+                        <p><span className="font-medium">Agent:</span> {interaction.agent_type}</p>
+                        <p><span className="font-medium">Confidence:</span> {Math.round((interaction.confidence_score || 0) * 100)}%</p>
+                        <p><span className="font-medium">Date:</span> {new Date(interaction.created_at).toLocaleDateString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No recent interactions</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setViewLead(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
   );
 };
 
