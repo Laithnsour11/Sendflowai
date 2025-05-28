@@ -8,5 +8,3 @@ const AgentTraining = ({ currentOrg }) => {
 };
 
 export default AgentTraining;
-
-export default AgentTraining;
