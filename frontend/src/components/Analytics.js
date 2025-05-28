@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, Users, MessageSquare, Clock, Target } from 'lucide-react';
 
-const Analytics = () => {
+const Analytics = ({ currentOrg }) => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [realtimeData, setRealtimeData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timePeriod, setTimePeriod] = useState('30_days');
   const [error, setError] = useState(null);
 
-  const orgId = 'production_org_123'; // In real app, get from auth context
+  const orgId = currentOrg?.id || 'production_org_123';
 
   useEffect(() => {
     fetchAnalyticsData();
