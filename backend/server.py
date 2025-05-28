@@ -2050,22 +2050,26 @@ async def get_leads(org_id: str = "production_org_123", limit: int = 50):
         # Convert ObjectId to string and format data
         formatted_leads = []
         for lead in leads:
-            # Use the UUID if available, otherwise use the ObjectId
-            lead_id = lead.get("id", str(lead["_id"]))
-            
-            formatted_leads.append({
-                "id": lead_id,
-                "name": lead.get("name"),
-                "email": lead.get("email"),
-                "phone": lead.get("phone"),
-                "status": lead.get("status"),
-                "relationship_stage": lead.get("relationship_stage"),
-                "personality_type": lead.get("personality_type"),
-                "trust_level": lead.get("trust_level", 0.0),
-                "conversion_probability": lead.get("conversion_probability", 0.0),
-                "created_at": lead.get("created_at"),
-                "updated_at": lead.get("updated_at")
-            })
+            try:
+                # Use the UUID if available, otherwise use the ObjectId
+                lead_id = lead.get("id", str(lead["_id"]))
+                
+                formatted_leads.append({
+                    "id": lead_id,
+                    "name": lead.get("name"),
+                    "email": lead.get("email"),
+                    "phone": lead.get("phone"),
+                    "status": lead.get("status"),
+                    "relationship_stage": lead.get("relationship_stage"),
+                    "personality_type": lead.get("personality_type"),
+                    "trust_level": lead.get("trust_level", 0.0),
+                    "conversion_probability": lead.get("conversion_probability", 0.0),
+                    "created_at": lead.get("created_at"),
+                    "updated_at": lead.get("updated_at")
+                })
+            except Exception as e:
+                print(f"Error formatting lead {lead.get('_id', 'unknown')}: {e}")
+                continue
         
         return {
             "success": True,
