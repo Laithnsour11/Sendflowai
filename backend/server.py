@@ -1802,11 +1802,7 @@ async def submit_rlhf_feedback(
 # ================================
 
 @app.post("/api/actions/send-message")
-async def action_send_message(
-    lead_id: str,
-    message: Optional[str] = None,
-    org_id: Optional[str] = None
-):
+async def action_send_message(request: SendMessageRequest):
     """
     Simplified endpoint for frontend Message buttons.
     Initiates an AI-powered SMS/MMS conversation with a lead.
@@ -1816,24 +1812,26 @@ async def action_send_message(
         lead = None
         
         # Try to find lead by UUID first (for newly created leads)
-        if lead_id:
-            lead = await db.leads_collection.find_one({"id": lead_id})
+        if request.lead_id:
+            lead = await db.leads_collection.find_one({"id": request.lead_id})
         
         # If not found, try by ObjectId (for existing leads)
         if not lead:
             try:
-                lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+                lead = await db.leads_collection.find_one({"_id": ObjectId(request.lead_id)})
             except:
                 pass
                 
         if not lead:
             raise HTTPException(status_code=404, detail="Lead not found")
         
-        lead_org_id = org_id or lead.get("org_id", "production_org_123")
+        lead_org_id = request.org_id or lead.get("org_id", "production_org_123")
         
         # Auto-generate an appropriate opening message if none provided
-        if not message:
+        if not request.message:
             message = f"Hi {lead.get('name', 'there')}, this is regarding your recent inquiry. I'd love to help answer any questions you might have!"
+        else:
+            message = request.message
         
         # Create a conversation record
         conversation_id = str(uuid.uuid4())
