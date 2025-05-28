@@ -262,12 +262,12 @@ class TestUIActionEndpoints:
             
             # Test send message with invalid ID
             print("\n--- Testing send-message with invalid ID ---")
-            data = {
+            params = {
                 "lead_id": invalid_id,
                 "message": "Test message with invalid ID",
                 "org_id": self.org_id
             }
-            response = requests.post(f"{self.base_url}/actions/send-message", json=data)
+            response = requests.post(f"{self.base_url}/actions/send-message", params=params)
             if response.status_code == 404:
                 print(f"✅ Correctly returned 404 for invalid lead ID in send-message")
             else:
@@ -276,12 +276,12 @@ class TestUIActionEndpoints:
             
             # Test initiate call with invalid ID
             print("\n--- Testing initiate-call with invalid ID ---")
-            data = {
+            params = {
                 "lead_id": invalid_id,
                 "objective": "Test call with invalid ID",
                 "org_id": self.org_id
             }
-            response = requests.post(f"{self.base_url}/actions/initiate-call", json=data)
+            response = requests.post(f"{self.base_url}/actions/initiate-call", params=params)
             if response.status_code == 404:
                 print(f"✅ Correctly returned 404 for invalid lead ID in initiate-call")
             else:
