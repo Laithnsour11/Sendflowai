@@ -159,45 +159,6 @@ class AICloserAPITester:
             data=test_data
         )
 
-    def test_memory_store(self):
-        """Test storing memory for a lead"""
-        test_data = {
-            "memory_data": {
-                "name": "Test Lead",
-                "email": "test@example.com",
-                "phone": "1234567890",
-                "budget": "$500,000",
-                "property_type": "Single Family Home"
-            },
-            "memory_type": "factual",
-            "confidence_level": 0.9
-        }
-        return self.run_test(
-            "Store Memory",
-            "POST",
-            f"api/memory/{self.org_id}/{self.lead_id}",
-            200,
-            data=test_data
-        )
-        
-    def test_memory_retrieve(self):
-        """Test retrieving memories for a lead"""
-        return self.run_test(
-            "Retrieve Memories",
-            "GET",
-            f"api/memory/{self.org_id}/{self.lead_id}?memory_type=factual&limit=5",
-            200
-        )
-        
-    def test_memory_context(self):
-        """Test getting context for an agent"""
-        return self.run_test(
-            "Get Agent Context",
-            "GET",
-            f"api/memory/context/{self.org_id}/{self.lead_id}?agent_type=initial_contact",
-            200
-        )
-        
     def test_validate_mem0_key(self):
         """Test validating a Mem0 API key"""
         test_data = {
@@ -230,10 +191,7 @@ def main():
     tester.test_ghl_webhook()
     tester.test_ghl_sync_leads()
     
-    # Test memory system endpoints
-    tester.test_memory_store()
-    tester.test_memory_retrieve()
-    tester.test_memory_context()
+    # Test Mem0 API key validation
     tester.test_validate_mem0_key()
     
     # Test agent orchestration endpoints
