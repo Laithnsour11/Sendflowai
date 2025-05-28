@@ -466,19 +466,12 @@ const Conversations = ({ currentOrg }) => {
                         </div>
                       )}
                       
-                      <div className="mt-3">
-                        <div className="text-xs text-gray-500 mb-1">Effectiveness:</div>
-                        <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div className={`h-2 rounded-full ${
-                              conversation.effectiveness_score >= 0.8 ? 'bg-green-500' :
-                              conversation.effectiveness_score >= 0.6 ? 'bg-yellow-500' :
-                              'bg-red-500'
-                            }`} style={{ width: `${conversation.effectiveness_score * 100}%` }}></div>
-                          </div>
-                          <span className="ml-2 text-xs text-gray-500">{Math.round(conversation.effectiveness_score * 100)}%</span>
+                      {conversation.effectiveness_score && (
+                        <div className="mt-3">
+                          <div className="text-xs text-gray-500 mb-1">Effectiveness:</div>
+                          <div className="text-sm text-gray-900">{Math.round(conversation.effectiveness_score * 100)}%</div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
