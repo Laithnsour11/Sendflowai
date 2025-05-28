@@ -1985,7 +1985,7 @@ async def action_initiate_call(request: InitiateCallRequest):
         raise HTTPException(status_code=500, detail=f"Failed to initiate call: {str(e)}")
 
 @app.post("/api/actions/view-lead")
-async def action_view_lead(lead_id: str):
+async def action_view_lead(request: ViewLeadRequest):
     """
     Get detailed lead information for frontend View buttons.
     """
@@ -1994,12 +1994,12 @@ async def action_view_lead(lead_id: str):
         from bson import ObjectId
         
         # Try to find lead by UUID first
-        lead = await db.leads_collection.find_one({"id": lead_id})
+        lead = await db.leads_collection.find_one({"id": request.lead_id})
         
         # If not found, try by ObjectId
         if not lead:
             try:
-                lead = await db.leads_collection.find_one({"_id": ObjectId(lead_id)})
+                lead = await db.leads_collection.find_one({"_id": ObjectId(request.lead_id)})
             except:
                 # If lead_id is not a valid ObjectId, this will fail
                 pass
@@ -2009,19 +2009,19 @@ async def action_view_lead(lead_id: str):
         
         # Get recent conversations
         conversations = await db.conversations_collection.find(
-            {"lead_id": lead_id}
+            {"lead_id": request.lead_id}
         ).sort("created_at", -1).limit(10).to_list(10)
         
         # Get recent agent interactions
         interactions = await db.agent_interactions_collection.find(
-            {"lead_id": lead_id}
+            {"lead_id": request.lead_id}
         ).sort("created_at", -1).limit(5).to_list(5)
         
         # Get memory context if available
         memory_context = {}
         if use_memory_manager:
             try:
-                memory_context = await memory_manager.get_context_for_agent(lead_id, "general")
+                memory_context = await memory_manager.get_context_for_agent(request.lead_id, "general")
             except Exception as e:
                 print(f"Memory context error: {e}")
                 memory_context = {"error": "Memory unavailable"}
