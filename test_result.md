@@ -228,6 +228,66 @@ backend:
         agent: "testing"
         comment: "Tested the fixed endpoint with the new Pydantic model (InitiateCallRequest). The endpoint now accepts JSON request body instead of query parameters and returns a 200 status code for valid requests. The endpoint successfully creates a conversation record and returns a success response with call_id, conversation_id, and agent_type."
 
+  - task: "POST /api/settings/validate-mem0-key - Validate Mem0 API key"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint is working correctly. Successfully validates Mem0 API keys with the correct format (starts with 'm0-', length > 20) and rejects invalid keys. Returns a JSON response with 'valid' boolean and appropriate message."
+
+  - task: "POST /api/settings/validate-vapi-key - Validate Vapi API key"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint is working correctly. Successfully validates Vapi API keys with the correct UUID format and rejects invalid keys. Returns a JSON response with 'valid' boolean and appropriate message."
+
+  - task: "POST /api/settings/validate-sendblue-key - Validate SendBlue API key"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint is working correctly. Successfully validates SendBlue API keys with the correct format (length > 10) and rejects invalid keys. Returns a JSON response with 'valid' boolean and appropriate message."
+
+  - task: "POST /api/settings/validate-openai-key - Validate OpenAI API key"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint is working correctly. Successfully validates OpenAI API keys with the correct format (starts with 'sk-', length > 20) and rejects invalid keys. Returns a JSON response with 'valid' boolean and appropriate message."
+
+  - task: "POST /api/settings/validate-openrouter-key - Validate OpenRouter API key"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Endpoint is working correctly. Successfully validates OpenRouter API keys with the correct format (starts with 'sk-or-v1-', length > 25) and rejects invalid keys. Returns a JSON response with 'valid' boolean and appropriate message."
+
 frontend:
   - task: "Advanced Analytics Navigation"
     implemented: true
@@ -313,17 +373,16 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
   run_ui: false
 
 test_plan:
   current_focus:
-    - "GET /api/campaigns - List campaigns for organization"
-    - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
-    - "POST /api/campaigns/{campaign_id}/start - Start an active campaign"
-    - "POST /api/campaigns/{campaign_id}/pause - Pause an active campaign"
-    - "POST /api/campaigns/{campaign_id}/stop - Stop and complete a campaign"
-    - "GET /api/campaigns/{campaign_id}/status - Get detailed campaign status and metrics"
+    - "POST /api/settings/validate-mem0-key - Validate Mem0 API key"
+    - "POST /api/settings/validate-vapi-key - Validate Vapi API key"
+    - "POST /api/settings/validate-sendblue-key - Validate SendBlue API key"
+    - "POST /api/settings/validate-openai-key - Validate OpenAI API key"
+    - "POST /api/settings/validate-openrouter-key - Validate OpenRouter API key"
   stuck_tasks:
     - "GET /api/campaigns - List campaigns for organization"
     - "POST /api/campaigns/create - Create new AI-driven outreach campaign"
@@ -357,3 +416,5 @@ agent_communication:
     message: "Successfully tested the UI action button functionality after the authentication persistence fix. Authentication now persists across page refreshes and direct navigation to the Leads page. The Leads page loads correctly with the list of leads. All UI action buttons (Message, Call, View) are working as expected from a frontend perspective. The buttons show proper loading states and user feedback. However, there are backend API issues (422 status codes) when the buttons are clicked. Despite these backend errors, the frontend UI components are working correctly in terms of user interaction and feedback. The backend API issues need to be addressed separately."
   - agent: "testing"
     message: "Tested the fixed UI action endpoints with the new Pydantic models and improved error handling. The POST /api/actions/add-lead, POST /api/actions/view-lead, POST /api/actions/send-message, and POST /api/actions/initiate-call endpoints are now working correctly with JSON request bodies. The GET /api/leads endpoint is also working correctly. All endpoints return 200 status codes for valid requests, which means the Pydantic models are working correctly. However, there are still some issues with error handling for invalid lead IDs - they return 500 errors instead of 404 errors. The verification of conversation and interaction records is also not working as expected in some cases. Overall, the critical fix to resolve the 'Error sending message: [object Object]' issue has been successful, as the endpoints now accept JSON request bodies instead of query parameters."
+  - agent: "testing"
+    message: "Successfully tested all API key validation endpoints. All five endpoints (validate-mem0-key, validate-vapi-key, validate-sendblue-key, validate-openai-key, validate-openrouter-key) are working correctly. Each endpoint properly validates API keys with the correct format and rejects invalid keys. All endpoints return a JSON response with a 'valid' boolean and appropriate message. These endpoints should now fix the 'not valid' error in the Settings page."
