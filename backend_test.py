@@ -139,17 +139,11 @@ class AICloserAPITester:
 
     def test_process_message(self):
         """Test the message processing endpoint"""
-        test_data = {
-            "lead_id": "test-lead-id",
-            "message": "Hello, I'm interested in buying a house",
-            "channel": "chat"
-        }
         return self.run_test(
             "Process Message",
-            "POST",
-            "api/agents/process-message",
-            404,  # Expecting 404 because the lead doesn't exist
-            data=test_data
+            "GET",
+            f"api/agents/process-message?lead_id={self.lead_id}&message=Hello&channel=chat",
+            404  # Expecting 404 because the lead doesn't exist
         )
 
 def main():
