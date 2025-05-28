@@ -1011,6 +1011,79 @@ class AICloserAPITester:
         except Exception as e:
             print(f"❌ Fine-tuning lifecycle test failed with error: {str(e)}")
             return False, {}
+    
+    # Phase C.3 Test Methods - Advanced Analytics System
+    
+    def test_comprehensive_dashboard(self, time_period="30d"):
+        """Test the comprehensive dashboard endpoint"""
+        return self.run_test(
+            f"Comprehensive Dashboard ({time_period})",
+            "GET",
+            f"api/analytics/comprehensive-dashboard?org_id=production_org_123&time_period={time_period}",
+            200
+        )
+    
+    def test_campaign_performance_report(self, campaign_id=None):
+        """Test the campaign performance report endpoint"""
+        endpoint = f"api/analytics/campaign-performance-report?org_id=production_org_123&time_period=30d"
+        if campaign_id:
+            endpoint += f"&campaign_id={campaign_id}"
+            
+        return self.run_test(
+            f"Campaign Performance Report{' (filtered)' if campaign_id else ''}",
+            "GET",
+            endpoint,
+            200
+        )
+    
+    def test_agent_intelligence_report(self, agent_type=None):
+        """Test the agent intelligence report endpoint"""
+        endpoint = f"api/analytics/agent-intelligence-report?org_id=production_org_123&time_period=30d"
+        if agent_type:
+            endpoint += f"&agent_type={agent_type}"
+            
+        return self.run_test(
+            f"Agent Intelligence Report{' (filtered)' if agent_type else ''}",
+            "GET",
+            endpoint,
+            200
+        )
+    
+    def test_export_analytics_report(self):
+        """Test the export analytics report endpoint"""
+        test_data = {
+            "org_id": "production_org_123",
+            "report_type": "dashboard",
+            "time_period": "30d",
+            "format_type": "json"
+        }
+        
+        success, response = self.run_test(
+            "Export Analytics Report",
+            "POST",
+            "api/analytics/export-report",
+            200,
+            data=test_data
+        )
+        
+        if success and "export_id" in response:
+            self.export_id = response["export_id"]
+            print(f"✅ Created export with ID: {self.export_id}")
+        
+        return success, response
+    
+    def test_download_analytics_export(self):
+        """Test the download analytics export endpoint"""
+        if not hasattr(self, 'export_id'):
+            print("⚠️ Skipping Download Analytics Export test - no export ID available")
+            return True, {}
+            
+        return self.run_test(
+            "Download Analytics Export",
+            "GET",
+            f"api/analytics/exports/{self.export_id}/download",
+            200
+        )
 
 def main():
     print("=" * 50)
