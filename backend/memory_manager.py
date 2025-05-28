@@ -311,3 +311,219 @@ class MemoryManager:
         # For MVP, just use the most recent memory
         latest_memory = max(memories, key=lambda m: m.get("created_at", datetime.min))
         return latest_memory.get("memory_content", {})
+
+    async def log_interaction(
+        self, 
+        org_id: str, 
+        lead_id: str, 
+        interaction_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Log an interaction and update memories accordingly
+        
+        Args:
+            org_id: Organization ID
+            lead_id: Lead ID
+            interaction_data: Dict containing interaction details
+            
+        Returns:
+            Dict with logging results
+        """
+        try:
+            # Set API key for the organization
+            await self.set_api_key_for_org(org_id)
+            
+            # Extract relevant information from interaction
+            message = interaction_data.get("message", "")
+            response = interaction_data.get("response", "")
+            channel = interaction_data.get("channel", "unknown")
+            agent_type = interaction_data.get("agent_type", "unknown")
+            sentiment = interaction_data.get("sentiment", "neutral")
+            key_points = interaction_data.get("key_points", [])
+            
+            # Store contextual memory about this interaction
+            contextual_memory = {
+                "interaction_type": channel,
+                "agent_used": agent_type,
+                "last_message": message,
+                "last_response": response,
+                "sentiment": sentiment,
+                "key_points": key_points,
+                "timestamp": interaction_data.get("timestamp", datetime.now().isoformat())
+            }
+            
+            result = await self.store_memory(
+                org_id=org_id,
+                lead_id=lead_id,
+                memory_data=contextual_memory,
+                memory_type="contextual",
+                confidence_level=0.9
+            )
+            
+            logger.info(f"Logged interaction for lead {lead_id} via {channel}")
+            
+            return {
+                "success": True,
+                "memory_id": result.get("id"),
+                "interaction_logged": True,
+                "memory_type": "contextual"
+            }
+            
+        except Exception as e:
+            logger.error(f"Error logging interaction for lead {lead_id}: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "interaction_logged": False
+            }
+
+    async def get_context_for_agent(
+        self, 
+        org_id: str, 
+        lead_id: str, 
+        agent_type: str
+    ) -> Dict[str, Any]:
+        """
+        Get comprehensive context for a specific agent type
+        
+        Args:
+            org_id: Organization ID
+            lead_id: Lead ID
+            agent_type: Type of agent requesting context
+            
+        Returns:
+            Dict with comprehensive context for the agent
+        """
+        try:
+            # Set API key for the organization
+            await self.set_api_key_for_org(org_id)
+            
+            # Get comprehensive context
+            context = await self.synthesize_lead_context(org_id, lead_id)
+            
+            # Add agent-specific context
+            agent_context = {
+                "agent_type": agent_type,
+                "lead_id": lead_id,
+                "org_id": org_id,
+                "context_retrieved_at": datetime.now().isoformat(),
+                
+                # Core memory types
+                "factual_knowledge": context.get("factual_knowledge", {}),
+                "emotional_intelligence": context.get("emotional_intelligence", {}),
+                "strategic_insights": context.get("strategic_insights", {}),
+                "situational_awareness": context.get("situational_awareness", {}),
+                
+                # Agent-specific guidance
+                "agent_guidance": self._get_agent_specific_guidance(agent_type, context),
+                
+                # Summary for quick reference
+                "context_summary": self._create_context_summary(context),
+                
+                # Meta information
+                "total_memories": len(context.get("all_memories", [])),
+                "context_strength": self._calculate_context_strength(context)
+            }
+            
+            logger.info(f"Retrieved context for {agent_type} agent for lead {lead_id}")
+            
+            return agent_context
+            
+        except Exception as e:
+            logger.error(f"Error getting context for {agent_type} agent for lead {lead_id}: {e}")
+            return {
+                "agent_type": agent_type,
+                "lead_id": lead_id,
+                "org_id": org_id,
+                "error": str(e),
+                "context_available": False
+            }
+    
+    def _get_agent_specific_guidance(self, agent_type: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Get specific guidance for different agent types"""
+        
+        factual = context.get("factual_knowledge", {})
+        emotional = context.get("emotional_intelligence", {})
+        strategic = context.get("strategic_insights", {})
+        
+        guidance = {
+            "initial_contact": {
+                "focus": "Building rapport and initial qualification",
+                "key_info": f"Lead name: {factual.get('name', 'Unknown')}, Budget: {factual.get('budget', 'Not specified')}",
+                "approach": "Start with warm greeting, acknowledge previous interactions if any"
+            },
+            
+            "qualifier": {
+                "focus": "Understanding needs, budget, timeline, and decision-making process",
+                "key_info": f"Current stage: {strategic.get('stage', 'Unknown')}, Trust level: {emotional.get('trust_level', 'Unknown')}",
+                "approach": "Use open-ended questions, listen for concerns and motivations"
+            },
+            
+            "nurturer": {
+                "focus": "Building relationships and maintaining engagement",
+                "key_info": f"Preferred contact: {strategic.get('preferred_contact_method', 'Unknown')}, Best time: {strategic.get('best_contact_time', 'Unknown')}",
+                "approach": "Provide value, share relevant content, maintain regular touchpoints"
+            },
+            
+            "objection_handler": {
+                "focus": "Addressing concerns and removing barriers",
+                "key_info": f"Known objections: {strategic.get('objections_raised', [])}, Concerns: {emotional.get('concerns', [])}",
+                "approach": "Listen carefully, acknowledge concerns, provide specific solutions"
+            },
+            
+            "closer": {
+                "focus": "Moving towards commitment and next steps",
+                "key_info": f"Motivation: {emotional.get('motivations', [])}, Properties shown: {strategic.get('properties_shown', [])}",
+                "approach": "Create urgency, emphasize benefits, guide towards decision"
+            },
+            
+            "appointment_setter": {
+                "focus": "Scheduling meetings and coordinating next steps",
+                "key_info": f"Best contact time: {strategic.get('best_contact_time', 'Unknown')}, Next followup: {strategic.get('next_followup', 'Not scheduled')}",
+                "approach": "Offer specific times, confirm availability, send calendar invites"
+            }
+        }
+        
+        return guidance.get(agent_type, guidance["initial_contact"])
+    
+    def _create_context_summary(self, context: Dict[str, Any]) -> str:
+        """Create a concise summary of the lead context"""
+        
+        factual = context.get("factual_knowledge", {})
+        emotional = context.get("emotional_intelligence", {})
+        strategic = context.get("strategic_insights", {})
+        
+        name = factual.get("name", "Unknown Lead")
+        budget = factual.get("budget", "Budget not specified")
+        stage = strategic.get("stage", "Unknown stage")
+        trust_level = emotional.get("trust_level", "Unknown trust level")
+        
+        summary = f"{name} - {budget} - Currently in {stage} - Trust level: {trust_level}"
+        
+        return summary
+    
+    def _calculate_context_strength(self, context: Dict[str, Any]) -> float:
+        """Calculate how strong/complete the context is (0.0 to 1.0)"""
+        
+        strength = 0.0
+        
+        # Check factual knowledge completeness
+        factual = context.get("factual_knowledge", {})
+        if factual.get("name"): strength += 0.15
+        if factual.get("budget"): strength += 0.15
+        if factual.get("email") or factual.get("phone"): strength += 0.1
+        if factual.get("property_type"): strength += 0.1
+        
+        # Check emotional intelligence
+        emotional = context.get("emotional_intelligence", {})
+        if emotional.get("sentiment"): strength += 0.1
+        if emotional.get("trust_level"): strength += 0.1
+        if emotional.get("motivations"): strength += 0.1
+        
+        # Check strategic insights
+        strategic = context.get("strategic_insights", {})
+        if strategic.get("stage"): strength += 0.1
+        if strategic.get("preferred_contact_method"): strength += 0.05
+        if strategic.get("next_followup"): strength += 0.05
+        
+        return min(strength, 1.0)  # Cap at 1.0
