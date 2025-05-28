@@ -213,15 +213,15 @@ class TestUIActionEndpoints:
             return False
             
         try:
-            # Prepare data
-            data = {
+            # Prepare data as query parameters
+            params = {
                 "lead_id": self.lead_id,
                 "objective": "Test call from API test",
                 "org_id": self.org_id
             }
             
             # Make request
-            response = requests.post(f"{self.base_url}/actions/initiate-call", json=data)
+            response = requests.post(f"{self.base_url}/actions/initiate-call", params=params)
             
             # Check response
             if response.status_code == 200:
