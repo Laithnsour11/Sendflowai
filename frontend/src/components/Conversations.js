@@ -484,8 +484,12 @@ const Conversations = ({ currentOrg }) => {
                 </div>
                 
                 <div className="mt-4 flex justify-end">
-                  <button className="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                    View Details
+                  <button 
+                    onClick={() => handleViewDetails(conversation.id, conversation.lead.id)}
+                    disabled={actionLoading[`view_${conversation.id}`]}
+                    className="text-indigo-600 hover:text-indigo-900 text-sm font-medium disabled:opacity-50"
+                  >
+                    {actionLoading[`view_${conversation.id}`] ? 'Loading...' : 'View Details'}
                   </button>
                 </div>
               </div>
