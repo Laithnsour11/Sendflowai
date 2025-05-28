@@ -8,7 +8,19 @@ from enum import Enum
 import os
 
 from fastapi import HTTPException
-import database as db
+
+# Try different import strategies for database module
+try:
+    import database as db
+except ImportError:
+    try:
+        from . import database as db
+    except ImportError:
+        try:
+            from app.backend import database as db
+        except ImportError:
+            print("Warning: Could not import database module in AIFineTuningService")
+            db = None
 
 logger = logging.getLogger(__name__)
 
