@@ -2,32 +2,9 @@ import React from 'react';
 import AITraining from './AITraining';
 
 const AgentTraining = ({ currentOrg }) => {
-  const [agents, setAgents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedAgent, setSelectedAgent] = useState(null);
-  const [availableModels, setAvailableModels] = useState({
-    openai: [],
-    anthropic: [],
-    openrouter: []
-  });
-  const [loadingModels, setLoadingModels] = useState(false);
-  const [formData, setFormData] = useState({
-    agent_type: 'initial_contact',
-    name: '',
-    description: '',
-    system_prompt: '',
-    llm_provider: 'openai',
-    model_id: 'gpt-4o',
-    configuration: {
-      temperature: 0.7,
-      top_p: 0.9,
-      presence_penalty: 0.3,
-      frequency_penalty: 0.3
-    }
-  });
-  const [isEditing, setIsEditing] = useState(false);
-  const [previewResponse, setPreviewResponse] = useState('');
-  const [isGeneratingPreview, setIsGeneratingPreview] = useState(false);
+  // For Phase C.2, we're using the new AITraining component
+  // which includes fine-tuning capabilities based on RLHF data
+  return <AITraining currentOrg={currentOrg} />;
   
   const agentTypes = [
     { value: 'initial_contact', label: 'Initial Contact Agent' },
